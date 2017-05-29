@@ -26,9 +26,23 @@
 
 from __future__ import absolute_import, print_function
 
+from functools import partial
+
 from elasticsearch_dsl import Q
 from flask import request
-from invenio_records_rest.query import es_search_factory as _es_search_factory
+from invenio_records_rest.query import default_search_factory
+
+
+def zenodo_query_parser(qstr=None):
+    """Query parser boosting the title field."""
+    if qstr:
+        return Q('query_string', query=qstr, fields=['_all', 'title^2'])
+    return Q()
+
+
+zenodo_search_factory = partial(
+    default_search_factory, query_parser=zenodo_query_parser
+)
 
 
 def apply_version_filters(search, urlkwargs):
@@ -43,5 +57,5 @@ def apply_version_filters(search, urlkwargs):
 
 def search_factory(self, search, query_parser=None):
     """Search factory."""
-    search, urlkwargs = _es_search_factory(self, search)
+    search, urlkwargs = zenodo_search_factory(self, search)
     return apply_version_filters(search, urlkwargs)
