@@ -36,15 +36,41 @@ from zenodo.modules.records.models import ObjectType
 class _OAType(object):
     """OpenAIRE types."""
 
-    publication = 'publication'
-    dataset = 'dataset'
+    PUBLICATION = 'publication'
+    publication_types = {
+        'article',
+        'book',
+        'conference object',
+        'doctoral thesis',
+        'external research report',
+        'image',
+        'lecture',
+        'other',
+        'part of book or chapter of book',
+        'patent',
+        'preprint',
+        'project deliverable',
+        'project milestone',
+        'project proposal',
+        'publication',
+        'report',
+        'research',
+        'software',
+        'other',
+    }
+
+    DATASET = 'dataset'
+    dataset_types = {
+        'audiovisual',
+        'dataset',
+    }
 
 
 def is_openaire_publication(record):
     """Determine if record is a publication for OpenAIRE."""
     oatype = ObjectType.get_by_dict(record.get('resource_type')).get(
         'openaire', {})
-    if not oatype or oatype['type'] != _OAType.publication:
+    if not oatype or oatype['type'] not in _OAType.publication_types:
         return False
 
     # Has grants, is part of ecfunded community or is open access.
@@ -58,15 +84,15 @@ def is_openaire_dataset(record):
     """Determine if record is a dataset for OpenAIRE."""
     oatype = ObjectType.get_by_dict(record.get('resource_type')).get(
         'openaire', {})
-    return oatype and oatype['type'] == _OAType.dataset
+    return oatype and oatype['type'] in _OAType.dataset_types
 
 
 def openaire_type(record):
     """Get the OpenAIRE type of a record."""
     if is_openaire_publication(record):
-        return _OAType.publication
+        return _OAType.PUBLICATION
     elif is_openaire_dataset(record):
-        return _OAType.dataset
+        return _OAType.DATASET
     return None
 
 
@@ -98,9 +124,9 @@ def openaire_original_id(record, oatype):
     prefix = current_app.config['OPENAIRE_NAMESPACE_PREFIXES'].get(oatype)
 
     value = None
-    if oatype == _OAType.publication:
+    if oatype in _OAType.publication_types:
         value = record.get('_oai', {}).get('id')
-    elif oatype == _OAType.dataset:
+    elif oatype in _OAType.dataset_types:
         value = record.get('doi')
 
     return prefix, value
@@ -111,12 +137,12 @@ def openaire_link(record):
     oatype = openaire_type(record)
     oaid = _openaire_id(record, oatype)
 
-    if oatype == _OAType.publication:
+    if oatype in _OAType.publication_types:
         return '{}/search/publication?articleId={}'.format(
             current_app.config['OPENAIRE_PORTAL_URL'],
             oaid,
         )
-    elif oatype == _OAType.dataset:
+    elif oatype in _OAType.dataset_types:
         return '{}/search/dataset?datasetId={}'.format(
             current_app.config['OPENAIRE_PORTAL_URL'],
             oaid,

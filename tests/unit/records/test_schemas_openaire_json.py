@@ -103,28 +103,58 @@ def test_full(app, db, full_oai_record, recid_pid):
     }
 
 
-def test_resource_types(app, db, minimal_oai_record, recid_pid):
+@pytest.mark.parametrize(
+    ('resource_type', 'openaire_resource_type', 'openaire_type', 'is_dataset'),
+    (
+        ('dataset', '0021', 'dataset', True),
+        ('image-diagram', '0025', 'image', False),
+        ('image-drawing', '0025', 'image', False),
+        ('image-figure', '0025', 'image', False),
+        ('image-other', '0025', 'image', False),
+        ('image-photo', '0025', 'image', False),
+        ('image-plot', '0025', 'image', False),
+        ('lesson', '0010', 'lecture', False),
+        ('poster', '0004', 'conference object', False),
+        ('presentation', '0004', 'conference object', False),
+        ('publication-article', '0001', 'article', False),
+        ('publication-book', '0002', 'book', False),
+        ('publication-conferencepaper', '0004', 'conference object', False),
+        ('publication-deliverable', '0034', 'project deliverable', False),
+        ('publication-milestone', '0035', 'project milestone', False),
+        ('publication-other', '0020', 'other', False),
+        ('publication-patent', '0019', 'patent', False),
+        ('publication-preprint', '0016', 'preprint', False),
+        ('publication-proposal', '0036', 'project proposal', False),
+        ('publication-report', '0017', 'report', False),
+        ('publication-section', '0013', 'part of book or chapter of book', False),
+        ('publication-softwaredocumentation', '0009', 'external research report', False),
+        ('publication-technicalnote', '0009', 'external research report', False),
+        ('publication-thesis', '0006', 'doctoral thesis', False),
+        ('publication-workingpaper', '0014', 'research', False),
+        ('publication', '0001', 'publication', False),
+        ('software', '0029', 'software', True),
+        ('video', '0033', 'audiovisual', True),
+    )
+)
+def test_resource_types(app, db, minimal_oai_record, recid_pid, resource_type,
+                        openaire_resource_type, openaire_type, is_dataset):
     """"Test resource types."""
     minimal_oai_record['doi'] = '10.1234/foo'
 
-    minimal_oai_record.update({'resource_type': {'type': 'dataset'}})
+    minimal_oai_record.update({'resource_type': {'type': resource_type}})
     obj = openaire_json_v1.transform_record(
         recid_pid, Record(minimal_oai_record))
-    # Datasets use the DOI
-    assert obj['originalId'] == '10.1234/foo'
-    assert obj['collectedFromId'] == 're3data_____::r3d100010468'
-    assert obj['hostedById'] == 're3data_____::r3d100010468'
-    assert obj['resourceType'] == '0021'
-    assert obj['type'] == 'dataset'
-
-    minimal_oai_record.update({'resource_type': {'type': 'poster'}})
-    obj = openaire_json_v1.transform_record(
-        recid_pid, Record(minimal_oai_record))
-    assert obj['originalId'] == 'oai:zenodo.org:123'
-    assert obj['collectedFromId'] == 'opendoar____::2659'
-    assert obj['hostedById'] == 'opendoar____::2659'
-    assert obj['resourceType'] == '0004'
-    assert obj['type'] == 'publication'
+    assert obj['resourceType'] == openaire_resource_type
+    assert obj['type'] == openaire_type
+    if is_dataset:
+        # Datasets use the DOI and different datasource
+        assert obj['originalId'] == '10.1234/foo'
+        assert obj['collectedFromId'] == 're3data_____::r3d100010468'
+        assert obj['hostedById'] == 're3data_____::r3d100010468'
+    else:
+        assert obj['originalId'] == 'oai:zenodo.org:123'
+        assert obj['collectedFromId'] == 'opendoar____::2659'
+        assert obj['hostedById'] == 'opendoar____::2659'
 
 
 def test_grants(app, db, minimal_oai_record, recid_pid):

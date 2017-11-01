@@ -46,7 +46,7 @@
   "schema.org": "https://schema.org/CreativeWork",
   "openaire": {
     "resourceType": "0004",
-    "type": "publication"
+    "type": "conference object"
   },
   "csl": "graphic"
 },
@@ -64,8 +64,8 @@
   "eurepo": "info:eu-repo/semantics/lecture",
   "schema.org": "https://schema.org/PresentationDigitalDocument",
   "openaire": {
-    "resourceType": "0010",
-    "type": "publication"
+    "resourceType": "0004",
+    "type": "conference object"
   },
   "csl": "speech"
 },
@@ -191,7 +191,7 @@
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
     "resourceType": "0002",
-    "type": "publication"
+    "type": "book"
   },
   "csl": "book"
 },
@@ -211,7 +211,7 @@
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
     "resourceType": "0013",
-    "type": "publication"
+    "type": "part of book or chapter of book"
   },
   "csl": "chapter"
 },
@@ -231,7 +231,7 @@
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
     "resourceType": "0004",
-    "type": "publication"
+    "type": "conference object"
   },
   "csl": "paper-conference"
 },
@@ -251,7 +251,7 @@
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
     "resourceType": "0001",
-    "type": "publication"
+    "type": "article"
   },
   "csl": "article-journal"
 },
@@ -271,7 +271,7 @@
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
     "resourceType": "0019",
-    "type": "publication"
+    "type": "patent"
   },
   "csl": "patent"
 },
@@ -291,7 +291,7 @@
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
     "resourceType": "0016",
-    "type": "publication"
+    "type": "preprint"
   },
   "csl": "article"
 },
@@ -311,7 +311,7 @@
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
     "resourceType": "0017",
-    "type": "publication"
+    "type": "report"
   },
   "csl": "article"
 },
@@ -330,8 +330,8 @@
   "eurepo": "info:eu-repo/semantics/technicalDocumentation",
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
-    "resourceType": "0032",
-    "type": "publication"
+    "resourceType": "0009",
+    "type": "external research report"
   },
   "csl": "article"
 },
@@ -350,8 +350,8 @@
   "eurepo": "info:eu-repo/semantics/doctoralThesis",
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
-    "resourceType": "0007",
-    "type": "publication"
+    "resourceType": "0006",
+    "type": "doctoral thesis"
   },
   "csl": "thesis"
 },
@@ -370,8 +370,8 @@
   "eurepo": "info:eu-repo/semantics/technicalDocumentation",
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
-    "resourceType": "0020",
-    "type": "publication"
+    "resourceType": "0009",
+    "type": "external research report"
   },
   "csl": "article"
 },
@@ -390,8 +390,8 @@
   "eurepo": "info:eu-repo/semantics/workingPaper",
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
-    "resourceType": "0016",
-    "type": "publication"
+    "resourceType": "0014",
+    "type": "research"
   },
   "csl": "article"
 },
@@ -410,8 +410,8 @@
   "eurepo": "info:eu-repo/semantics/researchProposal",
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
-    "resourceType": "0020",
-    "type": "publication"
+    "resourceType": "0036",
+    "type": "project proposal"
   },
   "csl": "article"
 },
@@ -430,8 +430,8 @@
   "eurepo": "info:eu-repo/semantics/report",
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
-    "resourceType": "0017",
-    "type": "publication"
+    "resourceType": "0034",
+    "type": "project deliverable"
   },
   "csl": "report"
 },
@@ -450,8 +450,8 @@
   "eurepo": "info:eu-repo/semantics/report",
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
-    "resourceType": "0017",
-    "type": "publication"
+    "resourceType": "0035",
+    "type": "project milestone"
   },
   "csl": "report"
 },
@@ -471,7 +471,7 @@
   "parent": {"$ref": "https://zenodo.org/objecttypes/publication"},
   "openaire": {
     "resourceType": "0020",
-    "type": "publication"
+    "type": "other"
   },
   "csl": "article"
 },

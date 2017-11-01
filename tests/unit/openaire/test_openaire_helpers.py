@@ -34,7 +34,7 @@ def test_openaire_type(app, minimal_record):
     """Test OpenAIRE type."""
     r = minimal_record
     # Default zenodo type is software which has no OpenAIRE type.
-    assert openaire_type(r) is None
+    assert openaire_type(r) is 'software'
 
     # Datasets just map to datasets.
     r['resource_type']['type'] = 'dataset'
@@ -84,7 +84,9 @@ def test_openaire_link(app, minimal_record):
     r['_oai'] = {'id': u'oai:zenodo.org:123'}
 
     # Default zenodo type is software which has no OpenAIRE type.
-    assert openaire_link(r) is None
+    assert openaire_link(r) == \
+        'https://beta.openaire.eu/search/dataset' \
+        '?datasetId=r37b0ad08687::204007f516ddcf0a452c2f22d48695ca'
 
     # Dataset ID
     r['resource_type']['type'] = 'dataset'
