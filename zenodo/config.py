@@ -80,10 +80,13 @@ MAIL_SUPPRESS_SEND = True
 # Application
 # ===========
 #: Disable Content Security Policy headers.
-APP_DEFAULT_SECURE_HEADERS['content_security_policy'] = {}
+APP_DEFAULT_SECURE_HEADERS.update({
+    'content_security_policy': {},
 # Allow us to run the development server without enabling debug.
-APP_DEFAULT_SECURE_HEADERS['force_https'] = False
-APP_DEFAULT_SECURE_HEADERS['session_cookie_secure'] = False
+    'force_https': False,
+    'session_cookie_secure': False,
+    'strict_transport_security_include_subdomains': False,
+})
 
 # DataCite
 # ========
