@@ -28,6 +28,8 @@ from __future__ import absolute_import, print_function
 
 from flask_babelex import gettext
 from speaklater import make_lazy_gettext
+from invenio_records_rest.errors import PIDDeletedRESTError
+
 
 _ = make_lazy_gettext(lambda: gettext)
 
@@ -110,3 +112,9 @@ ZENODO_DOIID4RECID = {
 Wrong DOIs were minted for a short period in 2013 due to mistake in the legacy
 system.
 """
+
+ZENODO_RECID_ERROR_HANDLERS = {
+    PIDDeletedRESTError:
+        'zenodo.modules.records.views.record_tombstone_handler',
+}
+"""."""

@@ -31,7 +31,8 @@ from operator import itemgetter
 
 import idutils
 import six
-from flask import Blueprint, current_app, render_template, request
+from flask import Blueprint, current_app, jsonify, make_response, \
+    render_template, request
 from flask_principal import ActionNeed
 from invenio_access.permissions import Permission
 from invenio_communities.models import Community
@@ -382,3 +383,14 @@ def community_curation(record, user):
 def record_communities():
     """Context processor for community curation for given record."""
     return dict(community_curation=community_curation)
+
+
+def record_tombstone_handler(error):
+    """Handles record tombstones for the REST API."""
+    return make_response(
+        jsonify({
+            'status': 410,
+            'message': 'it is not here man...',
+            'removal_reason':
+                (error.pid_error.record or {}).get('removal_reason'),
+        }), 410)

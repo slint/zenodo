@@ -67,6 +67,7 @@ from zenodo_accessrequests.config import ACCESSREQUESTS_RECORDS_UI_ENDPOINTS
 from zenodo.modules.records.permissions import deposit_delete_permission_factory, \
     deposit_read_permission_factory, deposit_update_permission_factory, \
     record_create_permission_factory, record_update_permission_factory
+from zenodo.modules.records.config import ZENODO_RECID_ERROR_HANDLERS
 
 
 def _(x):
@@ -82,7 +83,7 @@ MAIL_SUPPRESS_SEND = True
 #: Disable Content Security Policy headers.
 APP_DEFAULT_SECURE_HEADERS.update({
     'content_security_policy': {},
-# Allow us to run the development server without enabling debug.
+    # Allow us to run the development server without enabling debug.
     'force_https': False,
     'session_cookie_secure': False,
     'strict_transport_security_include_subdomains': False,
@@ -754,6 +755,7 @@ RECORDS_REST_ENDPOINTS = dict(
         },
         default_media_type='application/vnd.zenodo.v1+json',
         read_permission_factory_imp=allow_all,
+        error_handlers=ZENODO_RECID_ERROR_HANDLERS,
     ),
 )
 # Default OpenAIRE API endpoints.
