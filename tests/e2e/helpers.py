@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Zenodo.
-# Copyright (C) 2015 CERN.
+# Copyright (C) 2017 CERN.
 #
 # Zenodo is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -22,13 +22,18 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""E2E integration tests."""
+"""E2E testing helpers."""
 
 from __future__ import absolute_import, print_function
 
 from flask import url_for
 
 
-def test_frontpage(live_server, env_browser):
-    """Test retrieval of frontpage."""
-    env_browser.get(url_for('zenodo_frontpage.index', _external=True))
+def login_user(browser, email, password):
+    """Log in as a user."""
+    login_link = url_for('security.login')
+    browser.get(login_link)
+    browser.find_element_by_id('email').send_keys(email)
+    browser.find_element_by_id('password').send_keys(password)
+    browser.find_element_by_css_selector('button[type="submit"]').click()
+    return browser

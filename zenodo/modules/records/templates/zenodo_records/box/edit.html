@@ -52,6 +52,7 @@
     Admin <span class="caret"></span>
   </button>
   <ul class="dropdown-menu">
+    <li class="dropdown-header">Record</li>
     <li><a href="{{ url_for('persistentidentifier.index_view', flt1_21=record.id) }}">
       Persistent identifiers
     </a></li>
@@ -63,6 +64,18 @@
       Bucket
     </a></li>
     {%- endif %}
+    {% if record._deposit.id %}
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">Deposit</li>
+    <li><a href="{{ url_for('persistentidentifier.index_view', flt0_2='depid', flt3_9=record._deposit.id) }}">
+      Persistent Identifier
+    </a></li>
+    {% if record.files %}
+    <li><a href="{{ url_for('bucket.details_view', id=record._buckets.deposit) }}">
+      Bucket
+    </a></li>
+    {% endif %}
+    {% endif %}
     <li role="separator" class="divider"></li>
     <li><a href="{{ url_for('zenodo_deposit.delete', pid_value=pid.pid_value) }}" type="submit">
       <span class="text-danger"><i class="fa fa-trash"></i> Delete ...</span>

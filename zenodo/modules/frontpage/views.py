@@ -65,6 +65,7 @@ def init_menu():
 @cached_unless_authenticated_or_flashes(timeout=600, key_prefix='frontpage')
 def index():
     """Frontpage blueprint."""
+    print('Hey there!')
     msg = current_app.config.get('FRONTPAGE_MESSAGE')
     if msg:
         flash(msg, category=current_app.config.get(
