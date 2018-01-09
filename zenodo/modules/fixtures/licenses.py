@@ -148,6 +148,7 @@ def create_new_license(license):
     license_validator.validate(license)
     record = Record.create(license)
     license_minter(record.id, license)
+    return record
 
 
 def loadlicenses():
@@ -158,7 +159,7 @@ def loadlicenses():
     """
     data = read_json('data/licenses.json')
     map_ = read_json('data/licenses_map.json')
-    mapped = [(d, map_[d['id']] if d['id'] in map_ else None) for d in data]
+    mapped = [(d, map_.get(d['id'])) for d in data]
     try:
         for lic, alt_pid in mapped:
             if lic['id'] == alt_pid:  # Skip the already-existing licenses
@@ -168,7 +169,8 @@ def loadlicenses():
                     pid, record = license_resolver.resolve(alt_pid)
                     license_minter(record.id, lic)
                 except PIDDoesNotExistError:
-                    create_new_license(lic)
+                    record = create_new_license(lic)
+                    license_minter(record.id, {'id': alt_pid})
             else:
                 create_new_license(lic)
         db.session.commit()
