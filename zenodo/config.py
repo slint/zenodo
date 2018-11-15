@@ -429,7 +429,9 @@ OPENAIRE_ZENODO_IDS = {
 #: OpenAIRE ID namespace prefixes for Zenodo.
 OPENAIRE_NAMESPACE_PREFIXES = {
     'publication': 'od______2659',
+    'other': 'od______2659',
     'dataset': 'r37b0ad08687',
+    'software': 'r37b0ad08687',
 }
 #: OpenAIRE API endpoint.
 OPENAIRE_API_URL = 'http://dev.openaire.research-infrastructures.eu/is/mvc'
@@ -439,6 +441,13 @@ OPENAIRE_API_USERNAME = None
 OPENAIRE_API_PASSWORD = None
 #: URL to OpenAIRE portal.
 OPENAIRE_PORTAL_URL = 'https://beta.openaire.eu'
+#:
+OPENAIRE_PORTAL_URL_PARTS = {
+    'publication': ('publication', 'articleId'),
+    'other': ('publication', 'articleId'),
+    'dataset': ('publication', 'articleId'),
+    'software': ('publication', 'articleId'),
+}
 #: OpenAIRE community identifier prefix.
 OPENAIRE_COMMUNITY_IDENTIFIER_PREFIX = 'https://openaire.eu/communities'
 #: Enable sending published records for direct indexing at OpenAIRE.

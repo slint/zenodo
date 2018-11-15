@@ -40,6 +40,8 @@ class _OAType(object):
 
     publication = 'publication'
     dataset = 'dataset'
+    software = 'software'
+    other = 'other'
 
 
 def is_openaire_publication(record):
@@ -100,9 +102,9 @@ def openaire_original_id(record, oatype):
     prefix = current_app.config['OPENAIRE_NAMESPACE_PREFIXES'].get(oatype)
 
     value = None
-    if oatype == _OAType.publication:
+    if oatype in (_OAType.publication, _OAType.other):
         value = record.get('_oai', {}).get('id')
-    elif oatype == _OAType.dataset:
+    elif oatype in (_OAType.dataset, _OAType.software):
         value = record.get('doi')
 
     return prefix, value
@@ -113,15 +115,11 @@ def openaire_link(record):
     oatype = openaire_type(record)
     oaid = _openaire_id(record, oatype)
 
-    if oatype == _OAType.publication:
-        return '{}/search/publication?articleId={}'.format(
-            current_app.config['OPENAIRE_PORTAL_URL'],
-            oaid,
-        )
-    elif oatype == _OAType.dataset:
-        return '{}/search/dataset?datasetId={}'.format(
-            current_app.config['OPENAIRE_PORTAL_URL'],
-            oaid,
+    if oatype in current_app.config['OPENAIRE_PORTAL_URL_PARTS']:
+        base = current_app.config['OPENAIRE_PORTAL_URL']
+        path, param = current_app.config['OPENAIRE_PORTAL_URL'][oatype]
+        return '{base}/search/{path}?{param}={id}'.format(
+            base=base, path=path, param=param, id=oaid,
         )
     return None
 
