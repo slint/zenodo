@@ -48,7 +48,7 @@ def schema_prefix(schema):
     if not schema:
         return None
     index, doctype = schema_to_index(
-        schema, index_names=current_search.mappings.keys(), prefixed=False)
+        schema, index_names=current_search.mappings.keys())
     return index.split('-')[0]
 
 

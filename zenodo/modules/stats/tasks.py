@@ -52,7 +52,7 @@ def update_record_statistics(start_date=None, end_date=None):
         for aggr_name in current_stats.enabled_aggregations:
             aggr_cfg = current_stats.aggregations[aggr_name]
             aggr = aggr_cfg.aggregator_class(
-                name=aggr_cfg.name, **aggr_cfg.aggregator_config)
+                aggregation_name=aggr_cfg.name, **aggr_cfg.aggregator_config)
 
             if not Index(aggr.aggregation_alias, using=aggr.client).exists():
                 if not Index(aggr.event_index, using=aggr.client).exists():
@@ -82,7 +82,7 @@ def update_record_statistics(start_date=None, end_date=None):
         for aggr_name in current_stats.enabled_aggregations:
             aggr_cfg = current_stats.aggregations[aggr_name]
             aggr = aggr_cfg.aggregator_class(
-                name=aggr_cfg.name, **aggr_cfg.aggregator_config)
+                aggregation_name=aggr_cfg.name, **aggr_cfg.aggregator_config)
             aggr_configs[aggr.aggregation_alias] = aggr
     else:
         return
@@ -99,7 +99,7 @@ def update_record_statistics(start_date=None, end_date=None):
                 'gte': start_date.replace(microsecond=0).isoformat() + '||/d',
                 'lte': end_date.replace(microsecond=0).isoformat() + '||/d'}
         ).extra(_source=False)
-        query.aggs.bucket('ids', 'terms', field='conceptrecid', size=0)
+        query.aggs.bucket('ids', 'terms', field='conceptrecid')
         conceptrecids |= {
             b.key for b in query.execute().aggregations.ids.buckets}
 
