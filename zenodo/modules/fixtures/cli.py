@@ -47,7 +47,7 @@ from .users import loaduser
 from .utils import read_json
 
 
-@click.group()
+@click.group(chain=True)
 def fixtures():
     """Command for loading fixture data."""
 
