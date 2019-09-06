@@ -35,62 +35,56 @@ from six import BytesIO
 
 def upload(token, metadata, files, publish=True):
     """Make an upload."""
-    base_url = 'http://localhost:5000/api/deposit/depositions'
-    auth = {
-        'Authorization': 'Bearer {0}'.format(token)
-    }
-    auth_json = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
+    base_url = "http://localhost:5000/api/deposit/depositions"
+    auth = {"Authorization": "Bearer {0}".format(token)}
+    auth_json = {"Content-Type": "application/json", "Accept": "application/json"}
     auth_json.update(auth)
 
-    r = requests.post(base_url, data='{}', headers=auth_json)
+    r = requests.post(base_url, data="{}", headers=auth_json)
     assert r.status_code == 201
-    links = r.json()['links']
-    print('Create deposit:')
+    links = r.json()["links"]
+    print("Create deposit:")
     print(r.json())
     # Wait for ES to index.
     sleep(1)
 
     for filename, stream in files:
         r = requests.post(
-            links['files'],
+            links["files"],
             data=dict(filename=filename),
             files=dict(file=stream),
-            headers=auth)
+            headers=auth,
+        )
         assert r.status_code == 201
-        print('Upload file:')
+        print("Upload file:")
         print(r.json())
 
     r = requests.put(
-        links['self'],
-        data=json.dumps(dict(metadata=metadata)),
-        headers=auth_json
+        links["self"], data=json.dumps(dict(metadata=metadata)), headers=auth_json
     )
     assert r.status_code == 200
-    print('Update metadata:')
+    print("Update metadata:")
     print(r.json())
 
     if publish:
-        r = requests.post(links['publish'], headers=auth)
+        r = requests.post(links["publish"], headers=auth)
         assert r.status_code == 202
-        print('Publish:')
+        print("Publish:")
         print(r.json())
 
-    return r.json()['id']
+    return r.json()["id"]
 
 
 def upload_test(token, publish=True):
     """Test upload."""
     metadata = {
-        'title': 'My first upload',
-        'upload_type': 'publication',
-        'publication_type': 'book',
-        'description': 'This is my first upload',
-        'access_right': 'open',
-        'license': 'cc-by',
-        'creators': [{'name': 'Doe, John', 'affiliation': 'Zenodo'}]
+        "title": "My first upload",
+        "upload_type": "publication",
+        "publication_type": "book",
+        "description": "This is my first upload",
+        "access_right": "open",
+        "license": "cc-by",
+        "creators": [{"name": "Doe, John", "affiliation": "Zenodo"}],
     }
-    files = [('test.txt', BytesIO(b'My first test upload.'))]
+    files = [("test.txt", BytesIO(b"My first test upload."))]
     return upload(token, metadata, files, publish=publish)

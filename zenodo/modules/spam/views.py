@@ -44,35 +44,33 @@ from zenodo.modules.deposit.utils import delete_record
 from zenodo.modules.spam.forms import DeleteSpamForm
 
 blueprint = Blueprint(
-    'zenodo_spam',
-    __name__,
-    url_prefix='/spam',
-    template_folder='templates',
+    "zenodo_spam", __name__, url_prefix="/spam", template_folder="templates"
 )
 
 
-@blueprint.route('/<int:user_id>/delete/', methods=['GET', 'POST'])
+@blueprint.route("/<int:user_id>/delete/", methods=["GET", "POST"])
 @login_required
 def delete(user_id):
     """Delete spam."""
     # Only admin can access this view
-    if not Permission(ActionNeed('admin-access')).can():
+    if not Permission(ActionNeed("admin-access")).can():
         abort(403)
 
     user = User.query.get(user_id)
     deleteform = DeleteSpamForm()
     communities = Community.query.filter_by(id_user=user.id)
 
-    rs = RecordsSearch(index='records').query(
-        Q('query_string', query="owners: {0}".format(user.id)))
+    rs = RecordsSearch(index="records").query(
+        Q("query_string", query="owners: {0}".format(user.id))
+    )
     rec_count = rs.count()
 
     ctx = {
-        'user': user,
-        'form': deleteform,
-        'is_new': False,
-        'communities': communities,
-        'rec_count': rec_count,
+        "user": user,
+        "form": deleteform,
+        "is_new": False,
+        "communities": communities,
+        "rec_count": rec_count,
     }
 
     if deleteform.validate_on_submit():
@@ -80,8 +78,8 @@ def delete(user_id):
         if deleteform.remove_all_communities.data:
             for c in communities:
                 if not c.deleted_at:
-                    if not c.description.startswith('--SPAM--'):
-                        c.description = '--SPAM--' + c.description
+                    if not c.description.startswith("--SPAM--"):
+                        c.description = "--SPAM--" + c.description
                     if c.oaiset:
                         db.session.delete(c.oaiset)
                     c.delete()
@@ -93,11 +91,11 @@ def delete(user_id):
         # for each deleted record
         if deleteform.remove_all_records.data:
             for r in rs.scan():
-                delete_record(r.meta.id, 'spam', int(current_user.get_id()))
+                delete_record(r.meta.id, "spam", int(current_user.get_id()))
 
-        flash("Spam removed", category='success')
-        return redirect(url_for('.delete', user_id=user.id))
+        flash("Spam removed", category="success")
+        return redirect(url_for(".delete", user_id=user.id))
     else:
         records = islice(rs.scan(), 10)
         ctx.update(records=records)
-        return render_template('zenodo_spam/delete.html', **ctx)
+        return render_template("zenodo_spam/delete.html", **ctx)

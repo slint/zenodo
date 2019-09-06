@@ -38,16 +38,15 @@ def initialize_exporter_bucket():
 
     :raises: `invenio_files_rest.errors.FilesException`
     """
-    bucket_id = UUID(current_app.config['EXPORTER_BUCKET_UUID'])
+    bucket_id = UUID(current_app.config["EXPORTER_BUCKET_UUID"])
 
     if Bucket.query.get(bucket_id):
-        raise FilesException("Bucket with UUID {} already exists.".format(
-            bucket_id))
+        raise FilesException("Bucket with UUID {} already exists.".format(bucket_id))
     else:
-        storage_class = current_app.config['FILES_REST_DEFAULT_STORAGE_CLASS']
+        storage_class = current_app.config["FILES_REST_DEFAULT_STORAGE_CLASS"]
         location = Location.get_default()
-        bucket = Bucket(id=bucket_id,
-                        location=location,
-                        default_storage_class=storage_class)
+        bucket = Bucket(
+            id=bucket_id, location=location, default_storage_class=storage_class
+        )
         db.session.add(bucket)
         db.session.commit()

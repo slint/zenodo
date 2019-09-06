@@ -36,9 +36,9 @@ from .utils import file_stream
 
 def loadcommunity(comm_data):
     """Load the Zenodo communities fixture."""
-    logo_path = comm_data.pop('logo', None)
-    community_id = comm_data.pop('id')
-    owner_email = comm_data.pop('owner_email')
+    logo_path = comm_data.pop("logo", None)
+    community_id = comm_data.pop("id")
+    owner_email = comm_data.pop("owner_email")
     owner_id = User.query.filter_by(email=owner_email).one().id
     c = Community.create(community_id, owner_id, **comm_data)
     if logo_path:

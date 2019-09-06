@@ -36,14 +36,14 @@ class AnonymousWebsiteTasks(TaskSet):
     def download(self):
         """Task download."""
         self.client.get(
-            'https://sandbox.zenodo.org/record/16464/files/'
-            'FWF_JournalPublicationCosts_2013__incl._licenses.xlsx')
+            "https://sandbox.zenodo.org/record/16464/files/"
+            "FWF_JournalPublicationCosts_2013__incl._licenses.xlsx"
+        )
 
     @task
     def static(self):
         """Task static file."""
-        self.client.get(
-            'https://sandbox.zenodo.org/static/gen/zenodo.21142a66.css')
+        self.client.get("https://sandbox.zenodo.org/static/gen/zenodo.21142a66.css")
 
     @task
     def sandbox(self):

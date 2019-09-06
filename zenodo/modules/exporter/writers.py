@@ -44,8 +44,7 @@ class BucketWriter(object):
     def open(self):
         """Open the bucket for writing."""
         self.obj = ObjectVersion.create(
-            self.bucket_id,
-            self.key() if callable(self.key) else self.key
+            self.bucket_id, self.key() if callable(self.key) else self.key
         )
         db.session.commit()
         return self
@@ -61,7 +60,6 @@ class BucketWriter(object):
 
 def filename_factory(**kwargs):
     """Get a function which generates a filename with a timestamp."""
-    return lambda: '{index}-{timestamp}.{format}'.format(
-        timestamp=datetime.utcnow().replace(microsecond=0).isoformat(),
-        **kwargs
+    return lambda: "{index}-{timestamp}.{format}".format(
+        timestamp=datetime.utcnow().replace(microsecond=0).isoformat(), **kwargs
     )

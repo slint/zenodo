@@ -28,58 +28,54 @@ from __future__ import absolute_import, print_function
 
 from flask import Blueprint, Response, current_app, json, request, url_for
 
-blueprint = Blueprint(
-    'zenodo_rest',
-    __name__,
-    url_prefix='',
-)
+blueprint = Blueprint("zenodo_rest", __name__, url_prefix="")
 
 
 def _format_args():
     """Get JSON dump indentation and separates."""
     # Ensure we can run outside a application/request context.
     try:
-        pretty_format = \
-            current_app.config['JSONIFY_PRETTYPRINT_REGULAR'] and \
-            not request.is_xhr
+        pretty_format = (
+            current_app.config["JSONIFY_PRETTYPRINT_REGULAR"] and not request.is_xhr
+        )
     except RuntimeError:
         pretty_format = False
 
     if pretty_format:
-        return dict(
-            indent=2,
-            separators=(', ', ': '),
-        )
+        return dict(indent=2, separators=(", ", ": "))
     else:
-        return dict(
-            indent=None,
-            separators=(',', ':'),
-        )
+        return dict(indent=None, separators=(",", ":"))
 
 
-@blueprint.route('/')
+@blueprint.route("/")
 def index():
     """REST API root endpoint."""
     return Response(
-        json.dumps({
-            'links': {
-                'communities': url_for(
-                    'invenio_communities_rest.communities_list',
-                    _external=True),
-                'deposits': url_for(
-                    'invenio_deposit_rest.depid_list', _external=True),
-                'funders': url_for(
-                    'invenio_records_rest.frdoi_list', _external=True),
-                'grants': url_for(
-                    'invenio_records_rest.grant_list', _external=True),
-                'files': url_for(
-                    'invenio_files_rest.location_api', _external=True),
-                'licenses': url_for(
-                    'invenio_records_rest.od_lic_list', _external=True),
-                'records': url_for(
-                    'invenio_records_rest.recid_list', _external=True), }
+        json.dumps(
+            {
+                "links": {
+                    "communities": url_for(
+                        "invenio_communities_rest.communities_list", _external=True
+                    ),
+                    "deposits": url_for(
+                        "invenio_deposit_rest.depid_list", _external=True
+                    ),
+                    "funders": url_for(
+                        "invenio_records_rest.frdoi_list", _external=True
+                    ),
+                    "grants": url_for(
+                        "invenio_records_rest.grant_list", _external=True
+                    ),
+                    "files": url_for("invenio_files_rest.location_api", _external=True),
+                    "licenses": url_for(
+                        "invenio_records_rest.od_lic_list", _external=True
+                    ),
+                    "records": url_for(
+                        "invenio_records_rest.recid_list", _external=True
+                    ),
+                }
             },
             **_format_args()
         ),
-        mimetype='application/json',
+        mimetype="application/json",
     )

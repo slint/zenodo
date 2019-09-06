@@ -33,4 +33,4 @@ class PiwikExportRequestError(Exception):
     def __init__(self, *args, **kwargs):
         """Initialize the error with first and last events' timestamps."""
         super(PiwikExportRequestError, self).__init__(*args)
-        self.extra = kwargs['export_info']
+        self.extra = kwargs["export_info"]

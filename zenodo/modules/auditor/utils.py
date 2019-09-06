@@ -41,11 +41,16 @@ from ..records.api import ZenodoRecord
 
 def all_records():
     """Return a ZenodoRecord generator with all records."""
-    records = (db.session.query(RecordMetadata)
-               .join(PersistentIdentifier,
-                     RecordMetadata.id == PersistentIdentifier.object_uuid)
-               .filter(PersistentIdentifier.pid_type == 'recid',
-                       PersistentIdentifier.status == PIDStatus.REGISTERED))
+    records = (
+        db.session.query(RecordMetadata)
+        .join(
+            PersistentIdentifier, RecordMetadata.id == PersistentIdentifier.object_uuid
+        )
+        .filter(
+            PersistentIdentifier.pid_type == "recid",
+            PersistentIdentifier.status == PIDStatus.REGISTERED,
+        )
+    )
     return (ZenodoRecord(data=r.json, model=r) for r in records)
 
 
@@ -72,25 +77,28 @@ def sickle_requests_get_mock():
     this we are making a function mock that makes a request using the
     `Flask.test_client`, and returns a mock containing the text response.
     """
+
     def get(endpoint, params, **kwargs):
         """Mock `request.get` method."""
         with current_app.test_request_context():
             with current_app.test_client() as client:
-                if endpoint == 'http://auditor/oai2d':
-                    oai_url = url_for('invenio_oaiserver.response', **params)
+                if endpoint == "http://auditor/oai2d":
+                    oai_url = url_for("invenio_oaiserver.response", **params)
                     res = client.get(oai_url)
 
                     mock_res = MagicMock()
                     mock_res.text = res.get_data(as_text=True)
                     return mock_res
+
     return MagicMock(side_effect=get)
 
 
 def get_file_logger(logfile, audit_type, audit_id):
     """Return a buffered file logger."""
-    logger = logging.getLogger('zenodo.auditor.{type}.{id}'
-                               .format(type=audit_type, id=audit_id))
+    logger = logging.getLogger(
+        "zenodo.auditor.{type}.{id}".format(type=audit_type, id=audit_id)
+    )
     if logfile:
-        file_handler = logging.FileHandler(logfile, mode='w')
+        file_handler = logging.FileHandler(logfile, mode="w")
         logger.addHandler(MemoryHandler(100, target=file_handler))
     return logger

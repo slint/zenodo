@@ -36,137 +36,143 @@ from .common import ui_link_for
 class DublinCoreV1(Schema):
     """Schema for records v1 in JSON."""
 
-    identifiers = fields.Method('get_identifiers')
-    titles = fields.Function(lambda o: [o['metadata'].get('title', u'')])
-    creators = fields.Method('get_creators')
-    relations = fields.Method('get_relations')
-    rights = fields.Method('get_rights')
-    dates = fields.Method('get_dates')
-    subjects = fields.Method('get_subjects')
-    descriptions = fields.Method('get_descriptions')
-    publishers = fields.Method('get_publishers')
-    contributors = fields.Method('get_contributors')
-    types = fields.Method('get_types')
-    sources = fields.Method('get_sources')
-    languages = fields.Function(lambda o: [o['metadata'].get('language', u'')])
-    coverage = fields.Method('get_locations')
+    identifiers = fields.Method("get_identifiers")
+    titles = fields.Function(lambda o: [o["metadata"].get("title", u"")])
+    creators = fields.Method("get_creators")
+    relations = fields.Method("get_relations")
+    rights = fields.Method("get_rights")
+    dates = fields.Method("get_dates")
+    subjects = fields.Method("get_subjects")
+    descriptions = fields.Method("get_descriptions")
+    publishers = fields.Method("get_publishers")
+    contributors = fields.Method("get_contributors")
+    types = fields.Method("get_types")
+    sources = fields.Method("get_sources")
+    languages = fields.Function(lambda o: [o["metadata"].get("language", u"")])
+    coverage = fields.Method("get_locations")
 
     def get_identifiers(self, obj):
         """Get identifiers."""
         items = []
-        items.append(u'https://zenodo.org/record/{0}'.format(
-            obj['metadata']['recid']))
-        items.append(obj['metadata'].get('doi', u''))
-        oai = obj['metadata'].get('_oai', {}).get('id')
+        items.append(u"https://zenodo.org/record/{0}".format(obj["metadata"]["recid"]))
+        items.append(obj["metadata"].get("doi", u""))
+        oai = obj["metadata"].get("_oai", {}).get("id")
         if oai:
             items.append(oai)
         return items
 
     def get_creators(self, obj):
         """Get creators."""
-        return [c['name'] for c in obj['metadata'].get('creators', [])]
+        return [c["name"] for c in obj["metadata"].get("creators", [])]
 
     def get_relations(self, obj):
         """Get creators."""
         rels = []
         # Grants
-        for g in obj['metadata'].get('grants', []):
-            eurepo_id = g.get('identifiers', {}).get('eurepo')
+        for g in obj["metadata"].get("grants", []):
+            eurepo_id = g.get("identifiers", {}).get("eurepo")
             if eurepo_id:
                 rels.append(eurepo_id)
 
         # Alternate identifiers
-        for a in obj['metadata'].get('alternate_identifiers', []):
+        for a in obj["metadata"].get("alternate_identifiers", []):
             rels.append(
-                u'info:eu-repo/semantics/altIdentifier/{0}/{1}'.format(
-                    a['scheme'],
-                    a['identifier']))
+                u"info:eu-repo/semantics/altIdentifier/{0}/{1}".format(
+                    a["scheme"], a["identifier"]
+                )
+            )
 
         # Related identifiers
-        for a in obj['metadata'].get('related_identifiers', []):
-            rels.append(
-                u'{0}:{1}'.format(
-                    a['scheme'],
-                    a['identifier']))
+        for a in obj["metadata"].get("related_identifiers", []):
+            rels.append(u"{0}:{1}".format(a["scheme"], a["identifier"]))
 
         # Zenodo community identifiers
-        for comm in obj['metadata'].get('communities', []):
-            rels.append(u'url:{}'.format(ui_link_for('community', id=comm)))
+        for comm in obj["metadata"].get("communities", []):
+            rels.append(u"url:{}".format(ui_link_for("community", id=comm)))
         return rels
 
     def get_rights(self, obj):
         """Get rights."""
         rights = [
-            u'info:eu-repo/semantics/{}Access'.format(
-                obj['metadata']['access_right'])]
-        license_url = obj['metadata'].get('license', {}).get('url')
+            u"info:eu-repo/semantics/{}Access".format(obj["metadata"]["access_right"])
+        ]
+        license_url = obj["metadata"].get("license", {}).get("url")
         if license_url:
             rights.append(license_url)
         return rights
 
     def get_dates(self, obj):
         """Get dates."""
-        dates = [obj['metadata']['publication_date']]
-        if obj['metadata']['access_right'] == u'embargoed':
+        dates = [obj["metadata"]["publication_date"]]
+        if obj["metadata"]["access_right"] == u"embargoed":
             dates.append(
-                u'info:eu-repo/date/embargoEnd/{0}'.format(
-                    obj['metadata']['embargo_date']))
-        for interval in obj['metadata'].get('dates', []):
-            start = interval.get('start') or ''
-            end = interval.get('end') or ''
-            if start != '' and end != '' and start == end:
+                u"info:eu-repo/date/embargoEnd/{0}".format(
+                    obj["metadata"]["embargo_date"]
+                )
+            )
+        for interval in obj["metadata"].get("dates", []):
+            start = interval.get("start") or ""
+            end = interval.get("end") or ""
+            if start != "" and end != "" and start == end:
                 dates.append(start)
             else:
-                dates.append(start + '/' + end)
+                dates.append(start + "/" + end)
 
         return dates
 
     def get_descriptions(self, obj):
         """Get descriptions."""
         descriptions = []
-        if obj['metadata'].get('description', '').strip():
+        if obj["metadata"].get("description", "").strip():
             descriptions.append(
-                lxml.html.document_fromstring(obj['metadata']['description'])
-                .text_content().replace(u"\xa0", u" "))
-        if obj['metadata'].get('notes', '').strip():
+                lxml.html.document_fromstring(obj["metadata"]["description"])
+                .text_content()
+                .replace(u"\xa0", u" ")
+            )
+        if obj["metadata"].get("notes", "").strip():
             descriptions.append(
-                lxml.html.document_fromstring(obj['metadata']['notes'])
-                .text_content().replace(u"\xa0", u" "))
-        if obj['metadata'].get('method', '').strip():
+                lxml.html.document_fromstring(obj["metadata"]["notes"])
+                .text_content()
+                .replace(u"\xa0", u" ")
+            )
+        if obj["metadata"].get("method", "").strip():
             descriptions.append(
-                lxml.html.document_fromstring(obj['metadata']['method'])
-                .text_content().replace(u"\xa0", u" "))
+                lxml.html.document_fromstring(obj["metadata"]["method"])
+                .text_content()
+                .replace(u"\xa0", u" ")
+            )
         return descriptions
 
     def get_subjects(self, obj):
         """Get subjects."""
-        metadata = obj['metadata']
+        metadata = obj["metadata"]
         subjects = []
-        subjects.extend(metadata.get('keywords', []))
-        subjects.extend((s['term'] for s in metadata.get('subjects', [])
-                         if s.get('term')))
+        subjects.extend(metadata.get("keywords", []))
+        subjects.extend(
+            (s["term"] for s in metadata.get("subjects", []) if s.get("term"))
+        )
         return subjects
 
     def get_publishers(self, obj):
         """Get publishers."""
-        imprint = obj['metadata'].get('imprint', {}).get('publisher')
+        imprint = obj["metadata"].get("imprint", {}).get("publisher")
         if imprint:
             return [imprint]
-        part = obj['metadata'].get('part_of', {}).get('publisher')
+        part = obj["metadata"].get("part_of", {}).get("publisher")
         if part:
             return [part]
         return []
 
     def get_contributors(self, obj):
         """Get contributors."""
-        return [c['name'] for c in obj['metadata'].get('contributors', [])]
+        return [c["name"] for c in obj["metadata"].get("contributors", [])]
 
     def get_types(self, obj):
         """Get types."""
-        t = ObjectType.get_by_dict(obj['metadata']['resource_type'])
-        types = [t['eurepo'], t['internal_id']]
+        t = ObjectType.get_by_dict(obj["metadata"]["resource_type"])
+        types = [t["eurepo"], t["internal_id"]]
 
-        oa_type = ObjectType.get_openaire_subtype(obj['metadata'])
+        oa_type = ObjectType.get_openaire_subtype(obj["metadata"])
         if oa_type:
             types.append(oa_type)
         return types
@@ -176,44 +182,39 @@ class DublinCoreV1(Schema):
         items = []
 
         # Journal
-        journal = obj['metadata'].get('journal')
+        journal = obj["metadata"].get("journal")
         if journal is not None:
-            vol = journal.get('volume')
-            issue = journal.get('issue')
+            vol = journal.get("volume")
+            issue = journal.get("issue")
             if vol and issue:
-                vol = u'{0}({1})'.format(vol, issue)
+                vol = u"{0}({1})".format(vol, issue)
             if vol is None:
                 vol = issue
 
-            y = journal.get('year')
+            y = journal.get("year")
 
             parts = [
-                journal.get('title'),
+                journal.get("title"),
                 vol,
-                journal.get('pages'),
-                u'({0})'.format(y) if y else None,
+                journal.get("pages"),
+                u"({0})".format(y) if y else None,
             ]
-            items.append(u' '.join([x for x in parts if x]))
+            items.append(u" ".join([x for x in parts if x]))
 
         # Meetings
-        m = obj['metadata'].get('meetings', {})
+        m = obj["metadata"].get("meetings", {})
         if m:
-            parts = [
-                m.get('acronym'),
-                m.get('title'),
-                m.get('place'),
-                m.get('dates'),
-            ]
-            items.append(', '.join([x for x in parts if x]))
+            parts = [m.get("acronym"), m.get("title"), m.get("place"), m.get("dates")]
+            items.append(", ".join([x for x in parts if x]))
 
         return items
 
     def get_locations(self, obj):
         """Get locations."""
         locations = []
-        for location in obj['metadata'].get('locations', []):
-            if location.get('lat') and location.get('lon'):
+        for location in obj["metadata"].get("locations", []):
+            if location.get("lat") and location.get("lon"):
                 locations.append(
-                    'name={place}; east={lon}; north={lat}'.format(**location)
+                    "name={place}; east={lon}; north={lat}".format(**location)
                 )
         return locations or missing

@@ -34,8 +34,9 @@ from invenio_pidrelations.contrib.versioning import PIDVersioning
 from invenio_records.api import Record
 from invenio_records_rest.serializers.json import JSONSerializer
 
-from zenodo.modules.records.serializers.pidrelations import \
-    serialize_related_identifiers
+from zenodo.modules.records.serializers.pidrelations import (
+    serialize_related_identifiers,
+)
 
 from ..permissions import has_read_files_permission
 
@@ -53,36 +54,35 @@ class ZenodoJSONSerializer(JSONSerializer):
             pid, record, links_factory=links_factory
         )
         # Add/remove files depending on access right.
-        if isinstance(record, Record) and '_files' in record:
+        if isinstance(record, Record) and "_files" in record:
             if not has_request_context() or has_read_files_permission(
-                    current_user, record):
-                result['files'] = record['_files']
+                current_user, record
+            ):
+                result["files"] = record["_files"]
             else:
-                result['metadata'].pop('_buckets', None)
+                result["metadata"].pop("_buckets", None)
 
         # Serialize PID versioning as related identifiers
         pv = PIDVersioning(child=pid)
         if pv.exists:
             rels = serialize_related_identifiers(pid)
             if rels:
-                result['metadata'].setdefault(
-                    'related_identifiers', []).extend(rels)
+                result["metadata"].setdefault("related_identifiers", []).extend(rels)
         return result
 
-    def preprocess_search_hit(self, pid, record_hit, links_factory=None,
-                              **kwargs):
+    def preprocess_search_hit(self, pid, record_hit, links_factory=None, **kwargs):
         """Prepare a record hit from Elasticsearch for serialization."""
         result = super(ZenodoJSONSerializer, self).preprocess_search_hit(
             pid, record_hit, links_factory=links_factory, **kwargs
         )
         # Add files if in search hit (only public files exists in index)
-        if '_files' in record_hit['_source']:
-            result['files'] = record_hit['_source']['_files']
-        elif '_files' in record_hit:
-            result['files'] = record_hit['_files']
+        if "_files" in record_hit["_source"]:
+            result["files"] = record_hit["_source"]["_files"]
+        elif "_files" in record_hit:
+            result["files"] = record_hit["_files"]
         else:
             # delete the bucket if no files
-            result['metadata'].pop('_buckets', None)
+            result["metadata"].pop("_buckets", None)
         return result
 
     def dump(self, obj, context=None):
@@ -93,19 +93,16 @@ class ZenodoJSONSerializer(JSONSerializer):
         """Transform record into an intermediate representation."""
         return self.dump(
             self.preprocess_record(pid, record, links_factory=links_factory),
-            context={'pid': pid}
+            context={"pid": pid},
         )
 
     def transform_search_hit(self, pid, record_hit, links_factory=None):
         """Transform search result hit into an intermediate representation."""
         return self.dump(
-            self.preprocess_search_hit(
-                pid, record_hit, links_factory=links_factory),
-            context={'pid': pid}
+            self.preprocess_search_hit(pid, record_hit, links_factory=links_factory),
+            context={"pid": pid},
         )
 
     def serialize_exporter(self, pid, record):
         """Serialize a single record for the exporter."""
-        return json.dumps(
-            self.transform_search_hit(pid, record)
-        ).encode('utf8')  + b'\n'
+        return json.dumps(self.transform_search_hit(pid, record)).encode("utf8") + b"\n"

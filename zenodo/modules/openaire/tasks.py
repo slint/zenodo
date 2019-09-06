@@ -37,27 +37,38 @@ from zenodo.modules.records.api import ZenodoRecord
 from zenodo.modules.records.serializers import openaire_json_v1
 
 from .errors import OpenAIRERequestError
-from .helpers import is_openaire_dataset, is_openaire_other, \
-    is_openaire_publication, is_openaire_software, openaire_datasource_id, \
-    openaire_original_id, openaire_type
+from .helpers import (
+    is_openaire_dataset,
+    is_openaire_other,
+    is_openaire_publication,
+    is_openaire_software,
+    openaire_datasource_id,
+    openaire_original_id,
+    openaire_type,
+)
 
 
 def _openaire_request_factory(headers=None, auth=None):
     """Request factory for OpenAIRE API."""
     ses = requests.Session()
-    ses.headers.update(headers or {'Content-type': 'application/json',
-                                   'Accept': 'application/json'})
+    ses.headers.update(
+        headers or {"Content-type": "application/json", "Accept": "application/json"}
+    )
     if not auth:
-        username = current_app.config.get('OPENAIRE_API_USERNAME')
-        password = current_app.config.get('OPENAIRE_API_PASSWORD')
+        username = current_app.config.get("OPENAIRE_API_USERNAME")
+        password = current_app.config.get("OPENAIRE_API_PASSWORD")
         if username and password:
             auth = (username, password)
     ses.auth = auth
     return ses
 
 
-@shared_task(ignore_result=True, max_retries=6,
-             default_retry_delay=4 * 60 * 60, rate_limit='100/m')
+@shared_task(
+    ignore_result=True,
+    max_retries=6,
+    default_retry_delay=4 * 60 * 60,
+    rate_limit="100/m",
+)
 def openaire_direct_index(record_uuid):
     """Send record for direct indexing at OpenAIRE.
 
@@ -68,15 +79,16 @@ def openaire_direct_index(record_uuid):
         record = ZenodoRecord.get_record(record_uuid)
 
         # Bail out if not an OpenAIRE record.
-        if not (is_openaire_publication(record) or
-                is_openaire_dataset(record) or
-                is_openaire_software(record) or
-                is_openaire_other(record)):
+        if not (
+            is_openaire_publication(record)
+            or is_openaire_dataset(record)
+            or is_openaire_software(record)
+            or is_openaire_other(record)
+        ):
             return
 
         data = openaire_json_v1.serialize(record.pid, record)
-        url = '{}/feedObject'.format(
-            current_app.config['OPENAIRE_API_URL'])
+        url = "{}/feedObject".format(current_app.config["OPENAIRE_API_URL"])
         req = _openaire_request_factory()
         res = req.post(url, data=data)
 
@@ -84,25 +96,31 @@ def openaire_direct_index(record_uuid):
             raise OpenAIRERequestError(res.text)
 
         res_beta = None
-        if current_app.config['OPENAIRE_API_URL_BETA']:
-            url_beta = '{}/feedObject'.format(
-                current_app.config['OPENAIRE_API_URL_BETA'])
+        if current_app.config["OPENAIRE_API_URL_BETA"]:
+            url_beta = "{}/feedObject".format(
+                current_app.config["OPENAIRE_API_URL_BETA"]
+            )
             res_beta = req.post(url_beta, data=data)
 
         if res_beta and not res_beta.ok:
             raise OpenAIRERequestError(res_beta.text)
         else:
-            recid = record.get('recid')
-            current_cache.delete('openaire_direct_index:{}'.format(recid))
+            recid = record.get("recid")
+            current_cache.delete("openaire_direct_index:{}".format(recid))
     except Exception as exc:
-        recid = record.get('recid')
-        current_cache.set('openaire_direct_index:{}'.format(recid),
-                          datetime.now(), timeout=-1)
+        recid = record.get("recid")
+        current_cache.set(
+            "openaire_direct_index:{}".format(recid), datetime.now(), timeout=-1
+        )
         openaire_direct_index.retry(exc=exc)
 
 
-@shared_task(ignore_result=True, max_retries=6,
-             default_retry_delay=4 * 60 * 60, rate_limit='100/m')
+@shared_task(
+    ignore_result=True,
+    max_retries=6,
+    default_retry_delay=4 * 60 * 60,
+    rate_limit="100/m",
+)
 def openaire_delete(record_uuid=None, original_id=None, datasource_id=None):
     """Delete record from OpenAIRE index.
 
@@ -117,17 +135,17 @@ def openaire_delete(record_uuid=None, original_id=None, datasource_id=None):
         # Resolve originalId and datasource if not already available
         if not (original_id and datasource_id) and record_uuid:
             record = ZenodoRecord.get_record(record_uuid)
-            original_id = openaire_original_id(
-                record, openaire_type(record))[1]
+            original_id = openaire_original_id(record, openaire_type(record))[1]
             datasource_id = openaire_datasource_id(record)
 
-        params = {'originalId': original_id, 'collectedFromId': datasource_id}
+        params = {"originalId": original_id, "collectedFromId": datasource_id}
         req = _openaire_request_factory()
-        res = req.delete(current_app.config['OPENAIRE_API_URL'], params=params)
+        res = req.delete(current_app.config["OPENAIRE_API_URL"], params=params)
         res_beta = None
-        if current_app.config['OPENAIRE_API_URL_BETA']:
-            res_beta = req.delete(current_app.config['OPENAIRE_API_URL_BETA'],
-                                  params=params)
+        if current_app.config["OPENAIRE_API_URL_BETA"]:
+            res_beta = req.delete(
+                current_app.config["OPENAIRE_API_URL_BETA"], params=params
+            )
 
         if not res.ok or (res_beta and not res_beta.ok):
             raise OpenAIRERequestError(res.text)

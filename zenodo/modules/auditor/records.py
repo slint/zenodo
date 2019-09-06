@@ -62,9 +62,9 @@ class RecordAudit(Audit):
     @cached_property
     def all_oai_pids(self):
         """Set of OAI identifiers."""
-        oai_pids = (PersistentIdentifier.query
-                    .filter(PersistentIdentifier.pid_type == 'oai')
-                    .all())
+        oai_pids = PersistentIdentifier.query.filter(
+            PersistentIdentifier.pid_type == "oai"
+        ).all()
         return {p.pid_value for p in oai_pids}
 
 
@@ -83,16 +83,15 @@ class RecordCheck(Check):
         self._duplicate_communities()
 
     def _unresolvable_communities(self):
-        comms = set(self.record.get('communities', []))
+        comms = set(self.record.get("communities", []))
         unresolvable_communities = comms - self.audit.all_communities
         if unresolvable_communities:
-            self.issues['communities']['unresolvable'] = \
-                list(unresolvable_communities)
+            self.issues["communities"]["unresolvable"] = list(unresolvable_communities)
 
     def _duplicate_communities(self):
-        duplicate_comms = duplicates(self.record.get('communities', []))
+        duplicate_comms = duplicates(self.record.get("communities", []))
         if duplicate_comms:
-            self.issues['communities']['duplicates'] = duplicate_comms
+            self.issues["communities"]["duplicates"] = duplicate_comms
 
     def owners(self):
         """Check owners."""
@@ -100,15 +99,15 @@ class RecordCheck(Check):
         self._unresolvable_owners()
 
     def _duplicate_owners(self):
-        duplicate_owners = duplicates(self.record.get('owners', []))
+        duplicate_owners = duplicates(self.record.get("owners", []))
         if duplicate_owners:
-            self.issues['owners']['duplicates'] = duplicate_owners
+            self.issues["owners"]["duplicates"] = duplicate_owners
 
     def _unresolvable_owners(self):
-        owners = set(self.record.get('owners', []))
+        owners = set(self.record.get("owners", []))
         unresolvable_owners = owners - self.audit.all_owners
         if unresolvable_owners:
-            self.issues['owners']['unresolvable'] = list(unresolvable_owners)
+            self.issues["owners"]["unresolvable"] = list(unresolvable_owners)
 
     def files(self):
         """Check files."""
@@ -118,44 +117,45 @@ class RecordCheck(Check):
         self._bucket_mismatch()
 
     def _duplicate_files(self):
-        files = self.record.get('_files', [])
-        duplicate_keys = duplicates([f['key'] for f in files])
-        duplicate_version_ids = duplicates([f['version_id'] for f in files])
-        duplicate_files = [f for f in files
-                           if (f['key'] in duplicate_keys or
-                               f['version_id'] in duplicate_version_ids)]
+        files = self.record.get("_files", [])
+        duplicate_keys = duplicates([f["key"] for f in files])
+        duplicate_version_ids = duplicates([f["version_id"] for f in files])
+        duplicate_files = [
+            f
+            for f in files
+            if (f["key"] in duplicate_keys or f["version_id"] in duplicate_version_ids)
+        ]
         if duplicate_files:
-            self.issues['files']['duplicates'] = duplicate_files
+            self.issues["files"]["duplicates"] = duplicate_files
 
     def _missing_files(self):
-        files = self.record.get('_files', [])
+        files = self.record.get("_files", [])
         if not files:
-            self.issues['files']['missing'] = True
+            self.issues["files"]["missing"] = True
 
     def _multiple_buckets(self):
-        files = self.record.get('_files', [])
-        buckets = {f['bucket'] for f in files}
+        files = self.record.get("_files", [])
+        buckets = {f["bucket"] for f in files}
         if len(buckets) > 1:
-            self.issues['files']['multiple_buckets'] = list(buckets)
+            self.issues["files"]["multiple_buckets"] = list(buckets)
 
     def _bucket_mismatch(self):
         """Check if buckets in '_files' don't match the ones '_buckets'."""
-        files = self.record.get('_files', [])
-        record_bucket = self.record.get('_buckets', {}).get('record')
-        bucket_mismatch = [f for f in files if f['bucket'] != record_bucket]
+        files = self.record.get("_files", [])
+        record_bucket = self.record.get("_buckets", {}).get("record")
+        bucket_mismatch = [f for f in files if f["bucket"] != record_bucket]
         if bucket_mismatch:
-            self.issues['files']['bucket_mismatch'] = bucket_mismatch
+            self.issues["files"]["bucket_mismatch"] = bucket_mismatch
 
     def grants(self):
         """Check grants."""
         self._duplicate_grants()
 
     def _duplicate_grants(self):
-        grant_ids = [g.get('$ref')
-                     for g in self.record.get('grants', [])]
+        grant_ids = [g.get("$ref") for g in self.record.get("grants", [])]
         duplicate_grants = duplicates(grant_ids)
         if any(duplicate_grants):
-            self.issues['grants']['duplicates'] = duplicate_grants
+            self.issues["grants"]["duplicates"] = duplicate_grants
 
     def oai(self):
         """Check OAI data."""
@@ -165,48 +165,48 @@ class RecordCheck(Check):
         self._oai_community_correspondence()
 
     def _oai_required(self):
-        oai_data = self.record.get('_oai', {})
-        if not oai_data.get('id'):
-            self.issues['oai']['missing']['id'] = True
-        if not oai_data.get('updated'):
-            self.issues['oai']['missing']['updated'] = True
+        oai_data = self.record.get("_oai", {})
+        if not oai_data.get("id"):
+            self.issues["oai"]["missing"]["id"] = True
+        if not oai_data.get("updated"):
+            self.issues["oai"]["missing"]["updated"] = True
 
     def _oai_non_minted_pid(self):
-        oai_data = self.record.get('_oai', {})
-        oai_pid = oai_data.get('id')
+        oai_data = self.record.get("_oai", {})
+        oai_pid = oai_data.get("id")
         if oai_pid and oai_pid not in self.audit.all_oai_pids:
-            self.issues['oai']['non_minted_pid'] = oai_data.get('id')
+            self.issues["oai"]["non_minted_pid"] = oai_data.get("id")
 
     def _oai_duplicate_sets(self):
-        oai_sets = self.record.get('_oai', {}).get('sets', [])
+        oai_sets = self.record.get("_oai", {}).get("sets", [])
         duplicate_oai_sets = duplicates(oai_sets)
         if duplicate_oai_sets:
-            self.issues['oai']['duplicate_oai_sets'] = duplicate_oai_sets
+            self.issues["oai"]["duplicate_oai_sets"] = duplicate_oai_sets
 
     def _oai_community_correspondence(self):
-        oai_sets = set(self.record.get('_oai', {}).get('sets', []))
-        comms = set(self.record.get('communities', []))
+        oai_sets = set(self.record.get("_oai", {}).get("sets", []))
+        comms = set(self.record.get("communities", []))
         if oai_sets or comms:
-            comm_oai_sets = {s for s in oai_sets
-                             if (s.startswith('user-') and
-                                 s not in self.audit.custom_oai_sets)}
+            comm_oai_sets = {
+                s
+                for s in oai_sets
+                if (s.startswith("user-") and s not in self.audit.custom_oai_sets)
+            }
 
-            comm_specs = {u'user-{c}'.format(c=c) for c in comms}
+            comm_specs = {u"user-{c}".format(c=c) for c in comms}
             missing_comm_oai_sets = comm_specs - comm_oai_sets
             if missing_comm_oai_sets:
-                self.issues['oai']['missing_oai_sets'] = \
-                    list(missing_comm_oai_sets)
+                self.issues["oai"]["missing_oai_sets"] = list(missing_comm_oai_sets)
             redundant_oai_sets = comm_oai_sets - comm_specs
             if redundant_oai_sets:
-                self.issues['oai']['redundant_oai_sets'] = \
-                    list(redundant_oai_sets)
+                self.issues["oai"]["redundant_oai_sets"] = list(redundant_oai_sets)
 
     def jsonschema(self):
         """Check JSONSchema."""
         try:
             self.record.validate()
         except (ValidationError, SchemaError) as e:
-            self.issues['jsonschema'] = str(e.message)
+            self.issues["jsonschema"] = str(e.message)
 
     def perform(self):
         """Perform record checks."""
@@ -220,9 +220,9 @@ class RecordCheck(Check):
     def dump(self):
         """Dump record check."""
         record_data = {
-            'recid': self.record['recid'],
-            'object_uuid': str(self.record.id),
+            "recid": self.record["recid"],
+            "object_uuid": str(self.record.id),
         }
         result = super(RecordCheck, self).dump()
-        result.update({'record': record_data})
+        result.update({"record": record_data})
         return result

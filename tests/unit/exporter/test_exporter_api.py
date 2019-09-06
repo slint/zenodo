@@ -37,9 +37,9 @@ def test_exporter(app, db, es, exporter_bucket, record_with_files_creation):
     """Test record exporter."""
     pid, record, record_url = record_with_files_creation
     RecordIndexer().index_by_id(record.id)
-    current_search.flush_and_refresh('records')
+    current_search.flush_and_refresh("records")
 
     with app.app_context():
         assert ObjectVersion.get_by_bucket(exporter_bucket).count() == 0
-        export_job(job_id='records')
+        export_job(job_id="records")
         assert ObjectVersion.get_by_bucket(exporter_bucket).count() == 1

@@ -28,4 +28,4 @@ from __future__ import absolute_import, print_function
 
 from invenio_app.celery import celery
 
-__all__ = ('celery', )
+__all__ = ("celery",)

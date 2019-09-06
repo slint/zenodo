@@ -32,7 +32,7 @@ def test_frontpage(app, db, es):
     with app.test_client() as client:
         res = client.get("/")
         assert res.status_code == 200
-        assert 'Recent uploads' in res.get_data(as_text=True)
+        assert "Recent uploads" in res.get_data(as_text=True)
 
 
 def test_ping(app, db):

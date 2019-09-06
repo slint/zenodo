@@ -35,8 +35,10 @@ def checksum_verification_files_query():
     """Return a FileInstance query taking into account file URI prefixes."""
     files = FileInstance.query
     uri_prefixes = current_app.config.get(
-        'FILES_REST_CHECKSUM_VERIFICATION_URI_PREFIXES')
+        "FILES_REST_CHECKSUM_VERIFICATION_URI_PREFIXES"
+    )
     if uri_prefixes:
         files = files.filter(
-            sa.or_(*[FileInstance.uri.startswith(p) for p in uri_prefixes]))
+            sa.or_(*[FileInstance.uri.startswith(p) for p in uri_prefixes])
+        )
     return files

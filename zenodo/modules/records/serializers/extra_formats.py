@@ -39,18 +39,17 @@ class ExtraFormatsSerializer(object):
 
     def serialize(self, pid, record, links_factory=None):
         """Include files for single record retrievals."""
-        mimetype = request and request.args.get('mimetype')
+        mimetype = request and request.args.get("mimetype")
         if not mimetype:
-            return 'Extra format MIMEType not specified.'
+            return "Extra format MIMEType not specified."
         if mimetype not in ExtraFormats.mimetype_whitelist:
-            return ('"{}" is not an acceptable extra format MIMEType.'
-                    .format(mimetype))
+            return '"{}" is not an acceptable extra format MIMEType.'.format(mimetype)
         if mimetype in record.extra_formats:
             fileobj = record.extra_formats[mimetype]
             try:  # if an exception occurs, just let it be raised/logged
-                fp = fileobj.obj.file.storage().open('rb')
+                fp = fileobj.obj.file.storage().open("rb")
                 result = fp.read()
             finally:
                 fp.close()
             return result
-        return 'No extra formats available for this MIMEType.'
+        return "No extra formats available for this MIMEType."

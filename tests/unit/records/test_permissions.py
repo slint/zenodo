@@ -35,53 +35,54 @@ from invenio_accounts.models import User
 from zenodo.modules.records.models import AccessRight
 
 
-@pytest.mark.parametrize('user,access_right,expected', [
-    (None, AccessRight.OPEN, 200),
-    (None, AccessRight.EMBARGOED, 404),
-    (None, AccessRight.CLOSED, 404),
-    ('auth', AccessRight.OPEN, 200),
-    ('auth', AccessRight.EMBARGOED, 404),
-    ('auth', AccessRight.CLOSED, 404),
-    ('owner', AccessRight.OPEN, 200),
-    ('owner', AccessRight.EMBARGOED, 200),
-    ('owner', AccessRight.CLOSED, 200),
-    ('admin', AccessRight.OPEN, 200),
-    ('admin', AccessRight.EMBARGOED, 200),
-    ('admin', AccessRight.CLOSED, 200),
-])
-def test_file_permissions(app, db, record_with_files_creation,
-                          user, access_right, expected):
+@pytest.mark.parametrize(
+    "user,access_right,expected",
+    [
+        (None, AccessRight.OPEN, 200),
+        (None, AccessRight.EMBARGOED, 404),
+        (None, AccessRight.CLOSED, 404),
+        ("auth", AccessRight.OPEN, 200),
+        ("auth", AccessRight.EMBARGOED, 404),
+        ("auth", AccessRight.CLOSED, 404),
+        ("owner", AccessRight.OPEN, 200),
+        ("owner", AccessRight.EMBARGOED, 200),
+        ("owner", AccessRight.CLOSED, 200),
+        ("admin", AccessRight.OPEN, 200),
+        ("admin", AccessRight.EMBARGOED, 200),
+        ("admin", AccessRight.CLOSED, 200),
+    ],
+)
+def test_file_permissions(
+    app, db, record_with_files_creation, user, access_right, expected
+):
     """Test file permissions."""
     pid, record, record_url = record_with_files_creation
 
     # Create test users
-    admin = User(email='admin@zenodo.org', password='123456')
-    owner = User(email='owner@zenodo.org', password='123456')
-    auth = User(email='auth@zenodo.org', password='123456')
+    admin = User(email="admin@zenodo.org", password="123456")
+    owner = User(email="owner@zenodo.org", password="123456")
+    auth = User(email="auth@zenodo.org", password="123456")
     db.session.add_all([admin, owner, auth])
-    db.session.add(
-        ActionUsers.allow(ActionNeed('admin-access'), user=admin)
-    )
+    db.session.add(ActionUsers.allow(ActionNeed("admin-access"), user=admin))
     db.session.commit()
 
     # Create test record
-    record['access_right'] = access_right
-    record['owners'] = [owner.id]
+    record["access_right"] = access_right
+    record["owners"] = [owner.id]
     record.commit()
     db.session.commit()
 
     file_url = url_for(
-        'invenio_records_ui.recid_files',
-        pid_value=pid.pid_value,
-        filename='Test.pdf',
+        "invenio_records_ui.recid_files", pid_value=pid.pid_value, filename="Test.pdf"
     )
     with app.test_client() as client:
         if user:
             # Login as user
             with client.session_transaction() as sess:
-                sess['user_id'] = User.query.filter_by(
-                    email='{}@zenodo.org'.format(user)).one().id
-                sess['_fresh'] = True
+                sess["user_id"] = (
+                    User.query.filter_by(email="{}@zenodo.org".format(user)).one().id
+                )
+                sess["_fresh"] = True
 
         res = client.get(file_url)
         assert res.status_code == expected

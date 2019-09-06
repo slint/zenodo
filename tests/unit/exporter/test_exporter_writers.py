@@ -37,15 +37,15 @@ def test_filename_factory():
     """Test filename factory."""
     pytest.raises(KeyError, filename_factory())
 
-    fname = filename_factory(index='records', format='json')()
-    assert fname.startswith('records-')
-    assert fname.endswith('.json')
+    fname = filename_factory(index="records", format="json")()
+    assert fname.startswith("records-")
+    assert fname.endswith(".json")
 
 
 def test_bucket_writer(writer):
     """Test bucket writer."""
     writer.open()
     assert writer.obj.file_id is None
-    writer.write(BytesIO(b'this is a test'))
+    writer.write(BytesIO(b"this is a test"))
     writer.close()
     assert ObjectVersion.get(writer.bucket_id, writer.key).file_id is not None

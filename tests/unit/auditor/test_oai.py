@@ -35,25 +35,29 @@ from invenio_oaiserver.models import OAISet
 from invenio_search import current_search
 from mock import MagicMock
 
-from zenodo.modules.auditor.oai import OAIAudit, OAICorrespondenceCheck, \
-    OAISetResultCheck
+from zenodo.modules.auditor.oai import (
+    OAIAudit,
+    OAICorrespondenceCheck,
+    OAISetResultCheck,
+)
 from zenodo.modules.records.resolvers import record_resolver
 
 oai_set_result_count_params = (
     ([], [], [], []),
-    (['a', 'b'], ['user-a', 'user-b'], [], []),
-    (['a'], [], ['a'], []),
-    ([], ['user-a'], [], ['user-a']),
-    (['a'], ['user-b'], ['a'], ['user-b']),
+    (["a", "b"], ["user-a", "user-b"], [], []),
+    (["a"], [], ["a"], []),
+    ([], ["user-a"], [], ["user-a"]),
+    (["a"], ["user-b"], ["a"], ["user-b"]),
 )
 
 
 @pytest.mark.parametrize(
-    ('oai_communities', 'oai_sets', 'missing_oai_set', 'missing_community'),
-    oai_set_result_count_params
+    ("oai_communities", "oai_sets", "missing_oai_set", "missing_community"),
+    oai_set_result_count_params,
 )
-def test_oai_set_correspondence(db, users, oai_communities, oai_sets,
-                                missing_oai_set, missing_community):
+def test_oai_set_correspondence(
+    db, users, oai_communities, oai_sets, missing_oai_set, missing_community
+):
     for c in oai_communities:
         with db.session.begin_nested():
             new_comm = Community.create(community_id=c, user_id=1)
@@ -73,9 +77,8 @@ def test_oai_set_correspondence(db, users, oai_communities, oai_sets,
     check = OAICorrespondenceCheck()
     check.perform()
 
-    assert set(check.issues.get('missing_oai_set', [])) == set(missing_oai_set)
-    assert set(check.issues.get('missing_community', [])) == \
-        set(missing_community)
+    assert set(check.issues.get("missing_oai_set", [])) == set(missing_oai_set)
+    assert set(check.issues.get("missing_community", [])) == set(missing_community)
 
 
 oai_set_result_count_params = (
@@ -83,56 +86,38 @@ oai_set_result_count_params = (
         # (State for DB, ES, /oai2d) and...
         ([], [], []),
         # (Issues for DB, ES, /oai2d)
-        ([], [], [])
+        ([], [], []),
     ),
-
-    (([], [], [1]),
-     ([1], [1], [])),
-
-    (([], [1], []),
-     ([1], [], [1])),
-
-    (([], [1], [1]),
-     ([1], [], [])),
-
-    (([1], [], []),
-     ([], [1], [1])),
-
-    (([1], [], [1]),
-     ([], [1], [])),
-
-    (([1], [1], []),
-     ([], [], [1])),
-
-    (([1], [1], [1]),
-     ([], [], [])),
-
-    (([1], [2], [3]),
-     ([2, 3], [1, 3], [1, 2])),
-
-    (([1, 4], [2, 4], [3, 4]),
-     ([2, 3], [1, 3], [1, 2])),
+    (([], [], [1]), ([1], [1], [])),
+    (([], [1], []), ([1], [], [1])),
+    (([], [1], [1]), ([1], [], [])),
+    (([1], [], []), ([], [1], [1])),
+    (([1], [], [1]), ([], [1], [])),
+    (([1], [1], []), ([], [], [1])),
+    (([1], [1], [1]), ([], [], [])),
+    (([1], [2], [3]), ([2, 3], [1, 3], [1, 2])),
+    (([1, 4], [2, 4], [3, 4]), ([2, 3], [1, 3], [1, 2])),
 )
 
 
-@pytest.mark.parametrize(('oai_sources', 'issues'),
-                         oai_set_result_count_params)
-def test_oai_set_result_count(mocker, audit_records, db, es, communities,
-                              oai_sources, issues):
+@pytest.mark.parametrize(("oai_sources", "issues"), oai_set_result_count_params)
+def test_oai_set_result_count(
+    mocker, audit_records, db, es, communities, oai_sources, issues
+):
     db_records, es_records, oai2d_records = oai_sources
 
     for recid in db_records:
         _, record = record_resolver.resolve(recid)
-        record['_oai']['sets'] = ['user-c1']
+        record["_oai"]["sets"] = ["user-c1"]
         record.commit()
     db.session.commit()
 
     indexer = RecordIndexer()
     for recid in es_records:
         _, record = record_resolver.resolve(recid)
-        record['_oai']['sets'] = ['user-c1']
+        record["_oai"]["sets"] = ["user-c1"]
         indexer.index(record)
-    current_search.flush_and_refresh(index='records')
+    current_search.flush_and_refresh(index="records")
 
     # '/oai2d' needs straight-forward cheating... There's no way to be sure
     # why the endpoint sometimes fails to report the correct results. It could
@@ -142,16 +127,17 @@ def test_oai_set_result_count(mocker, audit_records, db, es, communities,
     oai2d_ids_mock = MagicMock()
     oai2d_ids_mock.return_value = set(oai2d_records)
     oai2d_ids_mock = mocker.patch(
-        'zenodo.modules.auditor.oai.OAISetResultCheck'
-        '._oai2d_endpoint_identifiers', new=oai2d_ids_mock)
+        "zenodo.modules.auditor.oai.OAISetResultCheck" "._oai2d_endpoint_identifiers",
+        new=oai2d_ids_mock,
+    )
 
-    audit = OAIAudit('testAudit', logging.getLogger('auditorTesting'), [])
-    check = OAISetResultCheck(audit, Community.get('c1'))
+    audit = OAIAudit("testAudit", logging.getLogger("auditorTesting"), [])
+    check = OAISetResultCheck(audit, Community.get("c1"))
     check.perform()
     audit.clear_db_oai_set_cache()
 
-    result_issues = check.issues.get('missing_ids', {})
+    result_issues = check.issues.get("missing_ids", {})
     db_issues, es_issues, api_issues = issues
-    assert set(result_issues.get('db', [])) == set(db_issues)
-    assert set(result_issues.get('es', [])) == set(es_issues)
-    assert set(result_issues.get('oai2d', [])) == set(api_issues)
+    assert set(result_issues.get("db", [])) == set(db_issues)
+    assert set(result_issues.get("es", [])) == set(es_issues)
+    assert set(result_issues.get("oai2d", [])) == set(api_issues)

@@ -29,14 +29,11 @@ from __future__ import absolute_import, print_function
 from flask import Blueprint
 
 blueprint = Blueprint(
-    'zenodo_search_ui',
-    __name__,
-    template_folder='templates',
-    static_folder='static',
+    "zenodo_search_ui", __name__, template_folder="templates", static_folder="static"
 )
 
 
 @blueprint.app_template_filter()
 def filter_sort_options(sort_options):
     """Filters the search sort options based on the "display" key."""
-    return {k: v for k, v in sort_options.items() if v.get('display', True)}
+    return {k: v for k, v in sort_options.items() if v.get("display", True)}

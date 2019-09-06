@@ -55,24 +55,24 @@ from .serializers import citeproc_v1
 from .serializers.json import ZenodoJSONSerializer
 
 blueprint = Blueprint(
-    'zenodo_records',
+    "zenodo_records",
     __name__,
-    template_folder='templates',
-    static_folder='static',
-    url_prefix='/search'
+    template_folder="templates",
+    static_folder="static",
+    url_prefix="/search",
 )
 
 
 #
 # Access right template filters and tests.
 #
-@blueprint.app_template_test('accessright')
+@blueprint.app_template_test("accessright")
 def is_valid_accessright(value):
     """Test if access right is valid."""
     return AccessRight.is_valid(value)
 
 
-@blueprint.app_template_test('embargoed')
+@blueprint.app_template_test("embargoed")
 def is_embargoed(embargo_date, accessright=None):
     """Test if date is still embargoed (according to UTC date."""
     if accessright is not None and accessright != AccessRight.EMBARGOED:
@@ -82,13 +82,13 @@ def is_embargoed(embargo_date, accessright=None):
     return False
 
 
-@blueprint.app_template_filter('extra_formats_title')
+@blueprint.app_template_filter("extra_formats_title")
 def extra_formats_title(mimetype):
     """Return a dict of a record's available extra formats and their title."""
-    return ExtraFormats.mimetype_whitelist.get(mimetype, '')
+    return ExtraFormats.mimetype_whitelist.get(mimetype, "")
 
 
-@blueprint.app_template_filter('pidstatus')
+@blueprint.app_template_filter("pidstatus")
 def pidstatus_title(pid):
     """Get access right.
 
@@ -112,7 +112,8 @@ def accessright_get(value, embargo_date=None):
 def accessright_category(value, embargo_date=None, **kwargs):
     """Get category for access right."""
     return AccessRight.as_category(
-        AccessRight.get(value, embargo_date=embargo_date), **kwargs)
+        AccessRight.get(value, embargo_date=embargo_date), **kwargs
+    )
 
 
 @blueprint.app_template_filter()
@@ -120,15 +121,14 @@ def make_query(values):
     """Get category for access right."""
     parts = []
     for k, v in values.items():
-        parts.append(u'{0}:"{1}"'.format(k, v))
-    return u' '.join(parts)
+        parts.append('{0}:"{1}"'.format(k, v))
+    return " ".join(parts)
 
 
 @blueprint.app_template_filter()
 def accessright_title(value, embargo_date=None):
     """Get category for access right."""
-    return AccessRight.as_title(
-        AccessRight.get(value, embargo_date=embargo_date))
+    return AccessRight.as_title(AccessRight.get(value, embargo_date=embargo_date))
 
 
 @blueprint.app_template_filter()
@@ -141,8 +141,7 @@ def accessright_icon(value, embargo_date=None):
 def accessright_description(value, embargo_date=None):
     """Get a description for access right."""
     return AccessRight.as_description(
-        AccessRight.get(value, embargo_date),
-        from_isodate(embargo_date)
+        AccessRight.get(value, embargo_date), from_isodate(embargo_date)
     )
 
 
@@ -155,28 +154,31 @@ def has_record_perm(user, record, action):
 #
 # Related identifiers filters.
 #
-@blueprint.app_template_filter('zenodo_related_links')
+@blueprint.app_template_filter("zenodo_related_links")
 def zenodo_related_links(record, communities):
     """Get logos for related links."""
+
     def apply_rule(item, rule):
         r = copy.deepcopy(rule)
-        r['link'] = idutils.to_url(item['identifier'], item['scheme'], 'https')
+        r["link"] = idutils.to_url(item["identifier"], item["scheme"], "https")
         return r
 
     def match_rules(item):
         rs = []
         for c in set(communities):
-            if c.id in current_app.config['ZENODO_RELATION_RULES']:
-                rules = current_app.config['ZENODO_RELATION_RULES'][c.id]
+            if c.id in current_app.config["ZENODO_RELATION_RULES"]:
+                rules = current_app.config["ZENODO_RELATION_RULES"][c.id]
                 for r in rules:
-                    if item['relation'] == r['relation'] and \
-                       item['scheme'] == r['scheme'] and \
-                       item['identifier'].startswith(r['prefix']):
+                    if (
+                        item["relation"] == r["relation"]
+                        and item["scheme"] == r["scheme"]
+                        and item["identifier"].startswith(r["prefix"])
+                    ):
                         rs.append(r)
         return rs
 
     ret = []
-    for item in record.get('related_identifiers', []):
+    for item in record.get("related_identifiers", []):
         for r in match_rules(item):
             ret.append(apply_rule(item, r))
 
@@ -186,11 +188,11 @@ def zenodo_related_links(record, communities):
 #
 # Community branding filters
 #
-@blueprint.app_template_filter('zenodo_community_branding_links')
+@blueprint.app_template_filter("zenodo_community_branding_links")
 def zenodo_community_branding_links(record):
     """Get logos for branded communities."""
-    comms = record.get('communities', [])
-    branded = current_app.config['ZENODO_COMMUNITY_BRANDING']
+    comms = record.get("communities", [])
+    branded = current_app.config["ZENODO_COMMUNITY_BRANDING"]
     ret = []
     for comm in comms:
         if comm in branded:
@@ -211,17 +213,18 @@ def objecttype(value):
 @blueprint.app_template_filter()
 def contributortype_title(value):
     """Get object type."""
-    return current_app.config.get('DEPOSIT_CONTRIBUTOR_TYPES_LABELS', {}).get(
-        value, value)
+    return current_app.config.get("DEPOSIT_CONTRIBUTOR_TYPES_LABELS", {}).get(
+        value, value
+    )
 
 
 @blueprint.app_template_filter()
 def meeting_title(m):
     """Get meeting title."""
-    acronym = m.get('acronym')
-    title = m.get('title')
+    acronym = m.get("acronym")
+    title = m.get("title")
     if acronym and title:
-        return u'{0} ({1})'.format(title, acronym)
+        return "{0} ({1})".format(title, acronym)
     else:
         return title or acronym
 
@@ -234,11 +237,11 @@ def select_preview_file(files):
     """Get list of files and select one for preview."""
     selected = None
     try:
-        for f in sorted(files or [], key=itemgetter('key')):
-            if f['type'] in current_previewer.previewable_extensions:
+        for f in sorted(files or [], key=itemgetter("key")):
+            if f["type"] in current_previewer.previewable_extensions:
                 if selected is None:
                     selected = f
-                elif f['default']:
+                elif f["default"]:
                     selected = f
     except KeyError:
         pass
@@ -249,6 +252,7 @@ def select_preview_file(files):
 # Stats filters
 #
 
+
 @blueprint.app_template_filter()
 def record_stats(record):
     """Fetch record statistics from Elasticsearch."""
@@ -258,7 +262,7 @@ def record_stats(record):
 @blueprint.app_template_filter()
 def stats_num_format(num):
     """Format a statistics value."""
-    return '{:,.0f}'.format(num or 0)
+    return "{:,.0f}".format(num or 0)
 
 
 #
@@ -267,33 +271,32 @@ def stats_num_format(num):
 @blueprint.app_template_test()
 def local_doi(value):
     """Test if a DOI is a local DOI."""
-    prefixes = current_app.config.get('ZENODO_LOCAL_DOI_PREFIXES', [])
+    prefixes = current_app.config.get("ZENODO_LOCAL_DOI_PREFIXES", [])
     return prefixes and any((value.startswith(p + "/") for p in prefixes))
 
 
-@blueprint.app_template_filter('relation_title')
+@blueprint.app_template_filter("relation_title")
 def relation_title(relation):
     """Map relation type to title."""
-    return dict(current_app.config['ZENODO_RELATION_TYPES']).get(relation) or \
-        relation
+    return dict(current_app.config["ZENODO_RELATION_TYPES"]).get(relation) or relation
 
 
-@blueprint.app_template_filter('citation')
+@blueprint.app_template_filter("citation")
 def citation(record, pid, style=None, ln=None):
     """Render citation for record according to style and language."""
     locale = ln or current_i18n.language
-    style = style or 'science'
+    style = style or "science"
     try:
         return citeproc_v1.serialize(pid, record, style=style, locale=locale)
     except Exception:
         current_app.logger.exception(
-            'Citation formatting for record {0} failed.'
-            .format(str(record.id)))
+            "Citation formatting for record {0} failed.".format(str(record.id))
+        )
         return None
 
 
-@blueprint.app_template_filter('pid_url')
-def pid_url(identifier, scheme=None, url_scheme='https'):
+@blueprint.app_template_filter("pid_url")
+def pid_url(identifier, scheme=None, url_scheme="https"):
     """Convert persistent identifier into a link."""
     if scheme is None:
         try:
@@ -304,19 +307,21 @@ def pid_url(identifier, scheme=None, url_scheme='https'):
         if scheme and identifier:
             return idutils.to_url(identifier, scheme, url_scheme=url_scheme)
     except Exception:
-        current_app.logger.warning('URL generation for identifier {0} failed.'
-                                   .format(identifier), exc_info=True)
-    return ''
+        current_app.logger.warning(
+            "URL generation for identifier {0} failed.".format(identifier),
+            exc_info=True,
+        )
+    return ""
 
 
-@blueprint.app_template_filter('doi_locally_managed')
+@blueprint.app_template_filter("doi_locally_managed")
 def doi_locally_managed(pid):
     """Determine if DOI is managed locally."""
     return is_doi_locally_managed(pid)
 
 
 @blueprint.app_template_filter()
-def pid_from_value(pid_value, pid_type='recid'):
+def pid_from_value(pid_value, pid_type="recid"):
     """Determine if DOI is managed locally."""
     try:
         return PersistentIdentifier.get(pid_type=pid_type, pid_value=pid_value)
@@ -348,40 +353,41 @@ def records_ui_export(pid, record, template=None, **kwargs):
             )
         )
     """
-    formats = current_app.config.get('ZENODO_RECORDS_EXPORTFORMATS')
-    fmt = request.view_args.get('format')
+    formats = current_app.config.get("ZENODO_RECORDS_EXPORTFORMATS")
+    fmt = request.view_args.get("format")
 
     if formats.get(fmt) is None:
-        return render_template(
-            'zenodo_records/records_export_unsupported.html'), 410
+        return render_template("zenodo_records/records_export_unsupported.html"), 410
     else:
-        serializer = import_string(formats[fmt]['serializer'])
+        serializer = import_string(formats[fmt]["serializer"])
         # Pretty print if JSON
         if isinstance(serializer, ZenodoJSONSerializer):
             json_data = serializer.transform_record(pid, record)
-            data = json.dumps(json_data, indent=2, separators=(', ', ': '))
+            data = json.dumps(json_data, indent=2, separators=(", ", ": "))
         else:
             data = serializer.serialize(pid, record)
         if isinstance(data, six.binary_type):
-            data = data.decode('utf8')
+            data = data.decode("utf8")
 
         # emit record_viewed event
-        record_viewed.send(
-            current_app._get_current_object(),
+        record_viewed.send(current_app._get_current_object(), pid=pid, record=record)
+        return render_template(
+            template,
             pid=pid,
             record=record,
+            data=data,
+            format_code=fmt,
+            format_title=formats[fmt]["title"],
         )
-        return render_template(
-            template, pid=pid, record=record,
-            data=data, format_code=fmt, format_title=formats[fmt]['title'])
 
 
 def _can_curate(community, user, record, accepted=False):
     """Determine whether user can curate given community."""
     if user.is_anonymous:
         return False
-    if (community.id_user == int(user.get_id())) or \
-            (accepted and (int(user.get_id()) in record.get('owners', []))):
+    if (community.id_user == int(user.get_id())) or (
+        accepted and (int(user.get_id()) in record.get("owners", []))
+    ):
         return True
     return False
 
@@ -397,7 +403,7 @@ def community_curation(record, user):
     """
     irs = ZenodoCommunity.get_irs(record).all()
     pending = list(set(ir.community for ir in irs))
-    accepted = [Community.get(c) for c in record.get('communities', [])]
+    accepted = [Community.get(c) for c in record.get("communities", [])]
     # Additionally filter out community IDs that did not resolve (None)
     accepted = [c for c in accepted if c]
 
@@ -405,7 +411,7 @@ def community_curation(record, user):
     global_perm = None
     if user.is_anonymous:
         global_perm = False
-    elif Permission(ActionNeed('admin-access')).can():
+    elif Permission(ActionNeed("admin-access")).can():
         global_perm = True
 
     if global_perm:
@@ -413,8 +419,7 @@ def community_curation(record, user):
     else:
         return (
             [c for c in pending if _can_curate(c, user, record)],
-            [c for c in accepted
-             if _can_curate(c, user, record, accepted=True)],
+            [c for c in accepted if _can_curate(c, user, record, accepted=True)],
             pending,
             accepted,
         )

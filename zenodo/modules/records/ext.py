@@ -53,23 +53,23 @@ class ZenodoRecords(object):
         # Register blueprint
         app.register_blueprint(blueprint)
         # Add global record serializer template filter
-        app.add_template_filter(serialize_record, 'serialize_record')
-        app.add_template_filter(transform_record, 'transform_record')
+        app.add_template_filter(serialize_record, "serialize_record")
+        app.add_template_filter(transform_record, "transform_record")
 
         # Register versioning blueprint
         app.register_blueprint(versioning_blueprint)
 
         self.custom_metadata = CustomMetadataAPI(
-            term_types=app.config.get('ZENODO_CUSTOM_METADATA_TERM_TYPES'),
-            vocabularies=app.config.get('ZENODO_CUSTOM_METADATA_VOCABULARIES'),
+            term_types=app.config.get("ZENODO_CUSTOM_METADATA_TERM_TYPES"),
+            vocabularies=app.config.get("ZENODO_CUSTOM_METADATA_VOCABULARIES"),
         )
 
         before_record_index.connect(indexer_receiver, sender=app)
-        app.extensions['zenodo-records'] = self
+        app.extensions["zenodo-records"] = self
 
     @staticmethod
     def init_config(app):
         """Initialize configuration."""
         for k in dir(config):
-            if k.startswith('ZENODO_'):
+            if k.startswith("ZENODO_"):
                 app.config.setdefault(k, getattr(config, k))

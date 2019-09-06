@@ -31,6 +31,6 @@ from invenio_pidstore.resolver import Resolver
 from .api import ZenodoRecord
 
 record_resolver = Resolver(
-    pid_type='recid', object_type='rec', getter=ZenodoRecord.get_record
+    pid_type="recid", object_type="rec", getter=ZenodoRecord.get_record
 )
 """'recid'-PID resolver for Zenodo Records."""

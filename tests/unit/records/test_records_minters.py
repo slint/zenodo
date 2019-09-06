@@ -31,8 +31,8 @@ from zenodo.modules.records.minters import doi_generator
 
 def test_doi_generator(app):
     """Test doi_generator."""
-    p = app.config['PIDSTORE_DATACITE_DOI_PREFIX']
+    p = app.config["PIDSTORE_DATACITE_DOI_PREFIX"]
     # Check normal generation.
-    assert doi_generator(1234) == '{prefix}/zenodo.1234'.format(prefix=p)
+    assert doi_generator(1234) == "{prefix}/zenodo.1234".format(prefix=p)
     # Check doi id for recid mapping
-    assert doi_generator(7468) == '{prefix}/zenodo.7448'.format(prefix=p)
+    assert doi_generator(7468) == "{prefix}/zenodo.7448".format(prefix=p)

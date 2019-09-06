@@ -49,39 +49,44 @@ def find_matching_licenses(legacy_licenses, od_licenses):
     :type od_licenses: list of dict
     """
     fixed = {
-      "cc-zero": "CC0-1.0",
-      "cc-by-sa": "CC-BY-SA-4.0",
-      "cc-by-nc-4.0": "CC-BY-NC-4.0",
-      "cc-by-nd-4.0": "CC-BY-ND-4.0",
-      "cc-by": "CC-BY-4.0",
-      "agpl-v3": "AGPL-3.0",
-      "apache2.0": "Apache-2.0",
-      "apache": "Apache-2.0",
-      "bsl1.0": "BSL-1.0",
-      "cuaoffice": "CUA-OPL-1.0",
-      "ecl2": "ECL-2.0",
-      "ver2_eiffel": "EFL-2.0",
-      "lucent1.02": "LPL-1.02",
-      "pythonsoftfoundation": "Python-2.0",
-      "qtpl": "QPL-1.0",
-      "real": "RPSL-1.0",
-      "vovidapl": "VSL-1.0",
-      "ukcrown-withrights": "ukcrown-withrights",
-      "sun-issl": "SISSL",
-      "pythonpl": "CNRI-Python",
+        "cc-zero": "CC0-1.0",
+        "cc-by-sa": "CC-BY-SA-4.0",
+        "cc-by-nc-4.0": "CC-BY-NC-4.0",
+        "cc-by-nd-4.0": "CC-BY-ND-4.0",
+        "cc-by": "CC-BY-4.0",
+        "agpl-v3": "AGPL-3.0",
+        "apache2.0": "Apache-2.0",
+        "apache": "Apache-2.0",
+        "bsl1.0": "BSL-1.0",
+        "cuaoffice": "CUA-OPL-1.0",
+        "ecl2": "ECL-2.0",
+        "ver2_eiffel": "EFL-2.0",
+        "lucent1.02": "LPL-1.02",
+        "pythonsoftfoundation": "Python-2.0",
+        "qtpl": "QPL-1.0",
+        "real": "RPSL-1.0",
+        "vovidapl": "VSL-1.0",
+        "ukcrown-withrights": "ukcrown-withrights",
+        "sun-issl": "SISSL",
+        "pythonpl": "CNRI-Python",
     }
 
     matchers = (
-        ("Fixed", lambda z, o: z['id'] in fixed and fixed[z['id']] == o['id']),
-        ("ID", lambda z, o: z['id'] == o['id']),
-        ("ID_Upper", lambda z, o: z['id'].upper() == o['id'].upper()),
-        ("URL", lambda z, o: z['url'] and z['url'] == o['url']),
-        ("URL_Upper", lambda z, o: z['url'] and
-            z['url'].upper() == o['url'].upper()),
-        ("Z title in O", lambda z, o: z['title'] and
-            o['title'].upper().startswith(z['title'].upper())),
-        ("O title in Z", lambda z, o: z['title'] and
-            z['title'].upper().startswith(o['title'].upper())),
+        ("Fixed", lambda z, o: z["id"] in fixed and fixed[z["id"]] == o["id"]),
+        ("ID", lambda z, o: z["id"] == o["id"]),
+        ("ID_Upper", lambda z, o: z["id"].upper() == o["id"].upper()),
+        ("URL", lambda z, o: z["url"] and z["url"] == o["url"]),
+        ("URL_Upper", lambda z, o: z["url"] and z["url"].upper() == o["url"].upper()),
+        (
+            "Z title in O",
+            lambda z, o: z["title"]
+            and o["title"].upper().startswith(z["title"].upper()),
+        ),
+        (
+            "O title in Z",
+            lambda z, o: z["title"]
+            and z["title"].upper().startswith(o["title"].upper()),
+        ),
     )
 
     missing = []
@@ -111,8 +116,8 @@ def matchlicenses(legacy_lic_filename, od_filename, destination):
         od_licenses = [v for k, v in od_licenses.items()]
     matched, missing = find_matching_licenses(legacy_licenses, od_licenses)
 
-    mapping = OrderedDict((l1['id'], l2['id']) for l1, l2, _ in matched)
-    with open(destination, 'w') as fp:
+    mapping = OrderedDict((l1["id"], l2["id"]) for l1, l2, _ in matched)
+    with open(destination, "w") as fp:
         json.dump(mapping, fp, indent=2)
 
 
@@ -122,18 +127,16 @@ def update_legacy_meta(license):
     Updates the metadata in order to conform with opendefinition schema.
     """
     l = dict(license)
-    if 'od_conformance' not in l:
-        l['od_conformance'] = 'approved' if l['is_okd_compliant'] \
-            else 'rejected'
-    if 'osd_conformance' not in l:
-        l['osd_conformance'] = 'approved' if l['is_osi_compliant'] \
-            else 'rejected'
-    l.pop('is_okd_compliant', None)
-    l.pop('is_osi_compliant', None)
-    l['$schema'] = 'http://{0}{1}/{2}'.format(
-        current_app.config['JSONSCHEMAS_HOST'],
-        current_app.config['JSONSCHEMAS_ENDPOINT'],
-        current_app.config['OPENDEFINITION_SCHEMAS_DEFAULT_LICENSE']
+    if "od_conformance" not in l:
+        l["od_conformance"] = "approved" if l["is_okd_compliant"] else "rejected"
+    if "osd_conformance" not in l:
+        l["osd_conformance"] = "approved" if l["is_osi_compliant"] else "rejected"
+    l.pop("is_okd_compliant", None)
+    l.pop("is_osi_compliant", None)
+    l["$schema"] = "http://{0}{1}/{2}".format(
+        current_app.config["JSONSCHEMAS_HOST"],
+        current_app.config["JSONSCHEMAS_ENDPOINT"],
+        current_app.config["OPENDEFINITION_SCHEMAS_DEFAULT_LICENSE"],
     )
     return l
 
@@ -156,12 +159,12 @@ def loadlicenses():
     Create extra PID if license is to be mapped and already exists, otherwise
     create a new license record and a PID.
     """
-    data = read_json('data/licenses.json')
-    map_ = read_json('data/licenses_map.json')
-    mapped = [(d, map_[d['id']] if d['id'] in map_ else None) for d in data]
+    data = read_json("data/licenses.json")
+    map_ = read_json("data/licenses_map.json")
+    mapped = [(d, map_[d["id"]] if d["id"] in map_ else None) for d in data]
     try:
         for lic, alt_pid in mapped:
-            if lic['id'] == alt_pid:  # Skip the already-existing licenses
+            if lic["id"] == alt_pid:  # Skip the already-existing licenses
                 continue
             if alt_pid:
                 try:

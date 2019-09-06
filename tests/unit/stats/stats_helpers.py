@@ -52,33 +52,40 @@ def _create_records(base_metadata, total, versions, files):
     for _ in range(total):
         conceptrecid_val = cur_recid_val
         conceptrecid = PersistentIdentifier.create(
-            'recid', str(conceptrecid_val), status='R')
+            "recid", str(conceptrecid_val), status="R"
+        )
         db.session.commit()
         versioning = PIDVersioning(parent=conceptrecid)
         for ver_idx in range(versions):
             recid_val = conceptrecid_val + ver_idx + 1
             data = deepcopy(base_metadata)
-            data.update({
-                'conceptrecid': str(conceptrecid_val),
-                'conceptdoi': '10.1234/{}'.format(recid_val),
-                'recid': recid_val,
-                'doi': '10.1234/{}'.format(recid_val),
-            })
+            data.update(
+                {
+                    "conceptrecid": str(conceptrecid_val),
+                    "conceptdoi": "10.1234/{}".format(recid_val),
+                    "recid": recid_val,
+                    "doi": "10.1234/{}".format(recid_val),
+                }
+            )
             record = ZenodoRecord.create(data)
             bucket = Bucket.create()
-            record['_buckets'] = {'record': str(bucket.id)}
+            record["_buckets"] = {"record": str(bucket.id)}
             record.commit()
             RecordsBuckets.create(bucket=bucket, record=record.model)
             recid = PersistentIdentifier.create(
-                pid_type='recid', pid_value=record['recid'], object_type='rec',
-                object_uuid=record.id, status='R')
+                pid_type="recid",
+                pid_value=record["recid"],
+                object_type="rec",
+                object_uuid=record.id,
+                status="R",
+            )
             versioning.insert_child(recid)
 
             file_objects = []
             for f in range(files):
-                filename = 'Test{0}_v{1}.pdf'.format(f, ver_idx)
-                record.files[filename] = BytesIO(b'1234567890')  # 10 bytes
-                record.files[filename]['type'] = 'pdf'
+                filename = "Test{0}_v{1}.pdf".format(f, ver_idx)
+                record.files[filename] = BytesIO(b"1234567890")  # 10 bytes
+                record.files[filename]["type"] = "pdf"
                 file_objects.append(record.files[filename].obj)
             record.commit()
 
@@ -96,10 +103,19 @@ def _gen_date_range(start, end, interval):
         cur_date += interval
 
 
-def create_stats_fixtures(metadata, n_records, n_versions, n_files,
-                          event_data, start_date, end_date, interval,
-                          do_process_events=True, do_aggregate_events=True,
-                          do_update_record_statistics=True):
+def create_stats_fixtures(
+    metadata,
+    n_records,
+    n_versions,
+    n_files,
+    event_data,
+    start_date,
+    end_date,
+    interval,
+    do_process_events=True,
+    do_aggregate_events=True,
+    do_update_record_statistics=True,
+):
     """Generate configurable statistics fixtures.
 
     :param dict metadata: Base metadata for the created records.
@@ -118,7 +134,8 @@ def create_stats_fixtures(metadata, n_records, n_versions, n_files,
         ``update_record_statistics`` task.
     """
     records = _create_records(
-        metadata, total=n_records, versions=n_versions, files=n_files)
+        metadata, total=n_records, versions=n_versions, files=n_files
+    )
 
     @contextmanager
     def _patch_stats_publish():
@@ -129,6 +146,7 @@ def create_stats_fixtures(metadata, n_records, n_versions, n_files,
         def _patched_publish(self, event_type, events):
             events[0].update(event_data)
             event_batches[event_type].append(events[0])
+
         current_stats.publish = MethodType(_patched_publish, current_stats)
         yield
         current_stats.publish = original_publish
@@ -137,29 +155,36 @@ def create_stats_fixtures(metadata, n_records, n_versions, n_files,
 
     with _patch_stats_publish():
         for ts in _gen_date_range(start_date, end_date, interval):
-            event_data['timestamp'] = ts.isoformat()
+            event_data["timestamp"] = ts.isoformat()
             for recid, record, file_objects in records:
                 with current_app.test_request_context():
-                    record_viewed.send(current_app._get_current_object(),
-                                       pid=recid, record=record)
+                    record_viewed.send(
+                        current_app._get_current_object(), pid=recid, record=record
+                    )
                     for obj in file_objects:
                         file_downloaded.send(
-                            current_app._get_current_object(),
-                            obj=obj, record=record)
+                            current_app._get_current_object(), obj=obj, record=record
+                        )
     if do_process_events:
-        process_events(['record-view', 'file-download'])
-        current_search.flush_and_refresh(index='events-stats-*')
+        process_events(["record-view", "file-download"])
+        current_search.flush_and_refresh(index="events-stats-*")
 
     if do_aggregate_events:
         aggregate_events(
-            ['record-view-agg', 'record-view-all-versions-agg',
-             'record-download-agg', 'record-download-all-versions-agg'])
-        current_search.flush_and_refresh(index='stats-*')
+            [
+                "record-view-agg",
+                "record-view-all-versions-agg",
+                "record-download-agg",
+                "record-download-all-versions-agg",
+            ]
+        )
+        current_search.flush_and_refresh(index="stats-*")
 
     if do_update_record_statistics:
-        update_record_statistics(start_date=start_date.isoformat(),
-                                 end_date=end_date.isoformat())
+        update_record_statistics(
+            start_date=start_date.isoformat(), end_date=end_date.isoformat()
+        )
         RecordIndexer().process_bulk_queue()
-        current_search.flush_and_refresh(index='records')
+        current_search.flush_and_refresh(index="records")
 
     return records

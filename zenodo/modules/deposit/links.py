@@ -34,10 +34,8 @@ def links_factory(pid, **kwargs):
     """Deposit links factory."""
     links = deposit_links_factory(pid)
 
-    links['html'] = current_app.config['DEPOSIT_UI_ENDPOINT'].format(
-        host=request.host,
-        scheme=request.scheme,
-        pid_value=pid.pid_value,
+    links["html"] = current_app.config["DEPOSIT_UI_ENDPOINT"].format(
+        host=request.host, scheme=request.scheme, pid_value=pid.pid_value
     )
 
     return links

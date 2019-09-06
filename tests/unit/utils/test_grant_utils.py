@@ -33,12 +33,12 @@ from zenodo.modules.utils.grants import OpenAIREGrantsDump
 
 def test_openaire_grants_dump(tmpdir, script_dir):
     """Test OpenAIRE grants dump parsing and splitting."""
-    out_dir = tmpdir.mkdir('grants_db')
-    out_dir_prefix = '{0}/grants-'.format(out_dir)
-    grants_dump = OpenAIREGrantsDump(str(script_dir.join('grants-dump.gz')))
+    out_dir = tmpdir.mkdir("grants_db")
+    out_dir_prefix = "{0}/grants-".format(out_dir)
+    grants_dump = OpenAIREGrantsDump(str(script_dir.join("grants-dump.gz")))
     split_files = list(grants_dump.split(out_dir_prefix, grants_per_file=2))
     assert split_files == [
-        ('{}00.db'.format(out_dir_prefix), 2),
-        ('{}01.db'.format(out_dir_prefix), 1),
+        ("{}00.db".format(out_dir_prefix), 2),
+        ("{}01.db".format(out_dir_prefix), 1),
     ]
     assert all(os.path.exists(filepath) for filepath, _ in split_files)

@@ -42,5 +42,4 @@ def record_to_index(record):
     :rtype: (str, str)
     """
     index, doc_type = default_record_to_index(record)
-    return index, current_app.config['INDEXER_SCHEMA_TO_INDEX_MAP'].get(
-        index, doc_type)
+    return index, current_app.config["INDEXER_SCHEMA_TO_INDEX_MAP"].get(index, doc_type)

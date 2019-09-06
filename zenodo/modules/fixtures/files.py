@@ -47,12 +47,11 @@ def loadlocations(force=False):
     try:
         locs = []
         uris = [
-            ('default', True, current_app.config['FIXTURES_FILES_LOCATION'], ),
-            ('archive', False,
-             current_app.config['FIXTURES_ARCHIVE_LOCATION'], )
+            ("default", True, current_app.config["FIXTURES_FILES_LOCATION"]),
+            ("archive", False, current_app.config["FIXTURES_ARCHIVE_LOCATION"]),
         ]
         for name, default, uri in uris:
-            if uri.startswith('/') and not exists(uri):
+            if uri.startswith("/") and not exists(uri):
                 makedirs(uri)
             if not Location.query.filter_by(name=name).count():
                 loc = Location(name=name, uri=uri, default=default)
@@ -70,7 +69,7 @@ def loaddemofiles(source, force=False):
     """Load demo files."""
     s = stat(source)
 
-    with open(source, 'rb') as fp:
+    with open(source, "rb") as fp:
         m = hashlib.md5()
         m.update(fp.read())
         checksum = "md5:{0}".format(m.hexdigest())

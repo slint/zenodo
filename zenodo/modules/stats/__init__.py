@@ -28,6 +28,4 @@ from __future__ import absolute_import, print_function
 
 from .proxies import current_stats_search_client
 
-__all__ = (
-    'current_stats_search_client',
-)
+__all__ = ("current_stats_search_client",)

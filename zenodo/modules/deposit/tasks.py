@@ -40,8 +40,9 @@ from zenodo.modules.records.minters import is_local_doi
 from zenodo.modules.records.serializers import datacite_v41
 
 
-@shared_task(ignore_result=True, max_retries=6, default_retry_delay=10 * 60,
-             rate_limit='100/m')
+@shared_task(
+    ignore_result=True, max_retries=6, default_retry_delay=10 * 60, rate_limit="100/m"
+)
 def datacite_register(pid_value, record_uuid):
     """Mint DOI and Concept DOI with DataCite.
 
@@ -53,14 +54,15 @@ def datacite_register(pid_value, record_uuid):
     try:
         record = Record.get_record(record_uuid)
         # Bail out if not a Zenodo DOI.
-        if not is_local_doi(record['doi']):
+        if not is_local_doi(record["doi"]):
             return
 
-        dcp = DataCiteProvider.get(record['doi'])
+        dcp = DataCiteProvider.get(record["doi"])
         doc = datacite_v41.serialize(dcp.pid, record)
 
-        url = current_app.config['ZENODO_RECORDS_UI_LINKS_FORMAT'].format(
-            recid=pid_value)
+        url = current_app.config["ZENODO_RECORDS_UI_LINKS_FORMAT"].format(
+            recid=pid_value
+        )
         if dcp.pid.status == PIDStatus.REGISTERED:
             dcp.update(url, doc)
         else:
@@ -68,14 +70,15 @@ def datacite_register(pid_value, record_uuid):
 
         # If this is the latest record version, update/register the Concept DOI
         # using the metadata of the record.
-        recid = PersistentIdentifier.get('recid', str(record['recid']))
+        recid = PersistentIdentifier.get("recid", str(record["recid"]))
         pv = PIDVersioning(child=recid)
-        conceptdoi = record.get('conceptdoi')
+        conceptdoi = record.get("conceptdoi")
         if conceptdoi and pv.exists and pv.is_last_child:
-            conceptrecid = record.get('conceptrecid')
+            conceptrecid = record.get("conceptrecid")
             concept_dcp = DataCiteProvider.get(conceptdoi)
-            url = current_app.config['ZENODO_RECORDS_UI_LINKS_FORMAT'].format(
-                recid=conceptrecid)
+            url = current_app.config["ZENODO_RECORDS_UI_LINKS_FORMAT"].format(
+                recid=conceptrecid
+            )
 
             doc = datacite_v41.serialize(concept_dcp.pid, record)
             if concept_dcp.pid.status == PIDStatus.REGISTERED:
@@ -88,8 +91,9 @@ def datacite_register(pid_value, record_uuid):
         datacite_register.retry(exc=exc)
 
 
-@shared_task(ignore_result=True, max_retries=6, default_retry_delay=10 * 60,
-             rate_limit='100/m')
+@shared_task(
+    ignore_result=True, max_retries=6, default_retry_delay=10 * 60, rate_limit="100/m"
+)
 def datacite_inactivate(pid_value):
     """Mint the DOI with DataCite.
 
@@ -115,25 +119,24 @@ def cleanup_indexed_deposits():
         been implemented in the ``invenio-records-rest`` and
         ``invenio-deposit`` modules.
     """
-    search = RecordsSearch(index='deposits')
-    q = (search
-         .query('term', **{'_deposit.status': 'draft'})
-         .fields(['_deposit.id']))
+    search = RecordsSearch(index="deposits")
+    q = search.query("term", **{"_deposit.status": "draft"}).fields(["_deposit.id"])
     res = q.scan()
-    es_depids_info = [(d.to_dict().get('_deposit.id', [None])[0], d.meta.id)
-                      for d in res]
+    es_depids_info = [
+        (d.to_dict().get("_deposit.id", [None])[0], d.meta.id) for d in res
+    ]
     es_depids = {p for p, _ in es_depids_info}
     db_depids_query = PersistentIdentifier.query.filter(
-        PersistentIdentifier.pid_type == 'depid',
-        PersistentIdentifier.pid_value.in_(es_depids))
+        PersistentIdentifier.pid_type == "depid",
+        PersistentIdentifier.pid_value.in_(es_depids),
+    )
     db_depids = {d.pid_value for d in db_depids_query}
     missing_db_depids = filter(lambda d: d[0] not in db_depids, es_depids_info)
 
     indexer = RecordIndexer()
-    deposit_index = 'deposits-records-record-v1.0.0'
-    deposit_doc_type = 'deposit-record-v1.0.0'
+    deposit_index = "deposits-records-record-v1.0.0"
+    deposit_doc_type = "deposit-record-v1.0.0"
     for _, deposit_id in missing_db_depids:
         indexer.client.delete(
-            id=str(deposit_id),
-            index=deposit_index,
-            doc_type=deposit_doc_type)
+            id=str(deposit_id), index=deposit_index, doc_type=deposit_doc_type
+        )

@@ -41,8 +41,9 @@ class DCATSerializer(object):
     @cached_property
     def xslt_transform_func(self):
         """Return the DCAT XSLT transformation function."""
-        with resource_stream('zenodo.modules.records',
-                             'data/datacite-to-dcat-ap.xsl') as f:
+        with resource_stream(
+            "zenodo.modules.records", "data/datacite-to-dcat-ap.xsl"
+        ) as f:
             xsl = ET.XML(f.read())
         transform = ET.XSLT(xsl)
         return transform
@@ -51,23 +52,20 @@ class DCATSerializer(object):
         """Transform record with XSLT."""
         if search_hit:
             record = self.datacite_serializer.transform_search_hit(
-                pid, record, **kwargs)
+                pid, record, **kwargs
+            )
         else:
-            record = self.datacite_serializer.transform_record(
-                pid, record, **kwargs)
+            record = self.datacite_serializer.transform_record(pid, record, **kwargs)
         dc_etree = self.datacite_serializer.schema.dump_etree(record)
         dc_namespace = self.datacite_serializer.schema.ns[None]
-        dc_etree.tag = '{{{0}}}resource'.format(dc_namespace)
+        dc_etree.tag = "{{{0}}}resource".format(dc_namespace)
         dcat_etree = self.xslt_transform_func(dc_etree)
         return dcat_etree
 
     def _etree_tostring(self, root):
         return ET.tostring(
-            root,
-            pretty_print=True,
-            xml_declaration=True,
-            encoding='utf-8',
-        ).decode('utf-8')
+            root, pretty_print=True, xml_declaration=True, encoding="utf-8"
+        ).decode("utf-8")
 
     def serialize(self, pid, record, **kwargs):
         """Serialize a single record.
@@ -75,8 +73,7 @@ class DCATSerializer(object):
         :param pid: Persistent identifier instance.
         :param record: Record instance.
         """
-        return self._etree_tostring(
-            self.transform_with_xslt(pid, record, **kwargs))
+        return self._etree_tostring(self.transform_with_xslt(pid, record, **kwargs))
 
     def serialize_search(self, pid_fetcher, search_result, **kwargs):
         """Serialize a search result.
@@ -86,13 +83,12 @@ class DCATSerializer(object):
         :param links: Dictionary of links to add to response.
         """
         records = []
-        for hit in search_result['hits']['hits']:
-            pid = pid_fetcher(hit['_id'], hit['_source'])
-            dcat_etree = self.transform_with_xslt(
-                pid, hit, search_hit=True, **kwargs)
+        for hit in search_result["hits"]["hits"]:
+            pid = pid_fetcher(hit["_id"], hit["_source"])
+            dcat_etree = self.transform_with_xslt(pid, hit, search_hit=True, **kwargs)
             records.append(self._etree_tostring(dcat_etree))
 
-        return '\n'.join(records)
+        return "\n".join(records)
 
     def serialize_oaipmh(self, pid, record):
         """Serialize a single record for OAI-PMH."""

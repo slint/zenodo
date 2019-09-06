@@ -36,114 +36,136 @@ except ImportError:
 
 def compare_url(url, expected):
     """Compare two urls replying if they are the same."""
+
     def get_querystring_dict(url):
         return parse_qs(urlparse(url).query)
-    return (get_querystring_dict(url) == get_querystring_dict(expected) and
-            urlparse(url).path == urlparse(expected).path)
+
+    return (
+        get_querystring_dict(url) == get_querystring_dict(expected)
+        and urlparse(url).path == urlparse(expected).path
+    )
 
 
 def check_redirection(response, expected_url):
     """."""
     assert response.status_code == 302
-    assert compare_url(response.headers['Location'], expected_url)
+    assert compare_url(response.headers["Location"], expected_url)
 
 
 def test_redirection_community(app_client, db):
     """Check the redirection using a direct translation."""
-    url_redirection = url_for('invenio_communities.detail', community_id=1,
-                              _external=True)
+    url_redirection = url_for(
+        "invenio_communities.detail", community_id=1, _external=True
+    )
 
-    response = app_client.get('/collection/user-1')
+    response = app_client.get("/collection/user-1")
     check_redirection(response, url_redirection)
 
 
 def test_redirection_community_search(app_client, db):
     """Check the redirection using a direct translation."""
-    url_redirection = url_for('invenio_communities.search', community_id=1,
-                              _external=True)
+    url_redirection = url_for(
+        "invenio_communities.search", community_id=1, _external=True
+    )
 
-    response = app_client.get('/search?cc=user-1')
+    response = app_client.get("/search?cc=user-1")
     check_redirection(response, url_redirection)
 
     # Query translation
-    url_redirection = url_for('invenio_communities.search', community_id=1,
-                              q='test', _external=True)
+    url_redirection = url_for(
+        "invenio_communities.search", community_id=1, q="test", _external=True
+    )
 
-    response = app_client.get('/search?cc=user-1&p=test')
+    response = app_client.get("/search?cc=user-1&p=test")
     check_redirection(response, url_redirection)
 
 
 def test_redirection_communities_provisional_user(app_client, db):
     """Check the redirection using a direct translation."""
-    url_redirection = url_for('invenio_communities.curate', community_id=1,
-                              _external=True)
+    url_redirection = url_for(
+        "invenio_communities.curate", community_id=1, _external=True
+    )
 
-    response = app_client.get('/search?cc=provisional-user-1')
+    response = app_client.get("/search?cc=provisional-user-1")
     check_redirection(response, url_redirection)
 
     # Query translation
-    url_redirection = url_for('invenio_communities.curate', community_id=1,
-                              q='test', _external=True)
+    url_redirection = url_for(
+        "invenio_communities.curate", community_id=1, q="test", _external=True
+    )
 
-    response = app_client.get('/search?cc=provisional-user-1&p=test')
+    response = app_client.get("/search?cc=provisional-user-1&p=test")
     check_redirection(response, url_redirection)
 
 
 def test_redirection_communities_about(app_client, db):
     """Check the redirection using a direct translation."""
-    url_redirection = url_for('invenio_communities.about', community_id=1,
-                              _external=True)
+    url_redirection = url_for(
+        "invenio_communities.about", community_id=1, _external=True
+    )
 
-    response = app_client.get('/communities/about/1/')
+    response = app_client.get("/communities/about/1/")
     check_redirection(response, url_redirection)
 
 
 def test_redirection_collections_type(app_client, db):
     """Check the redirection using a direct translation."""
     # Type
-    url_redirection = url_for('invenio_search_ui.search', type='video',
-                              _external=True)
-    response = app_client.get('/collection/videos')
+    url_redirection = url_for("invenio_search_ui.search", type="video", _external=True)
+    response = app_client.get("/collection/videos")
     check_redirection(response, url_redirection)
 
     # Type and subtype
-    url_redirection = url_for('invenio_search_ui.search', type='publication',
-                              subtype='deliverable', _external=True)
-    response = app_client.get('/collection/deliverable')
+    url_redirection = url_for(
+        "invenio_search_ui.search",
+        type="publication",
+        subtype="deliverable",
+        _external=True,
+    )
+    response = app_client.get("/collection/deliverable")
     check_redirection(response, url_redirection)
 
 
 def test_redirection_collections_search(app_client, db):
     """Check the redirection using a direct translation."""
     # Type
-    url_redirection = url_for('invenio_search_ui.search', type='video',
-                              _external=True)
-    response = app_client.get('/search?cc=videos')
+    url_redirection = url_for("invenio_search_ui.search", type="video", _external=True)
+    response = app_client.get("/search?cc=videos")
     check_redirection(response, url_redirection)
 
     # Type and subtype
-    url_redirection = url_for('invenio_search_ui.search', type='publication',
-                              subtype='deliverable', _external=True)
-    response = app_client.get('/search?cc=deliverable')
+    url_redirection = url_for(
+        "invenio_search_ui.search",
+        type="publication",
+        subtype="deliverable",
+        _external=True,
+    )
+    response = app_client.get("/search?cc=deliverable")
     check_redirection(response, url_redirection)
 
     # Query translation
-    url_redirection = url_for('invenio_search_ui.search', type='publication',
-                              subtype='deliverable', q='test', _external=True)
+    url_redirection = url_for(
+        "invenio_search_ui.search",
+        type="publication",
+        subtype="deliverable",
+        q="test",
+        _external=True,
+    )
 
-    response = app_client.get('/search?cc=deliverable&p=test')
+    response = app_client.get("/search?cc=deliverable&p=test")
     check_redirection(response, url_redirection)
 
 
 def test_redirection_search_behaviour(app_client, db):
     """Check the behaviour of url_for using invenio_search_ui.index."""
     # Empty url
-    response = app_client.get(url_for('invenio_search_ui.search'))
+    response = app_client.get(url_for("invenio_search_ui.search"))
     assert response.status_code == 200
-    assert '<invenio-search' in response.get_data(as_text=True)
+    assert "<invenio-search" in response.get_data(as_text=True)
 
     # Query string
-    response = app_client.get(url_for('invenio_search_ui.search',
-                                      page=1, size=20, q='Aa'))
+    response = app_client.get(
+        url_for("invenio_search_ui.search", page=1, size=20, q="Aa")
+    )
     assert response.status_code == 200
-    assert '<invenio-search' in response.get_data(as_text=True)
+    assert "<invenio-search" in response.get_data(as_text=True)

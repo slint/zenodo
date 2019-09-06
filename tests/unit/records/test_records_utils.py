@@ -26,63 +26,68 @@
 
 from __future__ import absolute_import, print_function
 
-from zenodo.modules.records.utils import build_record_custom_fields, \
-    is_valid_openaire_type
+from zenodo.modules.records.utils import (
+    build_record_custom_fields,
+    is_valid_openaire_type,
+)
 
 
 def test_openaire_type_validation(app):
     """Test validation of OpenAIRE subtypes."""
     assert is_valid_openaire_type({}, [])
-    assert is_valid_openaire_type({'type': 'dataset'}, ['c1', 'b2'])
+    assert is_valid_openaire_type({"type": "dataset"}, ["c1", "b2"])
     # valid case
     assert is_valid_openaire_type(
-        {'openaire_subtype': 'foo:t4', 'type': 'other'}, ['c1'])
+        {"openaire_subtype": "foo:t4", "type": "other"}, ["c1"]
+    )
     # another valid case
     assert is_valid_openaire_type(
-        {'openaire_subtype': 'bar:t3', 'type': 'software'}, ['c3'])
+        {"openaire_subtype": "bar:t3", "type": "software"}, ["c3"]
+    )
     # valid case (mixed communities, but subtype from other/foo)
     assert is_valid_openaire_type(
-        {'openaire_subtype': 'foo:t4', 'type': 'other'}, ['c1', 'c3'])
+        {"openaire_subtype": "foo:t4", "type": "other"}, ["c1", "c3"]
+    )
     # valid case (mixed communities, but subtype from software/bar)
     assert is_valid_openaire_type(
-        {'openaire_subtype': 'bar:t3', 'type': 'software'}, ['c1', 'c3'])
+        {"openaire_subtype": "bar:t3", "type": "software"}, ["c1", "c3"]
+    )
     # invalid OA subtype
     assert not is_valid_openaire_type(
-        {'openaire_subtype': 'xxx', 'type': 'other'}, ['c1'])
+        {"openaire_subtype": "xxx", "type": "other"}, ["c1"]
+    )
     # community missing
     assert not is_valid_openaire_type(
-        {'openaire_subtype': 'foo:oth1', 'type': 'other'}, [])
+        {"openaire_subtype": "foo:oth1", "type": "other"}, []
+    )
     # wrong community
     assert not is_valid_openaire_type(
-        {'openaire_subtype': 'foo:oth1', 'type': 'other'}, ['c3'])
+        {"openaire_subtype": "foo:oth1", "type": "other"}, ["c3"]
+    )
     # wrong general type (software has a definition)
     assert not is_valid_openaire_type(
-        {'openaire_subtype': 'foo:t4', 'type': 'software'}, ['c1'])
+        {"openaire_subtype": "foo:t4", "type": "software"}, ["c1"]
+    )
     # wrong general type (dataset has no definition)
     assert not is_valid_openaire_type(
-        {'openaire_subtype': 'foo:t4', 'type': 'dataset'}, ['c1'])
+        {"openaire_subtype": "foo:t4", "type": "dataset"}, ["c1"]
+    )
     # non-existing prefix
     assert not is_valid_openaire_type(
-        {'openaire_subtype': 'xxx:t1', 'type': 'software'}, ['c1'])
+        {"openaire_subtype": "xxx:t1", "type": "software"}, ["c1"]
+    )
 
 
 def test_build_record_custom_fields(full_record, custom_metadata):
     """Test building of the records' custom fields."""
-    full_record['custom'] = custom_metadata
+    full_record["custom"] = custom_metadata
     expected = dict(
-        custom_keywords={
-            ('dwc:family', 'Felidae'),
-            ('dwc:genus', 'Felis'),
-        },
-        custom_text={
-            ('dwc:behavior', 'Plays with yarn, sleeps in cardboard box.'),
-        }
+        custom_keywords={("dwc:family", "Felidae"), ("dwc:genus", "Felis")},
+        custom_text={("dwc:behavior", "Plays with yarn, sleeps in cardboard box.")},
     )
 
     result = build_record_custom_fields(full_record)
     assert expected == {
-        'custom_keywords': {
-            (v['key'], v['value']) for v in result['custom_keywords']},
-        'custom_text': {
-            (v['key'], v['value']) for v in result['custom_text']}
+        "custom_keywords": {(v["key"], v["value"]) for v in result["custom_keywords"]},
+        "custom_text": {(v["key"], v["value"]) for v in result["custom_text"]},
     }

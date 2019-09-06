@@ -31,6 +31,6 @@ from invenio_pidstore.resolver import Resolver
 from .api import ZenodoDeposit
 
 deposit_resolver = Resolver(
-    pid_type='depid', object_type='rec', getter=ZenodoDeposit.get_record
+    pid_type="depid", object_type="rec", getter=ZenodoDeposit.get_record
 )
 """'depid'-PID resolver for Zenodo Deposits."""

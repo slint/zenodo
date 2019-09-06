@@ -26,20 +26,23 @@
 
 from flask_assets import Bundle
 from invenio_assets import NpmBundle
-from invenio_deposit.bundles import js_dependecies_autocomplete, \
-    js_dependecies_schema_form, js_dependecies_uploader, \
-    js_dependencies_ckeditor, js_dependencies_jquery, \
-    js_dependencies_ui_sortable, js_main
+from invenio_deposit.bundles import (
+    js_dependecies_autocomplete,
+    js_dependecies_schema_form,
+    js_dependecies_uploader,
+    js_dependencies_ckeditor,
+    js_dependencies_jquery,
+    js_dependencies_ui_sortable,
+    js_main,
+)
 
 js_zenodo_deposit = Bundle(
-    'js/zenodo_deposit/filters.js',
-    'js/zenodo_deposit/directives.js',
-    'js/zenodo_deposit/controllers.js',
-    'js/zenodo_deposit/providers.js',
-    'js/zenodo_deposit/config.js',
-    depends=(
-        'js/zenodo_deposit/*.js',
-    ),
+    "js/zenodo_deposit/filters.js",
+    "js/zenodo_deposit/directives.js",
+    "js/zenodo_deposit/controllers.js",
+    "js/zenodo_deposit/providers.js",
+    "js/zenodo_deposit/config.js",
+    depends=("js/zenodo_deposit/*.js",),
 )
 
 
@@ -52,6 +55,6 @@ js_deposit = NpmBundle(
     js_dependencies_ui_sortable,
     js_dependencies_ckeditor,
     js_zenodo_deposit,
-    filters='uglifyjs',
-    output='gen/zenodo.deposit.%(version)s.js',
+    filters="uglifyjs",
+    output="gen/zenodo.deposit.%(version)s.js",
 )

@@ -33,9 +33,9 @@ def test_dcat_serializer(db, es, record_with_bucket):
     """."""
     pid, record = record_with_bucket
     serialized_record = dcat_v1.serialize(pid, record)
-    assert record['title'] in serialized_record
-    assert record['description'] in serialized_record
-    assert record['doi'] in serialized_record
-    for creator in record['creators']:
-        assert creator['familyname'] in serialized_record
-        assert creator['givennames'] in serialized_record
+    assert record["title"] in serialized_record
+    assert record["description"] in serialized_record
+    assert record["doi"] in serialized_record
+    for creator in record["creators"]:
+        assert creator["familyname"] in serialized_record
+        assert creator["givennames"] in serialized_record

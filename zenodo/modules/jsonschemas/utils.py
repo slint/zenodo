@@ -32,11 +32,9 @@ from copy import deepcopy
 from flask import current_app
 from werkzeug.local import LocalProxy
 
-current_jsonschemas = LocalProxy(
-    lambda: current_app.extensions['invenio-jsonschemas']
-)
+current_jsonschemas = LocalProxy(lambda: current_app.extensions["invenio-jsonschemas"])
 
-_records_state = LocalProxy(lambda: current_app.extensions['invenio-records'])
+_records_state = LocalProxy(lambda: current_app.extensions["invenio-records"])
 
 
 def resolve_schema_path(schema_path):
@@ -97,9 +95,9 @@ def get_abs_schema_path(schema_path):
 
 def save_jsonschema(schema, path):
     """Save jsonschema to disk path."""
-    with open(path, 'w') as fp:
-        json.dump(schema, fp, indent=2, sort_keys=True, separators=(',', ': '))
-        fp.write('\n')
+    with open(path, "w") as fp:
+        json.dump(schema, fp, indent=2, sort_keys=True, separators=(",", ": "))
+        fp.write("\n")
 
 
 def merge_dicts(first, second):
@@ -123,8 +121,7 @@ def remove_keys(d, keys):
     :type keys: list
     """
     if isinstance(d, dict):
-        return dict((k, remove_keys(v, keys)) for k, v in d.items()
-                    if k not in keys)
+        return dict((k, remove_keys(v, keys)) for k, v in d.items() if k not in keys)
     elif isinstance(d, list):
         return list(remove_keys(i, keys) for i in d)
     else:

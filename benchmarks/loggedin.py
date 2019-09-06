@@ -35,13 +35,12 @@ class LoggedInWebsiteTasks(AnonymousWebsiteTasks):
 
     def on_start(self):
         """Load user on start."""
-        with self.client.post('https://sandbox.zenodo.org/login/',
-                              {
-                                  'email': 'test@zenodo.org',
-                                  'password': '123456',
-                              }) as response:
+        with self.client.post(
+            "https://sandbox.zenodo.org/login/",
+            {"email": "test@zenodo.org", "password": "123456"},
+        ) as response:
             if response.status_code != 200:
-                response.failure('wrong login')
+                response.failure("wrong login")
 
 
 class WebsiteUser(HttpLocust):

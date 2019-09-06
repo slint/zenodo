@@ -31,6 +31,9 @@ from flask import current_app
 
 def collect_staticroot_removal(blueprints):
     """Remove collect's static root folder from list."""
-    collect_root = current_app.extensions['collect'].static_root
-    return [bp for bp in blueprints if (
-        bp.has_static_folder and bp.static_folder != collect_root)]
+    collect_root = current_app.extensions["collect"].static_root
+    return [
+        bp
+        for bp in blueprints
+        if (bp.has_static_folder and bp.static_folder != collect_root)
+    ]

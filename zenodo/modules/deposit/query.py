@@ -28,8 +28,7 @@
 from flask import abort
 from flask_security import current_user
 
-from zenodo.modules.records.query import \
-    search_factory as record_search_factory
+from zenodo.modules.records.query import search_factory as record_search_factory
 
 
 def search_factory(*args, **kwargs):

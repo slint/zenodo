@@ -57,15 +57,14 @@ class ZenodoGitHubRelease(GitHubRelease):
         output.update(self.extra_metadata)
 
         # Add creators if not specified
-        if 'creators' not in output:
-            output['creators'] = get_contributors(self.gh.api,
-                                                  self.repository['id'])
-        if not output['creators']:
-            output['creators'] = get_owner(self.gh.api, self.author)
-        if not output['creators']:
-            output['creators'] = [dict(name='Unknown', affiliation='')]
+        if "creators" not in output:
+            output["creators"] = get_contributors(self.gh.api, self.repository["id"])
+        if not output["creators"]:
+            output["creators"] = get_owner(self.gh.api, self.author)
+        if not output["creators"]:
+            output["creators"] = [dict(name="Unknown", affiliation="")]
 
-        return legacyjson_v1_translator({'metadata': output})
+        return legacyjson_v1_translator({"metadata": output})
 
     @property
     def repo_model(self):
@@ -76,7 +75,7 @@ class ZenodoGitHubRelease(GitHubRelease):
     def recid(self):
         """Get RECID object for the Release record."""
         if self.record:
-            return PersistentIdentifier.get('recid', str(self.record['recid']))
+            return PersistentIdentifier.get("recid", str(self.record["recid"]))
 
     def publish(self):
         """Publish GitHub release as record."""
@@ -87,37 +86,40 @@ class ZenodoGitHubRelease(GitHubRelease):
             db.session.begin_nested()
             # TODO: Add filter on Published releases
             previous_releases = self.model.repository.releases.filter_by(
-                status=ReleaseStatus.PUBLISHED)
+                status=ReleaseStatus.PUBLISHED
+            )
             versioning = None
             stashed_draft_child = None
             if previous_releases.count():
                 last_release = previous_releases.order_by(
-                        Release.created.desc()).first()
+                    Release.created.desc()
+                ).first()
                 last_recid = PersistentIdentifier.get(
-                    'recid', last_release.record['recid'])
+                    "recid", last_release.record["recid"]
+                )
                 versioning = PIDVersioning(child=last_recid)
-                last_record = ZenodoRecord.get_record(
-                    versioning.last_child.object_uuid)
-                deposit_metadata['conceptrecid'] = last_record['conceptrecid']
-                if 'conceptdoi' not in last_record:
+                last_record = ZenodoRecord.get_record(versioning.last_child.object_uuid)
+                deposit_metadata["conceptrecid"] = last_record["conceptrecid"]
+                if "conceptdoi" not in last_record:
                     last_depid = PersistentIdentifier.get(
-                        'depid', last_record['_deposit']['id'])
-                    last_deposit = ZenodoDeposit.get_record(
-                        last_depid.object_uuid)
+                        "depid", last_record["_deposit"]["id"]
+                    )
+                    last_deposit = ZenodoDeposit.get_record(last_depid.object_uuid)
                     last_deposit = last_deposit.registerconceptdoi()
                     last_recid, last_record = last_deposit.fetch_published()
-                deposit_metadata['conceptdoi'] = last_record['conceptdoi']
-                if last_record.get('communities'):
-                    deposit_metadata.setdefault('communities',
-                                                last_record['communities'])
+                deposit_metadata["conceptdoi"] = last_record["conceptdoi"]
+                if last_record.get("communities"):
+                    deposit_metadata.setdefault(
+                        "communities", last_record["communities"]
+                    )
                 if versioning.draft_child:
                     stashed_draft_child = versioning.draft_child
                     versioning.remove_draft_child()
 
             deposit = self.deposit_class.create(deposit_metadata, id_=id_)
 
-            deposit['_deposit']['created_by'] = self.event.user_id
-            deposit['_deposit']['owners'] = [self.event.user_id]
+            deposit["_deposit"]["created_by"] = self.event.user_id
+            deposit["_deposit"]["owners"] = [self.event.user_id]
 
             # Fetch the deposit files
             for key, url in self.files:
@@ -125,30 +127,29 @@ class ZenodoGitHubRelease(GitHubRelease):
                 # Content-Length.
                 res = self.gh.api.session.head(url, allow_redirects=True)
                 # Now, download the file
-                res = self.gh.api.session.get(url, stream=True,
-                                              allow_redirects=True)
+                res = self.gh.api.session.get(url, stream=True, allow_redirects=True)
                 if res.status_code != 200:
                     raise Exception(
-                        "Could not retrieve archive from GitHub: {url}"
-                        .format(url=url)
+                        "Could not retrieve archive from GitHub: {url}".format(url=url)
                     )
 
-                size = int(res.headers.get('Content-Length', 0))
+                size = int(res.headers.get("Content-Length", 0))
                 ObjectVersion.create(
                     bucket=deposit.files.bucket,
                     key=key,
                     stream=res.raw,
                     size=size or None,
-                    mimetype=res.headers.get('Content-Type'),
+                    mimetype=res.headers.get("Content-Type"),
                 )
 
             # GitHub-specific SIP store agent
             sip_agent = {
-                '$schema': current_jsonschemas.path_to_url(
-                    current_app.config['SIPSTORE_GITHUB_AGENT_JSONSCHEMA']),
-                'user_id': self.event.user_id,
-                'github_id': self.release['author']['id'],
-                'email': self.gh.account.user.email,
+                "$schema": current_jsonschemas.path_to_url(
+                    current_app.config["SIPSTORE_GITHUB_AGENT_JSONSCHEMA"]
+                ),
+                "user_id": self.event.user_id,
+                "github_id": self.release["author"]["id"],
+                "email": self.gh.account.user.email,
             }
             deposit.publish(user_id=self.event.user_id, sip_agent=sip_agent)
             recid_pid, record = deposit.fetch_published()
@@ -159,7 +160,7 @@ class ZenodoGitHubRelease(GitHubRelease):
             db.session.commit()
 
             # Send Datacite DOI registration task
-            if current_app.config['DEPOSIT_DATACITE_MINTING_ENABLED']:
+            if current_app.config["DEPOSIT_DATACITE_MINTING_ENABLED"]:
                 datacite_register.delay(recid_pid.pid_value, record_id)
 
             # Index the record
@@ -172,5 +173,6 @@ class ZenodoGitHubRelease(GitHubRelease):
                     RecordIndexer().delete(deposit)
                 except Exception:
                     current_app.logger.exception(
-                        "Failed to remove uncommited deposit from index.")
+                        "Failed to remove uncommited deposit from index."
+                    )
             raise

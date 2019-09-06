@@ -35,31 +35,26 @@ from invenio_pidrelations.contrib.versioning import PIDVersioning
 
 from zenodo.modules.communities.api import ZenodoCommunity
 from zenodo.modules.deposit.tasks import datacite_register
-from zenodo.modules.openaire.tasks import openaire_delete, \
-    openaire_direct_index
+from zenodo.modules.openaire.tasks import openaire_delete, openaire_direct_index
 from zenodo.modules.records.resolvers import record_resolver
 
-blueprint = Blueprint(
-    'zenodo_communities',
-    __name__,
-    url_prefix='/communities',
-)
+blueprint = Blueprint("zenodo_communities", __name__, url_prefix="/communities")
 
 
-@blueprint.route('/<string:community_id>/curaterecord/', methods=['POST'])
+@blueprint.route("/<string:community_id>/curaterecord/", methods=["POST"])
 @login_required
 @pass_community
-@permission_required('community-curate')
+@permission_required("community-curate")
 def curate(community):
     """Index page with uploader and list of existing depositions.
 
     :param community_id: ID of the community to curate.
     """
-    action = request.json.get('action')
-    recid = request.json.get('recid')
+    action = request.json.get("action")
+    recid = request.json.get("recid")
     if not recid:
         abort(400)
-    if action not in ['accept', 'reject', 'remove']:
+    if action not in ["accept", "reject", "remove"]:
         abort(400)
 
     # Resolve recid to a Record
@@ -81,12 +76,12 @@ def curate(community):
     db.session.commit()
     RecordIndexer().index_by_id(record_id)
 
-    if current_app.config['OPENAIRE_DIRECT_INDEXING_ENABLED']:
-        if action == 'accept':
+    if current_app.config["OPENAIRE_DIRECT_INDEXING_ENABLED"]:
+        if action == "accept":
             openaire_direct_index.delay(record_uuid=str(record_id))
-        elif action in ('reject', 'remove'):
+        elif action in ("reject", "remove"):
             openaire_delete.delay(record_uuid=str(record_id))
-    if current_app.config['DEPOSIT_DATACITE_MINTING_ENABLED']:
+    if current_app.config["DEPOSIT_DATACITE_MINTING_ENABLED"]:
         datacite_register.delay(recid, str(record_id))
 
-    return jsonify({'status': 'success'})
+    return jsonify({"status": "success"})

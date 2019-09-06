@@ -39,19 +39,15 @@ def files_responsify(schema_class, mimetype):
     :param schema_class: Marshmallow schema class.
     :param mimetype: MIME type of response.
     """
+
     def view(obj=None, pid=None, record=None, status=None):
-        schema = schema_class(
-            context={'pid': pid},
-            many=isinstance(obj, FilesIterator)
-        )
+        schema = schema_class(context={"pid": pid}, many=isinstance(obj, FilesIterator))
 
         if isinstance(obj, ObjectVersion):
             obj = ZenodoFileObject(obj, {})
 
         return current_app.response_class(
-            json.dumps(schema.dump(obj.dumps()).data),
-            mimetype=mimetype,
-            status=status
+            json.dumps(schema.dump(obj.dumps()).data), mimetype=mimetype, status=status
         )
 
     return view

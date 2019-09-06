@@ -37,10 +37,10 @@ class PersistentId(SanitizedUnicode):
     """Special DOI field."""
 
     default_error_messages = {
-        'invalid_scheme': 'Not a valid {scheme} identifier.',
+        "invalid_scheme": "Not a valid {scheme} identifier.",
         # TODO: Translation on format strings sounds tricky...
         # 'invalid_scheme': _('Not a valid {scheme} identifier.'),
-        'invalid_pid': _('Not a valid persistent identifier.'),
+        "invalid_pid": _("Not a valid persistent identifier."),
     }
 
     def __init__(self, scheme=None, normalize=True, *args, **kwargs):
@@ -62,8 +62,7 @@ class PersistentId(SanitizedUnicode):
 
         schemes = idutils.detect_identifier_schemes(value)
         if self.scheme and self.scheme.lower() not in schemes:
-            self.fail('invalid_scheme', scheme=self.scheme)
+            self.fail("invalid_scheme", scheme=self.scheme)
         if not schemes:
-            self.fail('invalid_pid')
-        return idutils.normalize_pid(value, schemes[0]) \
-            if self.normalize else value
+            self.fail("invalid_pid")
+        return idutils.normalize_pid(value, schemes[0]) if self.normalize else value

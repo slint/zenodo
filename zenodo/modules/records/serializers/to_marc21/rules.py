@@ -30,105 +30,84 @@ from dojson import utils
 from dojson.contrib.to_marc21 import to_marc21
 
 
-@to_marc21.over('980', '^(resource_type|communities)$')
+@to_marc21.over("980", "^(resource_type|communities)$")
 @utils.for_each_value
 @utils.filter_values
 def reverse_resource_type(dummy_self, key, value):
     """Reverse - Resource Type."""
-    if key == 'resource_type':
+    if key == "resource_type":
         return {
-            'a': value.get('type'),
-            'b': value.get('subtype'),
-            '$ind1': '_',
-            '$ind2': '_',
+            "a": value.get("type"),
+            "b": value.get("subtype"),
+            "$ind1": "_",
+            "$ind2": "_",
         }
-    elif key == 'communities':
-        return {
-            'a': 'user-{0}'.format(value),
-            '$ind1': '_',
-            '$ind2': '_',
-        }
+    elif key == "communities":
+        return {"a": "user-{0}".format(value), "$ind1": "_", "$ind2": "_"}
 
 
-@to_marc21.over('999', '^references$')
+@to_marc21.over("999", "^references$")
 @utils.reverse_for_each_value
 @utils.filter_values
 def reverse_references(dummy_self, dummy_key, value):
     """Reverse - References - raw reference."""
-    return {
-        'x': value.get('raw_reference'),
-        '$ind1': 'C',
-        '$ind2': '5',
-    }
+    return {"x": value.get("raw_reference"), "$ind1": "C", "$ind2": "5"}
 
 
-@to_marc21.over('942', '^embargo_date$')
+@to_marc21.over("942", "^embargo_date$")
 @utils.filter_values
 def reverse_embargo_date(dummy_self, dummy_key, value):
     """Reverse - embargo date."""
-    return {
-        'a': value,
-        '$ind1': '_',
-        '$ind2': '_',
-    }
+    return {"a": value, "$ind1": "_", "$ind2": "_"}
 
 
-@to_marc21.over('909', '^(_oai|journal)$')
+@to_marc21.over("909", "^(_oai|journal)$")
 @utils.filter_values
 def reverse_oai(dummy_self, key, value):
     """Reverse - OAI/Journal."""
-    if key == '_oai':
+    if key == "_oai":
         return {
-            'o': value.get('id'),
-            'p': utils.reverse_force_list(value.get('sets')),
-            '$ind1': 'C',
-            '$ind2': 'O',
+            "o": value.get("id"),
+            "p": utils.reverse_force_list(value.get("sets")),
+            "$ind1": "C",
+            "$ind2": "O",
         }
-    elif key == 'journal':
+    elif key == "journal":
         return {
-            'n': value.get('issue'),
-            'c': value.get('pages'),
-            'v': value.get('volume'),
-            'p': value.get('title'),
-            'y': value.get('year'),
-            '$ind1': 'C',
-            '$ind2': '4',
+            "n": value.get("issue"),
+            "c": value.get("pages"),
+            "v": value.get("volume"),
+            "p": value.get("title"),
+            "y": value.get("year"),
+            "$ind1": "C",
+            "$ind2": "4",
         }
     return
 
 
-@to_marc21.over('856', '^conference_url$')
+@to_marc21.over("856", "^conference_url$")
 @utils.filter_values
 def reverse_conference_url(dummy_self, key, value):
     """Reverse - Meeting."""
-    return {
-        'y': 'Conference website',
-        'u': value,
-        '$ind1': '4',
-        '$ind2': '_',
-    }
+    return {"y": "Conference website", "u": value, "$ind1": "4", "$ind2": "_"}
 
 
-@to_marc21.over('856', '^_files$')
+@to_marc21.over("856", "^_files$")
 @utils.reverse_for_each_value
 @utils.filter_values
 def reverse_files(dummy_self, key, value):
     """Reverse - Files."""
     return {
-        's': str(value['size']),
-        'u': value['uri'],
-        'z': value['checksum'],
-        '$ind1': '4',
-        '$ind2': '_',
+        "s": str(value["size"]),
+        "u": value["uri"],
+        "z": value["checksum"],
+        "$ind1": "4",
+        "$ind2": "_",
     }
 
 
-@to_marc21.over('041', '^language$')
+@to_marc21.over("041", "^language$")
 @utils.filter_values
 def reverse_language(dummy_self, dummy_key, value):
     """Reverse - language code."""
-    return {
-        'a': value,
-        '$ind1': '_',
-        '$ind2': '_',
-    }
+    return {"a": value, "$ind1": "_", "$ind2": "_"}

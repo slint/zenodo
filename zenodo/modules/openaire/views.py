@@ -30,19 +30,16 @@ from flask import Blueprint
 
 from .helpers import openaire_link, openaire_type
 
-blueprint = Blueprint(
-    'zenodo_openaire',
-    __name__
-)
+blueprint = Blueprint("zenodo_openaire", __name__)
 
 
-@blueprint.app_template_filter('openaire_link')
+@blueprint.app_template_filter("openaire_link")
 def link(record):
     """Generate an OpenAIRE link."""
     return openaire_link(record)
 
 
-@blueprint.app_template_filter('openaire_type')
+@blueprint.app_template_filter("openaire_type")
 def openaire_type_filter(record):
     """Generate an OpenAIRE link."""
     return openaire_type(record)

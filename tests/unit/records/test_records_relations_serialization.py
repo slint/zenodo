@@ -29,14 +29,15 @@ from six import BytesIO, b
 
 from zenodo.modules.deposit.api import ZenodoDeposit
 from zenodo.modules.deposit.resolvers import deposit_resolver
-from zenodo.modules.records.serializers.pidrelations import \
-    serialize_related_identifiers
+from zenodo.modules.records.serializers.pidrelations import (
+    serialize_related_identifiers,
+)
 
 
 def test_relations_serialization(app, db, deposit, deposit_file):
     """Serialize PID relations."""
     deposit_v1 = publish_and_expunge(db, deposit)
-    depid_v1_value = deposit_v1['_deposit']['id']
+    depid_v1_value = deposit_v1["_deposit"]["id"]
     depid_v1, deposit_v1 = deposit_resolver.resolve(depid_v1_value)
 
     recid_v1, record_v1 = deposit_v1.fetch_published()
@@ -46,15 +47,9 @@ def test_relations_serialization(app, db, deposit, deposit_file):
                 "draft_child_deposit": None,
                 "index": 0,
                 "is_last": True,
-                "last_child": {
-                    "pid_type": "recid",
-                    "pid_value": "2"
-                },
-                "parent": {
-                    "pid_type": "recid",
-                    "pid_value": "1"
-                },
-                "count": 1
+                "last_child": {"pid_type": "recid", "pid_value": "2"},
+                "parent": {"pid_type": "recid", "pid_value": "1"},
+                "count": 1,
             }
         ]
     }
@@ -65,21 +60,12 @@ def test_relations_serialization(app, db, deposit, deposit_file):
     expected = {
         "version": [
             {
-                "draft_child_deposit": {
-                    "pid_type": "depid",
-                    "pid_value": "3"
-                },
+                "draft_child_deposit": {"pid_type": "depid", "pid_value": "3"},
                 "index": 0,
                 "is_last": True,
-                "last_child": {
-                    "pid_type": "recid",
-                    "pid_value": "2"
-                },
+                "last_child": {"pid_type": "recid", "pid_value": "2"},
                 "count": 1,
-                "parent": {
-                    "pid_type": "recid",
-                    "pid_value": "1"
-                },
+                "parent": {"pid_type": "recid", "pid_value": "1"},
             }
         ]
     }
@@ -89,7 +75,7 @@ def test_relations_serialization(app, db, deposit, deposit_file):
     pv = PIDVersioning(child=recid_v1)
     depid_v2 = pv.draft_child_deposit
     deposit_v2 = ZenodoDeposit.get_record(depid_v2.get_assigned_object())
-    deposit_v2.files['file.txt'] = BytesIO(b('file1'))
+    deposit_v2.files["file.txt"] = BytesIO(b("file1"))
     deposit_v2 = publish_and_expunge(db, deposit_v2)
     recid_v2, record_v2 = deposit_v2.fetch_published()
     depid_v1, deposit_v1 = deposit_resolver.resolve(depid_v1_value)
@@ -103,15 +89,9 @@ def test_relations_serialization(app, db, deposit, deposit_file):
                 "draft_child_deposit": None,
                 "index": 0,
                 "is_last": False,
-                "last_child": {
-                    "pid_type": "recid",
-                    "pid_value": "3"
-                },
-                "parent": {
-                    "pid_type": "recid",
-                    "pid_value": "1"
-                },
-                "count": 2
+                "last_child": {"pid_type": "recid", "pid_value": "3"},
+                "parent": {"pid_type": "recid", "pid_value": "1"},
+                "count": 2,
             }
         ]
     }
@@ -124,15 +104,9 @@ def test_relations_serialization(app, db, deposit, deposit_file):
                 "draft_child_deposit": None,
                 "index": 1,
                 "is_last": True,
-                "last_child": {
-                    "pid_type": "recid",
-                    "pid_value": "3"
-                },
+                "last_child": {"pid_type": "recid", "pid_value": "3"},
                 "count": 2,
-                "parent": {
-                    "pid_type": "recid",
-                    "pid_value": "1"
-                },
+                "parent": {"pid_type": "recid", "pid_value": "1"},
             }
         ]
     }
@@ -142,7 +116,7 @@ def test_relations_serialization(app, db, deposit, deposit_file):
 def test_related_identifiers_serialization(app, db, deposit, deposit_file):
     """Serialize PID Relations to related identifiers."""
     deposit_v1 = publish_and_expunge(db, deposit)
-    depid_v1_value = deposit_v1['_deposit']['id']
+    depid_v1_value = deposit_v1["_deposit"]["id"]
 
     recid_v1, record_v1 = deposit_v1.fetch_published()
 
@@ -150,7 +124,7 @@ def test_related_identifiers_serialization(app, db, deposit, deposit_file):
     pv = PIDVersioning(child=recid_v1)
     depid_v2 = pv.draft_child_deposit
     deposit_v2 = ZenodoDeposit.get_record(depid_v2.get_assigned_object())
-    deposit_v2.files['file.txt'] = BytesIO(b('file1'))
+    deposit_v2.files["file.txt"] = BytesIO(b("file1"))
     deposit_v2 = publish_and_expunge(db, deposit_v2)
     deposit_v2 = deposit_v2.edit()
     # 1. Request for 'c1' and 'c2' through deposit v2
@@ -163,11 +137,7 @@ def test_related_identifiers_serialization(app, db, deposit, deposit_file):
 
     rids = serialize_related_identifiers(recid_v1)
     expected_v1 = [
-        {
-            'scheme': 'doi',
-            'identifier': '10.5072/zenodo.1',
-            'relation': 'isVersionOf'
-        }
+        {"scheme": "doi", "identifier": "10.5072/zenodo.1", "relation": "isVersionOf"}
         # TODO: serialization of new version realtions is disabled
         # {
         #     'scheme': 'doi',
@@ -179,11 +149,7 @@ def test_related_identifiers_serialization(app, db, deposit, deposit_file):
 
     rids = serialize_related_identifiers(recid_v2)
     expected_v2 = [
-        {
-            'scheme': 'doi',
-            'identifier': '10.5072/zenodo.1',
-            'relation': 'isVersionOf'
-        }
+        {"scheme": "doi", "identifier": "10.5072/zenodo.1", "relation": "isVersionOf"}
         # TODO: serialization of new version realtions is disabled
         # {
         #     'scheme': 'doi',
@@ -192,19 +158,11 @@ def test_related_identifiers_serialization(app, db, deposit, deposit_file):
         # }
     ]
     assert rids == expected_v2
-    parent_pid = PersistentIdentifier.get('recid', '1')
+    parent_pid = PersistentIdentifier.get("recid", "1")
     rids = serialize_related_identifiers(parent_pid)
 
     expected_parent = [
-        {
-            'relation': 'hasVersion',
-            'scheme': 'doi',
-            'identifier': '10.5072/zenodo.2'
-        },
-        {
-            'relation': 'hasVersion',
-            'scheme': 'doi',
-            'identifier': '10.5072/zenodo.3'
-        }
+        {"relation": "hasVersion", "scheme": "doi", "identifier": "10.5072/zenodo.2"},
+        {"relation": "hasVersion", "scheme": "doi", "identifier": "10.5072/zenodo.3"},
     ]
     assert rids == expected_parent

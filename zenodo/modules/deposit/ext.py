@@ -31,8 +31,11 @@ from invenio_indexer.signals import before_record_index
 
 from . import config
 from .indexer import index_versioned_record_siblings, indexer_receiver
-from .receivers import datacite_register_after_publish, \
-    openaire_direct_index_after_publish, sipstore_write_files_after_publish
+from .receivers import (
+    datacite_register_after_publish,
+    openaire_direct_index_after_publish,
+    sipstore_write_files_after_publish,
+)
 
 
 class ZenodoDeposit(object):
@@ -51,27 +54,24 @@ class ZenodoDeposit(object):
         @app.before_first_request
         def deposit_redirect():
             from .views import legacy_index, new
-            app.view_functions['invenio_deposit_ui.index'] = legacy_index
-            app.view_functions['invenio_deposit_ui.new'] = new
 
-        app.extensions['zenodo-deposit'] = self
+            app.view_functions["invenio_deposit_ui.index"] = legacy_index
+            app.view_functions["invenio_deposit_ui.new"] = new
+
+        app.extensions["zenodo-deposit"] = self
 
     @staticmethod
     def register_signals(app):
         """Register Zenodo Deposit signals."""
         before_record_index.connect(indexer_receiver, sender=app, weak=False)
-        post_action.connect(datacite_register_after_publish, sender=app,
-                            weak=False)
-        post_action.connect(index_versioned_record_siblings, sender=app,
-                            weak=False)
-        post_action.connect(openaire_direct_index_after_publish, sender=app,
-                            weak=False)
-        post_action.connect(sipstore_write_files_after_publish, sender=app,
-                            weak=False)
+        post_action.connect(datacite_register_after_publish, sender=app, weak=False)
+        post_action.connect(index_versioned_record_siblings, sender=app, weak=False)
+        post_action.connect(openaire_direct_index_after_publish, sender=app, weak=False)
+        post_action.connect(sipstore_write_files_after_publish, sender=app, weak=False)
 
     @staticmethod
     def init_config(app):
         """Initialize configuration."""
         for k in dir(config):
-            if k.startswith('ZENODO_'):
+            if k.startswith("ZENODO_"):
                 app.config.setdefault(k, getattr(config, k))

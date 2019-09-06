@@ -62,32 +62,34 @@ def init():
     initialize_communities_bucket()
 
 
-@fixtures.command('loadlocations')
+@fixtures.command("loadlocations")
 @with_appcontext
 def loadlocations_cli():
     """Load data store location."""
     locs = loadlocations()
-    click.secho('Created location(s): {0}'.format(
-        [loc.uri for loc in locs]), fg='green')
+    click.secho(
+        "Created location(s): {0}".format([loc.uri for loc in locs]), fg="green"
+    )
 
 
-@fixtures.command('loadoaisets')
+@fixtures.command("loadoaisets")
 @with_appcontext
 def loadoaisets_cli():
     """Load OAI-PMH sets."""
     sets_count = loadoaisets()
-    click.secho('Created {0} OAI-PMH sets'.format(len(sets_count)), fg='green')
+    click.secho("Created {0} OAI-PMH sets".format(len(sets_count)), fg="green")
 
 
-@fixtures.command('loadfp6grants')
+@fixtures.command("loadfp6grants")
 @with_appcontext
 def loadfp6grants_cli():
     """Load one-off grants."""
-    data = read_json('data/grants.json')
+    data = read_json("data/grants.json")
     loaded = 0
     for g in data:
         if not PersistentIdentifier.query.filter_by(
-                pid_type='grant', pid_value=g['internal_id']).count():
+            pid_type="grant", pid_value=g["internal_id"]
+        ).count():
             r = Record.create(g)
             grant_minter(r.id, r)
             db.session.commit()
@@ -95,15 +97,16 @@ def loadfp6grants_cli():
     click.echo("Loaded {0} new grants out of {1}.".format(loaded, len(data)))
 
 
-@fixtures.command('loadfunders')
+@fixtures.command("loadfunders")
 @with_appcontext
 def loadfunders_cli():
     """Load the supported funders."""
-    data = read_json('data/funders.json')
+    data = read_json("data/funders.json")
     loaded = 0
     for f in data:
         if not PersistentIdentifier.query.filter_by(
-                pid_type='frdoi', pid_value=f['doi']).count():
+            pid_type="frdoi", pid_value=f["doi"]
+        ).count():
             r = Record.create(f)
             funder_minter(r.id, r)
             db.session.commit()
@@ -111,15 +114,15 @@ def loadfunders_cli():
     click.echo("Loaded {0} new funders out of {1}.".format(loaded, len(data)))
 
 
-@fixtures.command('loaddemorecords')
+@fixtures.command("loaddemorecords")
 @with_appcontext
 def loaddemorecords_cli():
     """Load demo records."""
-    click.echo('Loading demo data...')
-    with open(join(dirname(__file__), 'data/records.json'), 'r') as fp:
+    click.echo("Loading demo data...")
+    with open(join(dirname(__file__), "data/records.json"), "r") as fp:
         data = json.load(fp)
 
-    click.echo('Sending tasks to queue...')
+    click.echo("Sending tasks to queue...")
     with click.progressbar(data) as records:
         loaddemorecords(records)
 
@@ -131,68 +134,75 @@ def loaddemorecords_cli():
     click.echo("     zenodo index run -d -c 4")
 
 
-@fixtures.command('loadsipmetadatatypes')
+@fixtures.command("loadsipmetadatatypes")
 @with_appcontext
 def loadsipmetadatatypes_cli():
     """Load SIP metadata types."""
-    click.secho('Loading SIP metadata types...', fg='blue')
-    src = join(dirname(__file__), 'data/sipmetadatatypes.json')
-    with open(src, 'r') as fp:
+    click.secho("Loading SIP metadata types...", fg="blue")
+    src = join(dirname(__file__), "data/sipmetadatatypes.json")
+    with open(src, "r") as fp:
         data = json.load(fp)
     with click.progressbar(data) as types:
         loadsipmetadatatypes(types)
-    click.secho('SIP metadata types loaded!', fg='green')
+    click.secho("SIP metadata types loaded!", fg="green")
 
 
-@fixtures.command('loaddemofiles')
-@click.argument('source', type=click.Path(exists=True, dir_okay=False,
-                                          resolve_path=True))
+@fixtures.command("loaddemofiles")
+@click.argument(
+    "source", type=click.Path(exists=True, dir_okay=False, resolve_path=True)
+)
 @with_appcontext
 def loaddemofiles_cli(source):
     """Load demo files."""
     loaddemofiles(source)
 
 
-@fixtures.command('loadlicenses')
+@fixtures.command("loadlicenses")
 @with_appcontext
 def loadlicenses_cli():
     """Load Zenodo licenses."""
     loadlicenses()
 
 
-@fixtures.command('matchlicenses')
-@click.argument('legacy_source', type=click.Path(exists=True, dir_okay=False,
-                                                 resolve_path=True))
-@click.argument('od_source', type=click.Path(exists=True, dir_okay=False,
-                                             resolve_path=True))
-@click.argument('destination', type=click.Path(exists=False, dir_okay=False))
+@fixtures.command("matchlicenses")
+@click.argument(
+    "legacy_source", type=click.Path(exists=True, dir_okay=False, resolve_path=True)
+)
+@click.argument(
+    "od_source", type=click.Path(exists=True, dir_okay=False, resolve_path=True)
+)
+@click.argument("destination", type=click.Path(exists=False, dir_okay=False))
 def matchlicenses_cli(legacy_source, od_source, destination):
     """Match legacy Zenodo licenses with OpenDefinition.org licenses."""
     matchlicenses(legacy_source, od_source, destination)
 
 
-@fixtures.command('loadcommunities')
-@click.option('-i', '--input-file')
+@fixtures.command("loadcommunities")
+@click.option("-i", "--input-file")
 @with_appcontext
 def loadcommunities_cli(input_file=None):
     """Load Zenodo communities."""
-    data = read_json(input_file or 'data/communities.json')
+    data = read_json(input_file or "data/communities.json")
     skipped = 0
     for comm_data in data:
-        if not Community.query.filter_by(id=comm_data['id']).count():
+        if not Community.query.filter_by(id=comm_data["id"]).count():
             loadcommunity(comm_data)
         else:
             skipped += 1
 
-    click.secho('Loaded {0} communities (skipped {1} existing).'.format(
-        len(data) - skipped, skipped), fg='green')
+    click.secho(
+        "Loaded {0} communities (skipped {1} existing).".format(
+            len(data) - skipped, skipped
+        ),
+        fg="green",
+    )
 
 
-@fixtures.command('loadusers')
-@click.option('-i', '--input-file')
+@fixtures.command("loadusers")
+@click.option("-i", "--input-file")
 @with_appcontext
 def loadusers_cli(input_file=None):
     """Load Zenodo users."""
-    users = read_json(input_file or 'data/users.json')
+    users = read_json(input_file or "data/users.json")
     for user_data in users:
         loaduser(user_data)

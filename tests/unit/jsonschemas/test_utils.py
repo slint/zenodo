@@ -29,41 +29,21 @@ from zenodo.modules.jsonschemas.utils import merge_dicts
 
 def test_merge_dicts():
     """Test jsonschema merging util."""
-    a1 = {
-        'd': {
-            'k1': 1,
-            'k2': 'v2',
-            'd2': {
-                'k3': 'v3',
-            },
-        },
-        'l': [1, 2, 3, ],
-    }
+    a1 = {"d": {"k1": 1, "k2": "v2", "d2": {"k3": "v3"}}, "l": [1, 2, 3]}
     b1 = {
-        'd': {
-            'k1': 10,  # Updated value in nested
-            'k2': 'v2',
-            'k3': 'v3',  # New key in nested
-            'd2': {
-                'k4': 'v4',
-            },
-
+        "d": {
+            "k1": 10,  # Updated value in nested
+            "k2": "v2",
+            "k3": "v3",  # New key in nested
+            "d2": {"k4": "v4"},
         },
-        'l': [4, 5, 6, ],  # Updated list
-        'v': 'value',  # New key at root
+        "l": [4, 5, 6],  # Updated list
+        "v": "value",  # New key at root
     }
     exp1 = {
-        'd': {
-            'k1': 10,
-            'k2': 'v2',
-            'k3': 'v3',
-            'd2': {
-                'k3': 'v3',
-                'k4': 'v4',
-            },
-        },
-        'l': [4, 5, 6, ],
-        'v': 'value',
+        "d": {"k1": 10, "k2": "v2", "k3": "v3", "d2": {"k3": "v3", "k4": "v4"}},
+        "l": [4, 5, 6],
+        "v": "value",
     }
     ab1 = merge_dicts(a1, b1)
     assert ab1 == exp1

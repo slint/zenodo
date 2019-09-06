@@ -30,4 +30,5 @@ from __future__ import absolute_import, print_function
 def test_wsgi():
     """Test WSGI application."""
     from zenodo.wsgi import application
+
     assert application

@@ -32,40 +32,37 @@ from marshmallow import Schema, fields, missing
 class Feature(Schema):
     """Schema for Feature."""
 
-    type_ = fields.Constant('Feature', dump_to='type')
-    geometry = fields.Method('get_locations')
-    properties = fields.Method('get_name')
+    type_ = fields.Constant("Feature", dump_to="type")
+    geometry = fields.Method("get_locations")
+    properties = fields.Method("get_name")
 
     def get_locations(self, obj):
         """Get locations of the record."""
-        if obj.get('lat') and obj.get('lon'):
-            return {
-                "type": "Point",
-                "coordinates": [obj['lon'], obj['lat']]
-            }
+        if obj.get("lat") and obj.get("lon"):
+            return {"type": "Point", "coordinates": [obj["lon"], obj["lat"]]}
         else:
             return missing
 
     def get_name(self, obj):
         """Get name of the record."""
-        return {"name": obj['place']}
+        return {"name": obj["place"]}
 
 
 class FeatureCollection(Schema):
     """Schema for FeatureCollection."""
 
-    features = fields.Method('get_locations')
+    features = fields.Method("get_locations")
 
-    type_ = fields.Constant('FeatureCollection', dump_to='type')
+    type_ = fields.Constant("FeatureCollection", dump_to="type")
 
     def get_locations(self, obj):
         """Get locations."""
         s = Feature()
         items = []
-        for l in obj['metadata'].get('locations', []):
-            if l.get('lat') and l.get('lon'):
-                items.append(s.dump({
-                    'lat': l['lat'], 'lon': l['lon'], 'place': l['place']
-                }).data)
+        for l in obj["metadata"].get("locations", []):
+            if l.get("lat") and l.get("lon"):
+                items.append(
+                    s.dump({"lat": l["lat"], "lon": l["lon"], "place": l["place"]}).data
+                )
 
         return items

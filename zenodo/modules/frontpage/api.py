@@ -36,10 +36,12 @@ class FrontpageRecordsSearch(RecordsSearch):
     class Meta:
         """Default index and filter for frontpage search."""
 
-        index = 'records'
+        index = "records"
         default_filter = Q(
-            'query_string',
-            query=('communities:zenodo '
-                   'AND access_right:open '
-                   'AND relations.version.is_last:true')
+            "query_string",
+            query=(
+                "communities:zenodo "
+                "AND access_right:open "
+                "AND relations.version.is_last:true"
+            ),
         )

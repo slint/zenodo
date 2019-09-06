@@ -38,32 +38,40 @@ def update_sitemap_cache(urls=None, max_url_count=None):
     # We need request context to properly generate the external link
     # using url_for. We fix base_url as we want to simulate a
     # request as it looks from an external client, instead of a task.
-    siteurl = current_app.config['THEME_SITEURL']
+    siteurl = current_app.config["THEME_SITEURL"]
     with current_app.test_request_context(base_url=siteurl):
-        max_url_count = max_url_count or \
-            current_app.config['ZENODO_SITEMAP_MAX_URL_COUNT']
-        sitemap = current_app.extensions['zenodo-sitemap']
+        max_url_count = (
+            max_url_count or current_app.config["ZENODO_SITEMAP_MAX_URL_COUNT"]
+        )
+        sitemap = current_app.extensions["zenodo-sitemap"]
         urls = iter(urls or sitemap._generate_all_urls())
 
-        url_scheme = current_app.config['ZENODO_SITEMAP_URL_SCHEME']
+        url_scheme = current_app.config["ZENODO_SITEMAP_URL_SCHEME"]
 
         urls_slice = list(itertools.islice(urls, max_url_count))
         page_n = 0
         sitemap.clear_cache()
         while urls_slice:
             page_n += 1
-            page = render_template('zenodo_sitemap/sitemap.xml',
-                urlset=filter(None, urls_slice))
-            sitemap.set_cache('sitemap:' + str(page_n), page)
+            page = render_template(
+                "zenodo_sitemap/sitemap.xml", urlset=filter(None, urls_slice)
+            )
+            sitemap.set_cache("sitemap:" + str(page_n), page)
             urls_slice = list(itertools.islice(urls, max_url_count))
 
         urlset = [
             {
-                'loc': url_for('zenodo_sitemap.sitemappage',
-                               page=pn, _external=True,
-                               _scheme=url_scheme)
-            } for pn in range(1, page_n+1)]
+                "loc": url_for(
+                    "zenodo_sitemap.sitemappage",
+                    page=pn,
+                    _external=True,
+                    _scheme=url_scheme,
+                )
+            }
+            for pn in range(1, page_n + 1)
+        ]
 
-        index_page = render_template('zenodo_sitemap/sitemapindex.xml',
-            urlset=urlset, url_scheme=url_scheme)
-        sitemap.set_cache('sitemap:0', index_page)
+        index_page = render_template(
+            "zenodo_sitemap/sitemapindex.xml", urlset=urlset, url_scheme=url_scheme
+        )
+        sitemap.set_cache("sitemap:0", index_page)

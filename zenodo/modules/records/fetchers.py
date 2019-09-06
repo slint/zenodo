@@ -31,17 +31,9 @@ from invenio_pidstore.fetchers import FetchedPID
 
 def zenodo_record_fetcher(dummy_record_uuid, data):
     """Fetch a record's identifiers."""
-    return FetchedPID(
-        provider=None,
-        pid_type='recid',
-        pid_value=str(data['recid']),
-    )
+    return FetchedPID(provider=None, pid_type="recid", pid_value=str(data["recid"]))
 
 
 def zenodo_doi_fetcher(dummy_record_uuid, data):
     """Fetch a record's DOI."""
-    return FetchedPID(
-        provider=None,
-        pid_type='doi',
-        pid_value=str(data['doi']),
-    )
+    return FetchedPID(provider=None, pid_type="doi", pid_value=str(data["doi"]))

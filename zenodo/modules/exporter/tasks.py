@@ -35,5 +35,5 @@ from .api import Exporter
 @shared_task
 def export_job(job_id=None):
     """Export job."""
-    job_definition = current_app.extensions['invenio-exporter'].job(job_id)
+    job_definition = current_app.extensions["invenio-exporter"].job(job_id)
     Exporter(**job_definition).run()

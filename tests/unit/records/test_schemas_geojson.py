@@ -33,17 +33,14 @@ def test_full_record(db, record_with_bucket, recid_pid):
     obj = geojson_v1.transform_record(recid_pid, full_record_model)
 
     expected = {
-        u'features': [{
-            u'geometry': {
-                u'coordinates': [1.534, 2.35],
-                u'type': u'Point'
-            },
-            u'properties': {
-                u'name': u'my place'
-            },
-            u'type': u'Feature'}
+        u"features": [
+            {
+                u"geometry": {u"coordinates": [1.534, 2.35], u"type": u"Point"},
+                u"properties": {u"name": u"my place"},
+                u"type": u"Feature",
+            }
         ],
-        u'type': u'FeatureCollection'
+        u"type": u"FeatureCollection",
     }
 
     assert obj == expected

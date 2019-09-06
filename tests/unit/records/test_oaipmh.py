@@ -29,8 +29,8 @@ from __future__ import absolute_import, print_function
 
 def test_oaipmh_records_from(app, db, es, app_client):
     """Test selective harvesting from OAI-PMH."""
-    for d in ('2017-12-22', '2017-12-22T00:00:00Z'):
+    for d in ("2017-12-22", "2017-12-22T00:00:00Z"):
         res = app_client.get(
-            '/oai2d?verb=ListRecords&metadataPrefix=oai_dc'
-            '&from={}'.format(d))
+            "/oai2d?verb=ListRecords&metadataPrefix=oai_dc" "&from={}".format(d)
+        )
         assert res.status_code == 200

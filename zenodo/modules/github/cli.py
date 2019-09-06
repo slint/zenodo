@@ -44,7 +44,7 @@ def resolve_user(user_param):
     """Resolve user from CLI input parameter (email or User ID)."""
     if user_param is None:
         return
-    if '@' in user_param:  # Try to resolve as email
+    if "@" in user_param:  # Try to resolve as email
         try:
             user = User.query.filter_by(email=user_param.strip()).one()
         except NoResultFound:
@@ -65,14 +65,15 @@ def resolve_repo(repo_param):
     if repo_param is None:
         return
     try:
-        if '/' in repo_param:
+        if "/" in repo_param:
             repo = Repository.query.filter_by(name=repo_param).one()
         else:
             try:
                 github_id = int(repo_param)
             except ValueError:
-                raise Exception('GitHub repository parameter must be either'
-                                ' a name or GitHub ID')
+                raise Exception(
+                    "GitHub repository parameter must be either" " a name or GitHub ID"
+                )
             repo = Repository.query.filter_by(github_id=github_id).one()
     except NoResultFound:
         raise Exception("Repository {0} not found.".format(repo_param))
@@ -89,20 +90,28 @@ def verify_email(user):
     gha = GitHubAPI(user_id=user.id)
     gh_email = gha.api.me().email
     if gh_email != user.email:
-        click.confirm("Warning: User's GitHub email ({0}) does not match"
-                      " the account's ({1}). Continue?".format(gh_email,
-                                                               user.email),
-                      abort=True)
+        click.confirm(
+            "Warning: User's GitHub email ({0}) does not match"
+            " the account's ({1}). Continue?".format(gh_email, user.email),
+            abort=True,
+        )
 
 
-@github.command('list')
-@click.argument('user')
-@click.option('--sync', '-s', is_flag=True,
-              help='Sync the repository prior to listing.')
-@click.option('with_all', '--all', '-a', is_flag=True,
-              help='List all repositories available.')
-@click.option('skip_email', '--skip-email-verification', '-E', is_flag=True,
-              help="Skip GitHub email verification.")
+@github.command("list")
+@click.argument("user")
+@click.option(
+    "--sync", "-s", is_flag=True, help="Sync the repository prior to listing."
+)
+@click.option(
+    "with_all", "--all", "-a", is_flag=True, help="List all repositories available."
+)
+@click.option(
+    "skip_email",
+    "--skip-email-verification",
+    "-E",
+    is_flag=True,
+    help="Skip GitHub email verification.",
+)
 @with_appcontext
 def repo_list(user, sync, with_all, skip_email):
     """List user's repositories hooks.
@@ -126,13 +135,14 @@ def repo_list(user, sync, with_all, skip_email):
         gha.sync(hooks=True, async_hooks=False)  # Sync hooks asynchronously
         db.session.commit()
     if with_all:
-        repos = gha.account.extra_data['repos']
+        repos = gha.account.extra_data["repos"]
         click.echo("User has {0} repositories in total.".format(len(repos)))
         for gid, repo in repos.items():
-            click.echo(' {name}:{gid}'.format(name=repo['full_name'], gid=gid))
+            click.echo(" {name}:{gid}".format(name=repo["full_name"], gid=gid))
 
-    repos = Repository.query.filter(Repository.user_id == user.id,
-                                    Repository.hook.isnot(None))
+    repos = Repository.query.filter(
+        Repository.user_id == user.id, Repository.hook.isnot(None)
+    )
     click.echo("User has {0} enabled repositories.".format(repos.count()))
     for r in repos:
         click.echo(" {0}".format(r))
@@ -147,12 +157,21 @@ def move_repository(repo, gha_old_user, gha_new_user):
 
 
 @github.command()
-@click.argument('user')
-@click.argument('repos', nargs=-1)
-@click.option('skip_email', '--skip-email-verification', '-E', is_flag=True,
-              help="Skip GitHub email verification.")
-@click.option('--yes-i-know', is_flag=True, default=False,
-              help='Suppress the confirmation prompt.')
+@click.argument("user")
+@click.argument("repos", nargs=-1)
+@click.option(
+    "skip_email",
+    "--skip-email-verification",
+    "-E",
+    is_flag=True,
+    help="Skip GitHub email verification.",
+)
+@click.option(
+    "--yes-i-know",
+    is_flag=True,
+    default=False,
+    help="Suppress the confirmation prompt.",
+)
 @with_appcontext
 def assign(user, repos, skip_email, yes_i_know):
     """Assign an already owned repository to another user.
@@ -174,10 +193,12 @@ def assign(user, repos, skip_email, yes_i_know):
     """
     user = resolve_user(user)
     repos = resolve_repos(repos)
-    prompt_msg = 'This will change the ownership for {0} repositories' \
-        '. Continue?'.format(len(repos))
+    prompt_msg = (
+        "This will change the ownership for {0} repositories"
+        ". Continue?".format(len(repos))
+    )
     if not (yes_i_know or click.confirm(prompt_msg)):
-        click.echo('Aborted.')
+        click.echo("Aborted.")
         return
 
     gha_new = GitHubAPI(user_id=user.id)
@@ -189,13 +210,23 @@ def assign(user, repos, skip_email, yes_i_know):
 
 
 @github.command()
-@click.argument('user')
-@click.option('--hooks', default=False, type=bool,
-              help='Synchronize with hooks (Warning: slower)')
-@click.option('--async-hooks', default=False, type=bool,
-              help='Synchronize hooks asynchronously (--hooks required)')
-@click.option('skip_email', '--skip-email-verification', '-E', is_flag=True,
-              help="Skip GitHub email verification.")
+@click.argument("user")
+@click.option(
+    "--hooks", default=False, type=bool, help="Synchronize with hooks (Warning: slower)"
+)
+@click.option(
+    "--async-hooks",
+    default=False,
+    type=bool,
+    help="Synchronize hooks asynchronously (--hooks required)",
+)
+@click.option(
+    "skip_email",
+    "--skip-email-verification",
+    "-E",
+    is_flag=True,
+    help="Skip GitHub email verification.",
+)
 @with_appcontext
 def sync(user, hooks, async_hooks, skip_email):
     """Sync user's repositories.
@@ -217,12 +248,21 @@ def sync(user, hooks, async_hooks, skip_email):
 
 
 @github.command()
-@click.argument('user')
-@click.argument('repo')
-@click.option('skip_email', '--skip-email-verification', '-E', is_flag=True,
-              help="Skip GitHub email verification.")
-@click.option('--yes-i-know', is_flag=True, default=False,
-              help='Suppress the confirmation prompt.')
+@click.argument("user")
+@click.argument("repo")
+@click.option(
+    "skip_email",
+    "--skip-email-verification",
+    "-E",
+    is_flag=True,
+    help="Skip GitHub email verification.",
+)
+@click.option(
+    "--yes-i-know",
+    is_flag=True,
+    default=False,
+    help="Suppress the confirmation prompt.",
+)
 @with_appcontext
 def createhook(user, repo, skip_email, yes_i_know):
     """Create the hook in repository for given user.
@@ -240,14 +280,16 @@ def createhook(user, repo, skip_email, yes_i_know):
     user = resolve_user(user)
     repo = resolve_repo(repo)
     if repo.user:
-        click.secho('Hook is already installed for {user}'.format(
-            user=repo.user), fg='red')
+        click.secho(
+            "Hook is already installed for {user}".format(user=repo.user), fg="red"
+        )
         return
 
     msg = "Creating a hook for {user} and {repo}. Continue?".format(
-        user=user, repo=repo)
+        user=user, repo=repo
+    )
     if not (yes_i_know or click.confirm(msg)):
-        click.echo('Aborted.')
+        click.echo("Aborted.")
 
     gha = GitHubAPI(user_id=user.id)
     if not skip_email:
@@ -257,12 +299,21 @@ def createhook(user, repo, skip_email, yes_i_know):
 
 
 @github.command()
-@click.argument('repo')
-@click.option('--user', '-u', help='Attempt to remove hook using given user')
-@click.option('skip_email', '--skip-email-verification', '-E', is_flag=True,
-              help="Skip GitHub email verification.")
-@click.option('--yes-i-know', is_flag=True, default=False,
-              help='Suppress the confirmation prompt.')
+@click.argument("repo")
+@click.option("--user", "-u", help="Attempt to remove hook using given user")
+@click.option(
+    "skip_email",
+    "--skip-email-verification",
+    "-E",
+    is_flag=True,
+    help="Skip GitHub email verification.",
+)
+@click.option(
+    "--yes-i-know",
+    is_flag=True,
+    default=False,
+    help="Suppress the confirmation prompt.",
+)
 @with_appcontext
 def removehook(repo, user, skip_email, yes_i_know):
     """Remove the hook from GitHub repository.
@@ -285,11 +336,12 @@ def removehook(repo, user, skip_email, yes_i_know):
     if user:
         user = resolve_user(user)
         if not repo.user:
-            click.secho('Warning: Repository is not owned by any user.',
-                        fg='yellow')
+            click.secho("Warning: Repository is not owned by any user.", fg="yellow")
         elif repo.user != user:
-            click.secho('Warning: Specified user is not the owner of this'
-                        ' repository.', fg='yellow')
+            click.secho(
+                "Warning: Specified user is not the owner of this" " repository.",
+                fg="yellow",
+            )
     else:
         user = repo.user
 
@@ -297,9 +349,10 @@ def removehook(repo, user, skip_email, yes_i_know):
         verify_email(user)
 
     msg = "Removing the hook for {user} and {repo}. Continue?".format(
-        user=user, repo=repo)
+        user=user, repo=repo
+    )
     if not (yes_i_know or click.confirm(msg)):
-        click.echo('Aborted.')
+        click.echo("Aborted.")
         return
 
     gha = GitHubAPI(user_id=user.id)

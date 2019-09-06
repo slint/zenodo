@@ -31,68 +31,76 @@ from speaklater import make_lazy_gettext
 
 _ = make_lazy_gettext(lambda: gettext)
 
-ZENODO_RECORDS_UI_CITATIONS_ENDPOINT = 'https://zenodo-broker-qa.web.cern.ch/api/relationships'
+ZENODO_RECORDS_UI_CITATIONS_ENDPOINT = (
+    "https://zenodo-broker-qa.web.cern.ch/api/relationships"
+)
 
 ZENODO_RECORDS_UI_CITATIONS_ENABLE = False
 
 ZENODO_RELATION_RULES = {
-    'f1000research': [{
-        'prefix': '10.12688/f1000research',
-        'relation': 'isCitedBy',
-        'scheme': 'doi',
-        'text': 'Published in',
-        'image': 'img/f1000research.jpg',
-        }],
-    'inspire': [{
-        'prefix': 'http://inspirehep.net/record/',
-        'relation': 'isSupplementedBy',
-        'scheme': 'url',
-        'text': 'Available in',
-        'image': 'img/inspirehep.png',
-        }],
-    'briefideas': [{
-        'prefix': 'http://beta.briefideas.org/',
-        'relation': 'isIdenticalTo',
-        'scheme': 'url',
-        'text': 'Published in',
-        'image': 'img/briefideas.png',
-        }],
-    'zenodo': [{
-        'prefix': 'https://github.com',
-        'relation': 'isSupplementTo',
-        'scheme': 'url',
-        'text': 'Available in',
-        'image': 'img/github.png',
-        }, {
-        'prefix': '10.1109/JBHI',
-        'relation': 'isCitedBy',
-        'scheme': 'doi',
-        'text': 'Published in',
-        'image': 'img/ieee.jpg',
-        }],
+    "f1000research": [
+        {
+            "prefix": "10.12688/f1000research",
+            "relation": "isCitedBy",
+            "scheme": "doi",
+            "text": "Published in",
+            "image": "img/f1000research.jpg",
+        }
+    ],
+    "inspire": [
+        {
+            "prefix": "http://inspirehep.net/record/",
+            "relation": "isSupplementedBy",
+            "scheme": "url",
+            "text": "Available in",
+            "image": "img/inspirehep.png",
+        }
+    ],
+    "briefideas": [
+        {
+            "prefix": "http://beta.briefideas.org/",
+            "relation": "isIdenticalTo",
+            "scheme": "url",
+            "text": "Published in",
+            "image": "img/briefideas.png",
+        }
+    ],
+    "zenodo": [
+        {
+            "prefix": "https://github.com",
+            "relation": "isSupplementTo",
+            "scheme": "url",
+            "text": "Available in",
+            "image": "img/github.png",
+        },
+        {
+            "prefix": "10.1109/JBHI",
+            "relation": "isCitedBy",
+            "scheme": "doi",
+            "text": "Published in",
+            "image": "img/ieee.jpg",
+        },
+    ],
 }
 
-ZENODO_COMMUNITY_BRANDING = [
-    'biosyslit',
-    'lory',
-]
+ZENODO_COMMUNITY_BRANDING = ["biosyslit", "lory"]
 
 ZENODO_RELATION_TYPES = [
-    ('isCitedBy', _('Cited by')),
-    ('cites', _('Cites')),
-    ('isSupplementTo', _('Supplement to')),
-    ('isSupplementedBy', _('Supplementary material')),
-    ('references', _('References')),
-    ('isReferencedBy', _('Referenced by')),
-    ('isNewVersionOf', _('Previous versions')),
-    ('isPreviousVersionOf', _('New versions')),
-    ('isPartOf', _('Part of')),
-    ('hasPart', _('Has part')),
-    ('isDocumentedBy', _('Documented by')),
-    ('documents', _('Documents')),
-    ('compiles', _('Compiles')),
-    ('isCompiledBy', _('Compiled by')),
-    ('isIdenticalTo', _('Identical to')),
+    ("isCitedBy", _("Cited by")),
+    ("cites", _("Cites")),
+    ("isSupplementTo", _("Supplement to")),
+    ("isSupplementedBy", _("Supplementary material")),
+    ("references", _("References")),
+    ("isReferencedBy", _("Referenced by")),
+    ("isNewVersionOf", _("Previous versions")),
+    ("isPreviousVersionOf", _("New versions")),
+    ("isPartOf", _("Part of")),
+    ("hasPart", _("Has part")),
+    ("isDocumentedBy", _("Documented by")),
+    ("documents", _("Documents")),
+    ("compiles", _("Compiles")),
+    ("isCompiledBy", _("Compiled by")),
+    ("isIdenticalTo", _("Identical to")),
 ]
 
 ZENODO_LOCAL_DOI_PREFIXES = []
@@ -116,7 +124,7 @@ system.
 """
 
 ZENODO_CUSTOM_METADATA_TERM_TYPES = {
-    'keyword': 'six.string_types',
-    'text': 'six.string_types',
+    "keyword": "six.string_types",
+    "text": "six.string_types",
 }
 """Custom metadata term types mapping."""

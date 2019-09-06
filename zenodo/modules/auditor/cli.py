@@ -37,10 +37,11 @@ def audit():
     """Zenodo Auditor CLI."""
 
 
-@audit.command('records')
-@click.option('--logfile', '-l', type=click.Path(exists=False, dir_okay=False,
-                                                 resolve_path=True))
-@click.option('--eager', '-e', is_flag=True)
+@audit.command("records")
+@click.option(
+    "--logfile", "-l", type=click.Path(exists=False, dir_okay=False, resolve_path=True)
+)
+@click.option("--eager", "-e", is_flag=True)
 @with_appcontext
 def _audit_records(logfile, eager):
     """Audit all records."""
@@ -50,10 +51,11 @@ def _audit_records(logfile, eager):
         audit_records.apply_async((logfile,))
 
 
-@audit.command('oai')
-@click.option('--logfile', '-l', type=click.Path(exists=False, dir_okay=False,
-                                                 resolve_path=True))
-@click.option('--eager', '-e', is_flag=True)
+@audit.command("oai")
+@click.option(
+    "--logfile", "-l", type=click.Path(exists=False, dir_okay=False, resolve_path=True)
+)
+@click.option("--eager", "-e", is_flag=True)
 @with_appcontext
 def _audit_oai(logfile, eager):
     """Audit OAI Sets."""

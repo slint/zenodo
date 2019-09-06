@@ -34,8 +34,9 @@ def test_header_links_exists(app, record_with_files_creation):
     """Validate that link tags to files exists in document header."""
     (pid, record, record_url) = record_with_files_creation
 
-    base_url = url_for('invenio_records_ui.recid_files',
-                       pid_value=pid.pid_value, filename='Test.pdf')
+    base_url = url_for(
+        "invenio_records_ui.recid_files", pid_value=pid.pid_value, filename="Test.pdf"
+    )
 
     with app.test_client() as client:
         res = client.get(record_url)
@@ -43,7 +44,7 @@ def test_header_links_exists(app, record_with_files_creation):
         assert res.status_code == 200
         tree = html.fromstring(res.data)
         for l in tree.xpath('//link[@rel="alternate"]'):
-            if l.get('href').endswith(base_url):
+            if l.get("href").endswith(base_url):
                 return
     assert False, "<link> tags to files not found in record page."
 
@@ -52,8 +53,7 @@ def test_header_pdf_metahighwire_empty(app, db, record_with_bucket):
     """Check that the meta tag for highwire is not existing without PDF."""
     (pid, record) = record_with_bucket
     with app.test_client() as client:
-        res = client.get(url_for('invenio_records_ui.recid',
-                                 pid_value=pid.pid_value))
+        res = client.get(url_for("invenio_records_ui.recid", pid_value=pid.pid_value))
         assert res.status_code == 200
         tree = html.fromstring(res.data)
         assert len(tree.xpath('//meta[@name="citation_pdf_url"]')) == 0

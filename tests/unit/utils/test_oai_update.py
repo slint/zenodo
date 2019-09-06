@@ -35,31 +35,33 @@ from zenodo.modules.utils.tasks import update_search_pattern_sets
 
 def make_rec(comm, sets):
     """Create a minimal record for Community-OAISet testing."""
-    return {'communities': comm, '_oai': {'sets': sets}}
+    return {"communities": comm, "_oai": {"sets": sets}}
 
 
 def test_oaiset_update(app, db, oaisets, es, oaiset_update_records):
     """Test query-based OAI sets updating."""
-    rec_ok, rec_rm, rec_add = [Record.get_record(uuid) for uuid
-                               in oaiset_update_records]
+    rec_ok, rec_rm, rec_add = [
+        Record.get_record(uuid) for uuid in oaiset_update_records
+    ]
     year_now = str(datetime.now().year)
     # Assume starting conditions
-    assert set(rec_ok['_oai']['sets']) == set(['extra', 'user-foobar', ])
-    assert rec_ok['_oai']['updated'].startswith('1970')
-    assert set(rec_rm['_oai']['sets']) == set(['extra', 'user-foobar', ])
-    assert rec_rm['_oai']['updated'].startswith('1970')
-    assert set(rec_add['_oai']['sets']) == set(['user-foobar', ])
-    assert rec_add['_oai']['updated'].startswith('1970')
+    assert set(rec_ok["_oai"]["sets"]) == set(["extra", "user-foobar"])
+    assert rec_ok["_oai"]["updated"].startswith("1970")
+    assert set(rec_rm["_oai"]["sets"]) == set(["extra", "user-foobar"])
+    assert rec_rm["_oai"]["updated"].startswith("1970")
+    assert set(rec_add["_oai"]["sets"]) == set(["user-foobar"])
+    assert rec_add["_oai"]["updated"].startswith("1970")
 
     # Run the updating task
     update_search_pattern_sets.delay()
 
-    rec_ok, rec_rm, rec_add = [Record.get_record(uuid) for uuid
-                               in oaiset_update_records]
+    rec_ok, rec_rm, rec_add = [
+        Record.get_record(uuid) for uuid in oaiset_update_records
+    ]
     # After update
-    assert set(rec_ok['_oai']['sets']) == set(['extra', 'user-foobar', ])
-    assert rec_ok['_oai']['updated'].startswith('1970')
-    assert set(rec_rm['_oai']['sets']) == set(['user-foobar', ])
-    assert rec_rm['_oai']['updated'].startswith(year_now)
-    assert set(rec_add['_oai']['sets']) == set(['extra', 'user-foobar', ])
-    assert rec_add['_oai']['updated'].startswith(year_now)
+    assert set(rec_ok["_oai"]["sets"]) == set(["extra", "user-foobar"])
+    assert rec_ok["_oai"]["updated"].startswith("1970")
+    assert set(rec_rm["_oai"]["sets"]) == set(["user-foobar"])
+    assert rec_rm["_oai"]["updated"].startswith(year_now)
+    assert set(rec_add["_oai"]["sets"]) == set(["extra", "user-foobar"])
+    assert rec_add["_oai"]["updated"].startswith(year_now)

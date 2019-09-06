@@ -30,6 +30,7 @@ class FailedExportJobError(Exception):
 
     def __init__(self, record_ids=None):
         """Initialize the error with the list of not serialized records."""
-        msg = "Serialization failed for the following records: {}"\
-            .format(', '.join(record_ids))
+        msg = "Serialization failed for the following records: {}".format(
+            ", ".join(record_ids)
+        )
         super(FailedExportJobError, self).__init__(msg)

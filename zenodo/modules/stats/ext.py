@@ -45,21 +45,23 @@ class ZenodoStats(object):
     @cached_property
     def search_client(self):
         """Elasticsearch client for stats queries."""
-        client_config = current_app.config.get(
-            'ZENODO_STATS_ELASTICSEARCH_CLIENT_CONFIG') or {}
+        client_config = (
+            current_app.config.get("ZENODO_STATS_ELASTICSEARCH_CLIENT_CONFIG") or {}
+        )
         client_config.setdefault(
-            'hosts', current_app.config.get('SEARCH_ELASTIC_HOSTS'))
-        client_config.setdefault('connection_class', RequestsHttpConnection)
+            "hosts", current_app.config.get("SEARCH_ELASTIC_HOSTS")
+        )
+        client_config.setdefault("connection_class", RequestsHttpConnection)
         return Elasticsearch(**client_config)
 
     @staticmethod
     def init_config(app):
         """Initialize configuration."""
         for k in dir(config):
-            if k.startswith('ZENODO_STATS_'):
+            if k.startswith("ZENODO_STATS_"):
                 app.config.setdefault(k, getattr(config, k))
 
     def init_app(self, app):
         """Flask application initialization."""
         self.init_config(app)
-        app.extensions['zenodo-stats'] = self
+        app.extensions["zenodo-stats"] = self

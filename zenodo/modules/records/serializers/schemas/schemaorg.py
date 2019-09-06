@@ -45,50 +45,61 @@ def _serialize_identifiers(ids, relations=None):
     :rtype dict:
     """
     relations = relations or []
-    ids = [{'@type': 'CreativeWork',
-             '@id': idutils.to_url(i['identifier'], i['scheme'], 'https')}
-            for i in ids if (not relations or i['relation'] in relations) and 'scheme' in i]
-    return [id_ for id_ in ids if id_['@id']]
+    ids = [
+        {
+            "@type": "CreativeWork",
+            "@id": idutils.to_url(i["identifier"], i["scheme"], "https"),
+        }
+        for i in ids
+        if (not relations or i["relation"] in relations) and "scheme" in i
+    ]
+    return [id_ for id_ in ids if id_["@id"]]
 
 
 def _serialize_subjects(ids):
     """Serialize subjects to URLs."""
-    return [{'@type': 'CreativeWork',
-             '@id': idutils.to_url(i['identifier'], i['scheme'], 'https')}
-            for i in ids if 'scheme' in i]
+    return [
+        {
+            "@type": "CreativeWork",
+            "@id": idutils.to_url(i["identifier"], i["scheme"], "https"),
+        }
+        for i in ids
+        if "scheme" in i
+    ]
 
 
-def format_files_rest_link(bucket, key, scheme='https'):
+def format_files_rest_link(bucket, key, scheme="https"):
     """Format Files REST URL."""
-    return current_app.config['FILES_REST_ENDPOINT'].format(
-        scheme=scheme, host=request.host, bucket=bucket, key=key)
+    return current_app.config["FILES_REST_ENDPOINT"].format(
+        scheme=scheme, host=request.host, bucket=bucket, key=key
+    )
 
 
 class Person(Schema):
     """Person schema (schema.org/Person)."""
 
-    id_ = fields.Method('get_id', dump_to='@id')
-    type_ = fields.Constant('Person', dump_to='@type')
+    id_ = fields.Method("get_id", dump_to="@id")
+    type_ = fields.Constant("Person", dump_to="@type")
     name = SanitizedUnicode()
     affiliation = SanitizedUnicode()
 
     def get_id(self, obj):
         """Get URL for the person's ORCID or GND."""
-        orcid = obj.get('orcid')
-        gnd = obj.get('gnd')
+        orcid = obj.get("orcid")
+        gnd = obj.get("gnd")
         if orcid:
-            return idutils.to_url(orcid, 'orcid', 'https')
+            return idutils.to_url(orcid, "orcid", "https")
         if gnd:
-            return idutils.to_url(gnd, 'gnd', 'https')
+            return idutils.to_url(gnd, "gnd", "https")
         return missing
 
 
 class Language(Schema):
     """Language schema (schema.org/Language)."""
 
-    type_ = fields.Constant('Language', dump_to="@type")
-    name = fields.Method('get_name')
-    alternateName = fields.Method('get_alternate_name')
+    type_ = fields.Constant("Language", dump_to="@type")
+    name = fields.Method("get_name")
+    alternateName = fields.Method("get_alternate_name")
 
     def get_name(self, obj):
         """Get the language human-readable name."""
@@ -104,17 +115,17 @@ class Language(Schema):
 class Place(Schema):
     """Marshmallow schema for schema.org/Place."""
 
-    type_ = fields.Constant('Place', dump_to='@type')
-    geo = fields.Method('get_geo')
-    name = SanitizedUnicode(attribute='place')
+    type_ = fields.Constant("Place", dump_to="@type")
+    geo = fields.Method("get_geo")
+    name = SanitizedUnicode(attribute="place")
 
     def get_geo(self, obj):
         """Generate geo field."""
-        if obj.get('lat') and obj.get('lon'):
+        if obj.get("lat") and obj.get("lon"):
             return {
-                '@type': 'GeoCoordinates',
-                'latitude': obj['lat'],
-                'longitude': obj['lon']
+                "@type": "GeoCoordinates",
+                "latitude": obj["lat"],
+                "longitude": obj["lon"],
             }
         else:
             return missing
@@ -125,45 +136,44 @@ class CreativeWork(Schema):
 
     CONTEXT = "https://schema.org/"
 
-    identifier = fields.Method('get_doi', dump_to='identifier')
-    id_ = fields.Method('get_doi', dump_to='@id')
+    identifier = fields.Method("get_doi", dump_to="identifier")
+    id_ = fields.Method("get_doi", dump_to="@id")
 
     # NOTE: use `__class__`?
-    type_ = fields.Method('get_type', dump_to='@type')
-    url = fields.Method('get_url')
+    type_ = fields.Method("get_type", dump_to="@type")
+    url = fields.Method("get_url")
 
-    name = SanitizedUnicode(attribute='metadata.title')
-    description = SanitizedHTML(attribute='metadata.description')
-    context = fields.Method('get_context', dump_to='@context')
-    keywords = fields.List(SanitizedUnicode(), attribute='metadata.keywords')
-    spatial = fields.Nested(Place, many=True, attribute='metadata.locations')
+    name = SanitizedUnicode(attribute="metadata.title")
+    description = SanitizedHTML(attribute="metadata.description")
+    context = fields.Method("get_context", dump_to="@context")
+    keywords = fields.List(SanitizedUnicode(), attribute="metadata.keywords")
+    spatial = fields.Nested(Place, many=True, attribute="metadata.locations")
 
     # TODO: What date?
     # dateCreated
     # dateModified
-    datePublished = DateString(attribute='metadata.publication_date')
+    datePublished = DateString(attribute="metadata.publication_date")
 
-    temporal = fields.Method('get_dates')
+    temporal = fields.Method("get_dates")
 
     # NOTE: could also be  "author"
-    creator = fields.Nested(Person, many=True, attribute='metadata.creators')
+    creator = fields.Nested(Person, many=True, attribute="metadata.creators")
 
-    version = SanitizedUnicode(attribute='metadata.version')
+    version = SanitizedUnicode(attribute="metadata.version")
 
-    inLanguage = fields.Nested(Language, attribute='metadata.language')
+    inLanguage = fields.Nested(Language, attribute="metadata.language")
 
-    license = SanitizedUnicode(attribute='metadata.license.url')
+    license = SanitizedUnicode(attribute="metadata.license.url")
 
-    citation = fields.Method('get_citation')
-    isPartOf = fields.Method('get_is_part_of')
-    hasPart = fields.Method('get_has_part')
-    sameAs = fields.Method('get_sameAs')
+    citation = fields.Method("get_citation")
+    isPartOf = fields.Method("get_is_part_of")
+    hasPart = fields.Method("get_has_part")
+    sameAs = fields.Method("get_sameAs")
 
     # NOTE: reverse of subjectOf
-    about = fields.Method('get_subjects')
+    about = fields.Method("get_subjects")
 
-    contributor = fields.Nested(
-        Person, many=True, attribute='metadata.contributors')
+    contributor = fields.Nested(Person, many=True, attribute="metadata.contributors")
 
     # NOTE: editor from "contributors"?
     # editor
@@ -182,13 +192,13 @@ class CreativeWork(Schema):
     def get_dates(self, obj):
         """Get dates of the record."""
         dates = []
-        for interval in obj['metadata'].get('dates', []):
-            start = interval.get('start') or '..'
-            end = interval.get('end') or '..'
-            if start != '..' and end != '..' and start == end:
+        for interval in obj["metadata"].get("dates", []):
+            start = interval.get("start") or ".."
+            end = interval.get("end") or ".."
+            if start != ".." and end != ".." and start == end:
                 dates.append(start)
             else:
-                dates.append(start + '/' + end)
+                dates.append(start + "/" + end)
         return dates or missing
 
     def get_context(self, obj):
@@ -197,91 +207,89 @@ class CreativeWork(Schema):
 
     def get_doi(self, obj):
         """Get DOI of the record."""
-        data = obj['metadata']
-        return idutils.to_url(data['doi'], 'doi', 'https') \
-            if data.get('doi') \
-            else missing
+        data = obj["metadata"]
+        return (
+            idutils.to_url(data["doi"], "doi", "https") if data.get("doi") else missing
+        )
 
     def get_type(self, obj):
         """Get schema.org type of the record."""
-        data = obj['metadata']
-        obj_type = ObjectType.get_by_dict(data['resource_type'])
-        return (obj_type['schema.org'][len(self.CONTEXT):]
-                if obj_type else missing)
+        data = obj["metadata"]
+        obj_type = ObjectType.get_by_dict(data["resource_type"])
+        return obj_type["schema.org"][len(self.CONTEXT) :] if obj_type else missing
 
     def get_url(self, obj):
         """Get Zenodo URL of the record."""
-        recid = obj.get('metadata', {}).get('recid')
-        return ui_link_for('record_html', id=recid) if recid else missing
+        recid = obj.get("metadata", {}).get("recid")
+        return ui_link_for("record_html", id=recid) if recid else missing
 
     def get_citation(self, obj):
         """Get citations of the record."""
-        relids = obj.get('metadata', {}).get('related_identifiers', [])
-        ids = _serialize_identifiers(relids, {'cites', 'references'})
+        relids = obj.get("metadata", {}).get("related_identifiers", [])
+        ids = _serialize_identifiers(relids, {"cites", "references"})
         return ids or missing
 
     def get_is_part_of(self, obj):
         """Get records that this record is part of."""
-        relids = obj.get('metadata', {}).get('related_identifiers', [])
-        ids = _serialize_identifiers(relids, {'isPartOf'})
+        relids = obj.get("metadata", {}).get("related_identifiers", [])
+        ids = _serialize_identifiers(relids, {"isPartOf"})
         return ids or missing
 
     def get_has_part(self, obj):
         """Get parts of the record."""
-        relids = obj.get('metadata', {}).get('related_identifiers', [])
-        ids = _serialize_identifiers(relids, {'hasPart'})
+        relids = obj.get("metadata", {}).get("related_identifiers", [])
+        ids = _serialize_identifiers(relids, {"hasPart"})
         return ids or missing
 
     def get_sameAs(self, obj):
         """Get identical identifiers of the record."""
-        relids = obj.get('metadata', {}).get('related_identifiers', [])
-        ids = [i['@id']
-                for i in _serialize_identifiers(relids, {'isIdenticalTo'})]
-        relids = obj.get('metadata', {}).get('alternate_identifiers', [])
-        ids += [i['@id'] for i in _serialize_identifiers(relids)]
+        relids = obj.get("metadata", {}).get("related_identifiers", [])
+        ids = [i["@id"] for i in _serialize_identifiers(relids, {"isIdenticalTo"})]
+        relids = obj.get("metadata", {}).get("alternate_identifiers", [])
+        ids += [i["@id"] for i in _serialize_identifiers(relids)]
         return ids or missing
 
     def get_subjects(self, obj):
         """Get subjects of the record."""
-        subjects = obj.get('metadata', {}).get('subjects', [])
+        subjects = obj.get("metadata", {}).get("subjects", [])
         return _serialize_subjects(subjects) or missing
 
 
 class Distribution(Schema):
     """Marshmallow schema for schema.org/Distribution."""
 
-    type_ = fields.Constant('DataDownload', dump_to='@type')
-    fileFormat = SanitizedUnicode(attribute='type')
-    contentUrl = fields.Method('get_content_url')
+    type_ = fields.Constant("DataDownload", dump_to="@type")
+    fileFormat = SanitizedUnicode(attribute="type")
+    contentUrl = fields.Method("get_content_url")
 
     def get_content_url(self, obj):
         """Get URL of the file."""
-        return format_files_rest_link(bucket=obj['bucket'], key=obj['key'])
+        return format_files_rest_link(bucket=obj["bucket"], key=obj["key"])
 
 
 class Dataset(CreativeWork):
     """Marshmallow schema for schema.org/Dataset."""
 
-    distribution = fields.Nested(
-        Distribution, many=True, attribute='metadata._files')
+    distribution = fields.Nested(Distribution, many=True, attribute="metadata._files")
 
-    measurementTechnique = SanitizedUnicode(attribute='metadata.method')
+    measurementTechnique = SanitizedUnicode(attribute="metadata.method")
 
     @pre_dump
     def hide_closed_files(self, obj):
         """Hide the _files if the record is not Open Access."""
-        m = obj['metadata']
-        if m['access_right'] != 'open' and '_files' in m:
-            del obj['metadata']['_files']
+        m = obj["metadata"]
+        if m["access_right"] != "open" and "_files" in m:
+            del obj["metadata"]["_files"]
 
 
 class ScholarlyArticle(CreativeWork):
     """Marshmallow schema for schema.org/ScholarlyArticle."""
 
     # TODO: Investigate if this should be the same as title
-    headline = SanitizedUnicode(attribute='metadata.title')
+    headline = SanitizedUnicode(attribute="metadata.title")
     image = fields.Constant(
-        'https://zenodo.org/static/img/logos/zenodo-gradient-round.svg')
+        "https://zenodo.org/static/img/logos/zenodo-gradient-round.svg"
+    )
 
 
 class ImageObject(CreativeWork):
@@ -313,19 +321,21 @@ class SoftwareSourceCode(CreativeWork):
 
     # TODO: Include GitHub url if it's there...
     # related_identifiers.
-    codeRepository = fields.Method('get_code_repository_url')
+    codeRepository = fields.Method("get_code_repository_url")
 
     def get_code_repository_url(self, obj):
         """Get URL of the record's code repository."""
-        relids = obj.get('metadata', {}).get('related_identifiers', [])
+        relids = obj.get("metadata", {}).get("related_identifiers", [])
 
         def is_github_url(id):
-            return (id['relation'] == 'isSupplementTo' and
-                    id['scheme'] == 'url' and
-                    id['identifier'].startswith('https://github.com'))
+            return (
+                id["relation"] == "isSupplementTo"
+                and id["scheme"] == "url"
+                and id["identifier"].startswith("https://github.com")
+            )
+
         # TODO: Strip 'tree/v1.0'?
-        return next(
-            (i['identifier'] for i in relids if is_github_url(i)), missing)
+        return next((i["identifier"] for i in relids if is_github_url(i)), missing)
 
 
 class Photograph(CreativeWork):

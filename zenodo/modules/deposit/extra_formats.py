@@ -34,32 +34,29 @@ class ExtraFormats(object):
     """Extra formats utilities."""
 
     mimetype_whitelist = LocalProxy(
-        lambda: current_app.config.get(
-            'ZENODO_EXTRA_FORMATS_MIMETYPE_WHITELIST', {})
+        lambda: current_app.config.get("ZENODO_EXTRA_FORMATS_MIMETYPE_WHITELIST", {})
     )
     """MIMEType whitelist."""
 
     @classmethod
     def get_or_create_bucket(cls, record):
         """Get or create the extra formats bucket for a record (or deposit)."""
-        if not record.get('_buckets', {}).get('extra_formats'):
+        if not record.get("_buckets", {}).get("extra_formats"):
             extra_formats_bucket = Bucket.create(
-                quota_size=current_app.config[
-                    'ZENODO_EXTRA_FORMATS_BUCKET_QUOTA_SIZE'],
-                max_file_size=current_app.config['ZENODO_MAX_FILE_SIZE'],
-                locked=False
+                quota_size=current_app.config["ZENODO_EXTRA_FORMATS_BUCKET_QUOTA_SIZE"],
+                max_file_size=current_app.config["ZENODO_MAX_FILE_SIZE"],
+                locked=False,
             )
             cls.link_to_record(record, extra_formats_bucket)
         else:
-            extra_formats_bucket = Bucket.query.get(
-                record['_buckets']['extra_formats'])
+            extra_formats_bucket = Bucket.query.get(record["_buckets"]["extra_formats"])
         return extra_formats_bucket
 
     @classmethod
     def link_to_record(cls, record, bucket):
         """Link a record its extra formats bucket."""
-        if not record.get('_buckets', {}).get('extra_formats'):
-            record.setdefault('_buckets', {})
-            record['_buckets']['extra_formats'] = str(bucket.id)
+        if not record.get("_buckets", {}).get("extra_formats"):
+            record.setdefault("_buckets", {})
+            record["_buckets"]["extra_formats"] = str(bucket.id)
             record.commit()
             RecordsBuckets.create(record=record.model, bucket=bucket)

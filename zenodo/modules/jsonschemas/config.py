@@ -27,9 +27,11 @@
 from __future__ import absolute_import, print_function
 
 ZENODO_JSONSCHEMAS_RECORD_SCHEMA = (
-    'records/record_src-v1.0.0.json',
-    'records/record-v1.0.0.json')
+    "records/record_src-v1.0.0.json",
+    "records/record-v1.0.0.json",
+)
 
 ZENODO_JSONSCHEMAS_DEPOSIT_SCHEMA = (
-    'deposits/records/record_src-v1.0.0.json',
-    'deposits/records/record-v1.0.0.json')
+    "deposits/records/record_src-v1.0.0.json",
+    "deposits/records/record-v1.0.0.json",
+)

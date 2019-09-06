@@ -32,9 +32,11 @@ from invenio_records.api import Record
 
 def test_grant_linking(app, db, minimal_record, grant_records):
     """Test grant linking."""
-    minimal_record['grants'] = [{
-        '$ref': 'http://dx.zenodo.org/grants/10.13039/501100000780::282896'}]
-    record = current_app.extensions['invenio-records'].replace_refs(
-        Record.create(minimal_record))
-    assert record['grants'][0]['funder']['name'] == 'European Commission'
+    minimal_record["grants"] = [
+        {"$ref": "http://dx.zenodo.org/grants/10.13039/501100000780::282896"}
+    ]
+    record = current_app.extensions["invenio-records"].replace_refs(
+        Record.create(minimal_record)
+    )
+    assert record["grants"][0]["funder"]["name"] == "European Commission"
     record.validate()

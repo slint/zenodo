@@ -42,7 +42,7 @@ class _ZenodoOpenAIREState(object):
     @cached_property
     def openaire_communities(self):
         """Configuration for OpenAIRE communities types."""
-        return self.app.config['ZENODO_OPENAIRE_COMMUNITIES']
+        return self.app.config["ZENODO_OPENAIRE_COMMUNITIES"]
 
     @cached_property
     def inverse_openaire_community_map(self):
@@ -50,7 +50,7 @@ class _ZenodoOpenAIREState(object):
         comm_map = self.openaire_communities
         items = defaultdict(list)
         for oa_comm, cfg in comm_map.items():
-            for z_comm in cfg['communities']:
+            for z_comm in cfg["communities"]:
                 items[z_comm].append(oa_comm)
         return items
 
@@ -67,11 +67,11 @@ class ZenodoOpenAIRE(object):
     def init_config(app):
         """Initialize configuration."""
         for k in dir(config):
-            if k.startswith('ZENODO_OPENAIRE_'):
+            if k.startswith("ZENODO_OPENAIRE_"):
                 app.config.setdefault(k, getattr(config, k))
 
     def init_app(self, app):
         """Flask application initialization."""
         self.init_config(app)
         state = _ZenodoOpenAIREState(app)
-        self._state = app.extensions['zenodo-openaire'] = state
+        self._state = app.extensions["zenodo-openaire"] = state

@@ -41,100 +41,77 @@ def assert_err(data, field):
     """Assert that a certain error is present when loading data."""
     try:
         legacyjson_v1_translator(data)
-        raise AssertionError('Did not raise MarshmallowErrors.')
+        raise AssertionError("Did not raise MarshmallowErrors.")
     except MarshmallowErrors as e:
         body = json.loads(e.get_body())
 
         if field:
             found = False
-            for err in body['errors']:
-                if field == err['field']:
+            for err in body["errors"]:
+                if field == err["field"]:
                     found = True
             if not found:
-                raise AssertionError('Field {0} not found.'.format(field))
+                raise AssertionError("Field {0} not found.".format(field))
 
 
 def test_level1_unknown_key():
     """Test level 1 key errors."""
-    assert_err(
-        dict(unknownkey='invalid'),
-        'unknownkey',
-    )
+    assert_err(dict(unknownkey="invalid"), "unknownkey")
 
 
 def test_level2_key():
     """Test level 2 key errors."""
-    assert_err(
-        m(publication_date='invalid'),
-        'metadata.publication_date',
-    )
+    assert_err(m(publication_date="invalid"), "metadata.publication_date")
 
 
 def test_level3_list():
     """Test level 3 list key errors."""
     # Min length 1 failure
-    assert_err(
-        m(creators=[]),
-        'metadata.creators',
-    )
+    assert_err(m(creators=[]), "metadata.creators")
     # Missing name
-    assert_err(
-        m(creators=[dict(affiliation='CERN')]),
-        'metadata.creators.0.name',
-    )
+    assert_err(m(creators=[dict(affiliation="CERN")]), "metadata.creators.0.name")
 
     # Invalid type.
     app = Flask(__name__)
-    app.config['DEPOSIT_CONTRIBUTOR_DATACITE2MARC'] = {}
+    app.config["DEPOSIT_CONTRIBUTOR_DATACITE2MARC"] = {}
     with app.app_context():
         assert_err(
-            m(contributors=[dict(name='a', affiliation='b', type='invalid')]),
-            'metadata.contributors.0.type',
+            m(contributors=[dict(name="a", affiliation="b", type="invalid")]),
+            "metadata.contributors.0.type",
         )
 
     # Unknown key
-    assert_err(
-        m(creators=[dict(unknownkey='CERN')]),
-        'metadata.creators.0.unknownkey',
-    )
+    assert_err(m(creators=[dict(unknownkey="CERN")]), "metadata.creators.0.unknownkey")
 
 
 def test_upload_type():
     """Test upload type."""
     # Invalid type
-    assert_err(
-        m(upload_type='invalid'),
-        'metadata.upload_type',
-    )
+    assert_err(m(upload_type="invalid"), "metadata.upload_type")
     # Invalid subtype
     assert_err(
-        m(upload_type='publication', subtype='invalid'),
-        'metadata.publication_type',
+        m(upload_type="publication", subtype="invalid"), "metadata.publication_type"
     )
-    assert_err(
-        m(upload_type='image', subtype='invalid'),
-        'metadata.image_type',
-    )
+    assert_err(m(upload_type="image", subtype="invalid"), "metadata.image_type")
 
 
 def test_related_identifiers():
     """Test related identifiers."""
     cases = [
         # No identifier
-        dict(identifier='', relation='cites'),
+        dict(identifier="", relation="cites"),
         # Non-detectable identifier
-        dict(identifier='abc', relation='cites'),
+        dict(identifier="abc", relation="cites"),
         # Invalid identifier for scheme.
-        dict(identifier='10.1234/foo', scheme='orcid', relation='cites'),
+        dict(identifier="10.1234/foo", scheme="orcid", relation="cites"),
     ]
     for c in cases:
         assert_err(
-            m(related_identifiers=[c]),
-            'metadata.related_identifiers.0.identifier',
+            m(related_identifiers=[c]), "metadata.related_identifiers.0.identifier"
         )
 
     # Invalid relation
     assert_err(
-        m(related_identifiers=[dict(relation='invalid')]),
-        'metadata.related_identifiers.0.relation',
+        m(related_identifiers=[dict(relation="invalid")]),
+        "metadata.related_identifiers.0.relation",
     )

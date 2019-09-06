@@ -29,4 +29,4 @@ from __future__ import absolute_import
 from invenio_app.factory import create_api, create_app
 from invenio_app.factory import create_ui as create_celery
 
-__all__ = ('create_app', 'create_api', 'create_celery')
+__all__ = ("create_app", "create_api", "create_celery")

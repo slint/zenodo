@@ -27,34 +27,33 @@ import json
 from helpers import login_user_via_session
 
 
-def test_queries_permission_factory(app, db, es, event_queues, users,
-                                    record_with_files_creation, api_client):
+def test_queries_permission_factory(
+    app, db, es, event_queues, users, record_with_files_creation, api_client
+):
     """Test queries permission factory."""
     recid, record, _ = record_with_files_creation
-    record['conceptdoi'] = '10.1234/foo.concept'
-    record['conceptrecid'] = 'foo.concept'
+    record["conceptdoi"] = "10.1234/foo.concept"
+    record["conceptrecid"] = "foo.concept"
     record.commit()
     db.session.commit()
 
-    headers = [('Content-Type', 'application/json'),
-               ('Accept', 'application/json')]
+    headers = [("Content-Type", "application/json"), ("Accept", "application/json")]
     sample_histogram_query_data = {
         "mystat": {
             "stat": "record-download",
-            "params": {
-                "file_key": "Test.pdf",
-                "recid": recid.pid_value
-            }
+            "params": {"file_key": "Test.pdf", "recid": recid.pid_value},
         }
     }
-    query_url = '/stats'
+    query_url = "/stats"
 
-    login_user_via_session(api_client, email=users[0]['email'])
-    res = api_client.post(query_url, headers=headers,
-                          data=json.dumps(sample_histogram_query_data))
+    login_user_via_session(api_client, email=users[0]["email"])
+    res = api_client.post(
+        query_url, headers=headers, data=json.dumps(sample_histogram_query_data)
+    )
     assert res.status_code == 403
 
-    login_user_via_session(api_client, email=users[2]['email'])
-    res = api_client.post(query_url, headers=headers,
-                          data=json.dumps(sample_histogram_query_data))
+    login_user_via_session(api_client, email=users[2]["email"])
+    res = api_client.post(
+        query_url, headers=headers, data=json.dumps(sample_histogram_query_data)
+    )
     assert res.status_code == 200

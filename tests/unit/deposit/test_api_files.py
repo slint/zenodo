@@ -36,75 +36,77 @@ def get_data(**kwargs):
     """Get test data."""
     test_data = dict(
         metadata=dict(
-            upload_type='presentation',
-            title='Test title',
-            creators=[
-                dict(name='Doe, John', affiliation='Atlantis'),
-            ],
-            description='Test Description',
-            publication_date='2013-05-08',
-            access_right='open'
+            upload_type="presentation",
+            title="Test title",
+            creators=[dict(name="Doe, John", affiliation="Atlantis")],
+            description="Test Description",
+            publication_date="2013-05-08",
+            access_right="open",
         )
     )
-    test_data['metadata'].update(kwargs)
+    test_data["metadata"].update(kwargs)
     return test_data
 
 
-def test_missing_files(api_client, json_auth_headers, deposit_url, locations,
-                       es, get_json, license_record):
+def test_missing_files(
+    api_client, json_auth_headers, deposit_url, locations, es, get_json, license_record
+):
     """Test data validation - no files added."""
     client = api_client
     headers = json_auth_headers
 
     # Create
-    res = client.post(
-        deposit_url, data=json.dumps(get_data()), headers=headers)
-    links = get_json(res, code=201)['links']
-    current_search.flush_and_refresh(index='deposits')
+    res = client.post(deposit_url, data=json.dumps(get_data()), headers=headers)
+    links = get_json(res, code=201)["links"]
+    current_search.flush_and_refresh(index="deposits")
 
     # Publish - not possible (file is missing)
-    res = client.post(links['publish'], headers=headers)
+    res = client.post(links["publish"], headers=headers)
     data = get_json(res, code=400)
-    assert len(data['errors']) == 1
+    assert len(data["errors"]) == 1
 
 
-def test_multipart_onging(api, api_client, db, deposit, deposit_file, get_json,
-                          json_auth_headers, deposit_url, license_record):
+def test_multipart_onging(
+    api,
+    api_client,
+    db,
+    deposit,
+    deposit_file,
+    get_json,
+    json_auth_headers,
+    deposit_url,
+    license_record,
+):
     """Test data validation."""
-    api.config.update(dict(
-        FILES_REST_MULTIPART_CHUNKSIZE_MIN=2,
-    ))
+    api.config.update(dict(FILES_REST_MULTIPART_CHUNKSIZE_MIN=2))
     client = api_client
     headers = json_auth_headers
-    deposit_url = '{0}/{1}'.format(
-        deposit_url,
-        deposit['_deposit']['id']
-    )
+    deposit_url = "{0}/{1}".format(deposit_url, deposit["_deposit"]["id"])
 
     # Get links
     res = client.get(deposit_url, headers=headers)
-    links = get_json(res, code=200)['links']
+    links = get_json(res, code=200)["links"]
 
     # Create multipart upload
-    multipart_url = '{0}/bigfile?uploads&size=1000&partSize=500'.format(
-        links['bucket'])
+    multipart_url = "{0}/bigfile?uploads&size=1000&partSize=500".format(links["bucket"])
     res = client.post(multipart_url, headers=headers)
-    mp_links = get_json(res, code=200)['links']
+    mp_links = get_json(res, code=200)["links"]
 
     # Publish - not possible (multipart object in progress)
-    res = client.post(links['publish'], headers=headers)
+    res = client.post(links["publish"], headers=headers)
     data = get_json(res, code=400)
-    assert len(data['errors']) == 1
+    assert len(data["errors"]) == 1
 
     # Delete multipart upload
-    assert client.delete(mp_links['self'], headers=headers).status_code == 204
+    assert client.delete(mp_links["self"], headers=headers).status_code == 204
 
     # Now publishing is possible
-    assert client.post(links['publish'], headers=headers).status_code == 202
+    assert client.post(links["publish"], headers=headers).status_code == 202
 
 
-def test_file_ops(api_client, deposit, json_auth_headers, auth_headers,
-                  deposit_url, get_json):
+def test_file_ops(
+    api_client, deposit, json_auth_headers, auth_headers, deposit_url, get_json
+):
     """Test data validation."""
     client = api_client
     headers = json_auth_headers
@@ -112,99 +114,116 @@ def test_file_ops(api_client, deposit, json_auth_headers, auth_headers,
 
     # Create empty deposit
     res = client.post(deposit_url, data=json.dumps({}), headers=headers)
-    links = get_json(res, code=201)['links']
-    current_search.flush_and_refresh(index='deposits')
+    links = get_json(res, code=201)["links"]
+    current_search.flush_and_refresh(index="deposits")
 
     # Upload same file twice - first ok, second not
     for code in [201, 400]:
-        f = dict(file=(BytesIO(b'test'), 'test1.txt'), name='test1.txt')
-        res = client.post(links['files'], data=f, headers=auth)
+        f = dict(file=(BytesIO(b"test"), "test1.txt"), name="test1.txt")
+        res = client.post(links["files"], data=f, headers=auth)
         res.status_code == code
 
     # Upload another file
     client.post(
-        links['files'],
-        data=dict(file=(BytesIO(b'test'), 'test2.txt'), name='test2.txt'),
-        headers=auth
+        links["files"],
+        data=dict(file=(BytesIO(b"test"), "test2.txt"), name="test2.txt"),
+        headers=auth,
     )
 
     # List files
-    data = get_json(client.get(links['files'], headers=headers), code=200)
+    data = get_json(client.get(links["files"], headers=headers), code=200)
     assert len(data) == 2
-    file_id = data[0]['id']
-    file_url = '{0}/{1}'.format(links['files'], file_id)
+    file_id = data[0]["id"]
+    file_url = "{0}/{1}".format(links["files"], file_id)
 
     # Get file
     assert client.get(file_url, headers=headers).status_code == 200
 
     # File does not exists
-    assert client.get(
-        '{0}/invalid'.format(links['files']), headers=headers
-    ).status_code == 404
+    assert (
+        client.get("{0}/invalid".format(links["files"]), headers=headers).status_code
+        == 404
+    )
 
-    data = get_json(client.get(links['files'], headers=headers), code=200)
-    invalid_files_list = [dict(filename=x['filename']) for x in data]
-    ok_files_list = list(reversed([dict(id=x['id']) for x in data]))
+    data = get_json(client.get(links["files"], headers=headers), code=200)
+    invalid_files_list = [dict(filename=x["filename"]) for x in data]
+    ok_files_list = list(reversed([dict(id=x["id"]) for x in data]))
 
     # Sort - invalid
-    assert client.put(
-        links['files'], data=json.dumps(invalid_files_list), headers=headers
-    ).status_code == 400
+    assert (
+        client.put(
+            links["files"], data=json.dumps(invalid_files_list), headers=headers
+        ).status_code
+        == 400
+    )
 
     # Sort - valid
-    assert client.put(
-        links['files'], data=json.dumps(ok_files_list), headers=headers
-    ).status_code == 200
+    assert (
+        client.put(
+            links["files"], data=json.dumps(ok_files_list), headers=headers
+        ).status_code
+        == 200
+    )
 
     # Delete
     assert client.delete(file_url, headers=headers).status_code == 204
     assert client.get(file_url, headers=headers).status_code == 404
-    data = get_json(client.get(links['files'], headers=headers), code=200)
+    data = get_json(client.get(links["files"], headers=headers), code=200)
     assert len(data) == 1
-    file_id = data[0]['id']
-    file_url = '{0}/{1}'.format(links['files'], file_id)
+    file_id = data[0]["id"]
+    file_url = "{0}/{1}".format(links["files"], file_id)
 
     # Rename
-    assert client.put(
-        file_url, data=json.dumps(dict(filename='rename.txt')), headers=headers
-    ).status_code == 200
+    assert (
+        client.put(
+            file_url, data=json.dumps(dict(filename="rename.txt")), headers=headers
+        ).status_code
+        == 200
+    )
 
     # Bad renaming
-    for data in [dict(name='test.txt'), dict(filename='../../etc/passwd')]:
-        assert client.put(
-            file_url, data=json.dumps(data), headers=headers
-        ).status_code == 400
+    for data in [dict(name="test.txt"), dict(filename="../../etc/passwd")]:
+        assert (
+            client.put(file_url, data=json.dumps(data), headers=headers).status_code
+            == 400
+        )
 
     data = get_json(client.get(file_url, headers=headers), code=200)
-    assert data['filename'] == 'rename.txt'
+    assert data["filename"] == "rename.txt"
 
 
-def test_deposit_deletion(api_client, deposit, json_auth_headers, deposit_url,
-                          get_json, license_record, auth_headers):
+def test_deposit_deletion(
+    api_client,
+    deposit,
+    json_auth_headers,
+    deposit_url,
+    get_json,
+    license_record,
+    auth_headers,
+):
     """Test file accessibility after deposit deletion."""
     client = api_client
     headers = json_auth_headers
     auth = auth_headers
 
     # Create
-    res = client.post(
-        deposit_url, data=json.dumps(get_data()), headers=headers)
-    links = get_json(res, code=201)['links']
-    current_search.flush_and_refresh(index='deposits')
+    res = client.post(deposit_url, data=json.dumps(get_data()), headers=headers)
+    links = get_json(res, code=201)["links"]
+    current_search.flush_and_refresh(index="deposits")
 
     # Upload file
     res = client.post(
-        links['files'],
-        data=dict(file=(BytesIO(b'test'), 'test.txt'), name='test.txt'),
-        headers=auth
+        links["files"],
+        data=dict(file=(BytesIO(b"test"), "test.txt"), name="test.txt"),
+        headers=auth,
     )
     assert res.status_code == 201
 
     # Get deposit links
-    res = client.get(links['self'], headers=headers)
+    res = client.get(links["self"], headers=headers)
     data = get_json(res, code=200)
-    file_link = data['files'][0]['links']['self']
-    download_link = data['files'][0]['links']['download']
+    file_link = data["files"][0]["links"]["self"]
+    download_link = data["files"][0]["links"]["download"]
 
     # Get file
     res = client.get(file_link, headers=headers)
@@ -221,11 +240,11 @@ def test_deposit_deletion(api_client, deposit, json_auth_headers, deposit_url,
     #
     # Delete upload
     #
-    res = client.delete(links['self'], headers=auth)
+    res = client.delete(links["self"], headers=auth)
     assert res.status_code == 204
 
     # Try to get deposit.
-    res = client.get(links['self'], headers=auth)
+    res = client.get(links["self"], headers=auth)
     assert res.status_code == 410
 
     # Try to get file

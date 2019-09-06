@@ -30,5 +30,6 @@ from flask import current_app
 from werkzeug.local import LocalProxy
 
 current_stats_search_client = LocalProxy(
-    lambda: current_app.extensions['zenodo-stats'].search_client)
+    lambda: current_app.extensions["zenodo-stats"].search_client
+)
 """Proxy to Elasticsearch client used for statistics queries."""

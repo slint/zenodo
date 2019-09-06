@@ -27,7 +27,7 @@
 from __future__ import absolute_import, print_function
 
 #: Sitemap links URL scheme
-ZENODO_SITEMAP_URL_SCHEME = 'https'
+ZENODO_SITEMAP_URL_SCHEME = "https"
 
 #: Max URLs per sitemap page
 ZENODO_SITEMAP_MAX_URL_COUNT = 10000

@@ -31,9 +31,9 @@ from invenio_pidstore.fetchers import FetchedPID
 
 def zenodo_deposit_fetcher(record_uuid, data):
     """Fetch a deposit identifier."""
-    pid_value = data.get('_deposit', {}).get('id')
-    return FetchedPID(
-        provider=None,
-        pid_type='depid',
-        pid_value=pid_value,
-    ) if pid_value else None
+    pid_value = data.get("_deposit", {}).get("id")
+    return (
+        FetchedPID(provider=None, pid_type="depid", pid_value=pid_value)
+        if pid_value
+        else None
+    )

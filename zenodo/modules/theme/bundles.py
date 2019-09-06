@@ -30,80 +30,66 @@ from flask_assets import Bundle
 from invenio_assets import NpmBundle
 
 css = NpmBundle(
+    Bundle("scss/styles.scss", filters="node-scss, cleancss", depends=("scss/*.scss",)),
     Bundle(
-        'scss/styles.scss',
-        filters='node-scss, cleancss',
-        depends=('scss/*.scss', ),
-    ),
-    Bundle(
-        'node_modules/angular-loading-bar/build/loading-bar.css',
-        'node_modules/typeahead.js-bootstrap-css/typeaheadjs.css',
-        'node_modules/bootstrap-switch/dist/css/bootstrap3'
-        '/bootstrap-switch.css',
-        filters='cleancss',
+        "node_modules/angular-loading-bar/build/loading-bar.css",
+        "node_modules/typeahead.js-bootstrap-css/typeaheadjs.css",
+        "node_modules/bootstrap-switch/dist/css/bootstrap3" "/bootstrap-switch.css",
+        filters="cleancss",
     ),
     output="gen/zenodo.%(version)s.css",
     npm={
-        'bootstrap-sass': '~3.3.5',
-        'bootstrap-switch': '~3.0.2',
-        'font-awesome': '~4.4.0',
-        'typeahead.js-bootstrap-css': '~1.2.1',
-    }
+        "bootstrap-sass": "~3.3.5",
+        "bootstrap-switch": "~3.0.2",
+        "font-awesome": "~4.4.0",
+        "typeahead.js-bootstrap-css": "~1.2.1",
+    },
 )
 """Default CSS bundle."""
 
 js = NpmBundle(
     Bundle(
-        'node_modules/almond/almond.js',
-        'js/modernizr-custom.js',
-        filters='uglifyjs',
+        "node_modules/almond/almond.js", "js/modernizr-custom.js", filters="uglifyjs"
     ),
-    Bundle(
-        'js/zenodo.js',
-        filters='requirejs',
-    ),
+    Bundle("js/zenodo.js", filters="requirejs"),
     depends=(
-        'js/zenodo.js',
-        'js/zenodo/*.js',
-        'js/zenodo/filters/*.js',
-        'js/github/*.js',
-        'node_modules/angular-loading-bar/build/*.js',
-        'node_modules/typeahead.js/dist/*.js',
-        'node_modules/invenio-csl-js/dist/*.js',
-        'node_modules/bootstrap-switch/dist/js/bootstrap-switch.js',
+        "js/zenodo.js",
+        "js/zenodo/*.js",
+        "js/zenodo/filters/*.js",
+        "js/github/*.js",
+        "node_modules/angular-loading-bar/build/*.js",
+        "node_modules/typeahead.js/dist/*.js",
+        "node_modules/invenio-csl-js/dist/*.js",
+        "node_modules/bootstrap-switch/dist/js/bootstrap-switch.js",
     ),
-    filters='jsmin',
+    filters="jsmin",
     output="gen/zenodo.%(version)s.js",
     npm={
-        'almond': '~0.3.1',
-        'angular': '~1.4.9',
-        'angular-sanitize': '~1.4.9',
-        'angular-loading-bar': '~0.9.0',
-        'bootstrap-switch': '~3.0.2',
-        'invenio-csl-js': '~0.1.3',
-        'typeahead.js': '~0.11.1',
-
-    }
+        "almond": "~0.3.1",
+        "angular": "~1.4.9",
+        "angular-sanitize": "~1.4.9",
+        "angular-loading-bar": "~0.9.0",
+        "bootstrap-switch": "~3.0.2",
+        "invenio-csl-js": "~0.1.3",
+        "typeahead.js": "~0.11.1",
+    },
 )
 """Default JavaScript bundle."""
 
 search_js = NpmBundle(
-    Bundle(
-        'js/zenodo.search.js',
-        filters='requirejs',
-    ),
+    Bundle("js/zenodo.search.js", filters="requirejs"),
     depends=(
-        'node_modules/invenio-search-js/dist/*.js',
-        'node_modules/angular-strap/dist/*.js',
-        'js/invenio_communities/*.js',
-        'js/invenio_communities/directives/*.js',
+        "node_modules/invenio-search-js/dist/*.js",
+        "node_modules/angular-strap/dist/*.js",
+        "js/invenio_communities/*.js",
+        "js/invenio_communities/directives/*.js",
     ),
-    filters='jsmin',
+    filters="jsmin",
     output="gen/zenodo.search.%(version)s.js",
     npm={
-        'clipboard': '1.5.12',
-        'invenio-search-js': '~0.2.0',
-        'angular-strap': '~2.3.9',
-    }
+        "clipboard": "1.5.12",
+        "invenio-search-js": "~0.2.0",
+        "angular-strap": "~2.3.9",
+    },
 )
 """Search JavaScript bundle (with communities support)."""

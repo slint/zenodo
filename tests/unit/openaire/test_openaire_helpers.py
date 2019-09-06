@@ -26,90 +26,93 @@
 
 from __future__ import absolute_import, print_function
 
-from zenodo.modules.openaire.helpers import openaire_id, openaire_link, \
-    openaire_type
+from zenodo.modules.openaire.helpers import openaire_id, openaire_link, openaire_type
 
 
 def test_openaire_type(app, minimal_record):
     """Test OpenAIRE type."""
     r = minimal_record
     # Default zenodo type is software.
-    assert openaire_type(r) == 'software'
+    assert openaire_type(r) == "software"
 
     # Other type
-    r['resource_type']['type'] = 'other'
-    assert openaire_type(r) == 'other'
+    r["resource_type"]["type"] = "other"
+    assert openaire_type(r) == "other"
 
     # Datasets just map to datasets.
-    r['resource_type']['type'] = 'dataset'
-    assert openaire_type(r) == 'dataset'
+    r["resource_type"]["type"] = "dataset"
+    assert openaire_type(r) == "dataset"
 
     # Open publications
-    r['resource_type']['type'] = 'publication'
-    assert openaire_type(r) == 'publication'
+    r["resource_type"]["type"] = "publication"
+    assert openaire_type(r) == "publication"
 
     # Non-open publications
-    r['access_right'] = 'embargoed'
+    r["access_right"] = "embargoed"
     assert openaire_type(r) is None
     # with grants
-    r['grants'] = [{'id': 'someid'}]
-    assert openaire_type(r) == 'publication'
+    r["grants"] = [{"id": "someid"}]
+    assert openaire_type(r) == "publication"
 
     # in ecfunded community
-    del r['grants']
-    r['communities'] = ['ecfunded']
-    assert openaire_type(r) == 'publication'
-    r['communities'] = ['zenodo']
+    del r["grants"]
+    r["communities"] = ["ecfunded"]
+    assert openaire_type(r) == "publication"
+    r["communities"] = ["zenodo"]
     assert openaire_type(r) is None
 
 
 def test_openaire_id(app, minimal_record):
     """Test OpenAIRE ID."""
     r = minimal_record
-    r['doi'] = u'10.5281/zenodo.123'
-    r['_oai'] = {'id': u'oai:zenodo.org:123'}
+    r["doi"] = u"10.5281/zenodo.123"
+    r["_oai"] = {"id": u"oai:zenodo.org:123"}
 
     # Default zenodo type is software
-    assert openaire_id(r) == 'r37b0ad08687::47287d1800c112499a117ca17aa1909d'
+    assert openaire_id(r) == "r37b0ad08687::47287d1800c112499a117ca17aa1909d"
 
     # Other type
-    r['resource_type']['type'] = 'other'
-    assert openaire_id(r) == 'r37b0ad08687::47287d1800c112499a117ca17aa1909d'
+    r["resource_type"]["type"] = "other"
+    assert openaire_id(r) == "r37b0ad08687::47287d1800c112499a117ca17aa1909d"
 
     # Dataset ID
-    r['resource_type']['type'] = 'dataset'
-    assert openaire_id(r) == 'r37b0ad08687::204007f516ddcf0a452c2f22d48695ca'
+    r["resource_type"]["type"] = "dataset"
+    assert openaire_id(r) == "r37b0ad08687::204007f516ddcf0a452c2f22d48695ca"
 
     # Publication ID
-    r['resource_type']['type'] = 'publication'
-    assert openaire_id(r) == 'od______2659::47287d1800c112499a117ca17aa1909d'
+    r["resource_type"]["type"] = "publication"
+    assert openaire_id(r) == "od______2659::47287d1800c112499a117ca17aa1909d"
 
 
 def test_openaire_link(app, minimal_record):
     """Test OpenAIRE ID."""
     r = minimal_record
-    r['doi'] = u'10.5281/zenodo.123'
-    r['_oai'] = {'id': u'oai:zenodo.org:123'}
+    r["doi"] = u"10.5281/zenodo.123"
+    r["_oai"] = {"id": u"oai:zenodo.org:123"}
 
     # Default zenodo type is software
-    assert openaire_link(r) ==\
-        'https://explore.openaire.eu/search/software?' \
-        'softwareId=r37b0ad08687::47287d1800c112499a117ca17aa1909d'
+    assert (
+        openaire_link(r) == "https://explore.openaire.eu/search/software?"
+        "softwareId=r37b0ad08687::47287d1800c112499a117ca17aa1909d"
+    )
 
     # Other type
-    r['resource_type']['type'] = 'other'
-    assert openaire_link(r) == \
-        'https://explore.openaire.eu/search/other?' \
-        'orpId=r37b0ad08687::47287d1800c112499a117ca17aa1909d'
+    r["resource_type"]["type"] = "other"
+    assert (
+        openaire_link(r) == "https://explore.openaire.eu/search/other?"
+        "orpId=r37b0ad08687::47287d1800c112499a117ca17aa1909d"
+    )
 
     # Dataset ID
-    r['resource_type']['type'] = 'dataset'
-    assert openaire_link(r) == \
-        'https://explore.openaire.eu/search/dataset' \
-        '?datasetId=r37b0ad08687::204007f516ddcf0a452c2f22d48695ca'
+    r["resource_type"]["type"] = "dataset"
+    assert (
+        openaire_link(r) == "https://explore.openaire.eu/search/dataset"
+        "?datasetId=r37b0ad08687::204007f516ddcf0a452c2f22d48695ca"
+    )
 
     # Publication ID
-    r['resource_type']['type'] = 'publication'
-    assert openaire_link(r) == \
-        'https://explore.openaire.eu/search/publication' \
-        '?articleId=od______2659::47287d1800c112499a117ca17aa1909d'
+    r["resource_type"]["type"] = "publication"
+    assert (
+        openaire_link(r) == "https://explore.openaire.eu/search/publication"
+        "?articleId=od______2659::47287d1800c112499a117ca17aa1909d"
+    )

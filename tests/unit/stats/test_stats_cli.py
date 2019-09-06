@@ -29,44 +29,51 @@ from invenio_records.api import Record
 from zenodo.modules.stats.cli import import_events
 
 
-def test_record_view_import(app, db, es, event_queues, full_record,
-                            script_info, tmpdir):
+def test_record_view_import(
+    app, db, es, event_queues, full_record, script_info, tmpdir
+):
     """Test record page view event import."""
-    full_record['conceptrecid'] = '12344'
-    full_record['conceptdoi'] = '10.1234/foo.concept'
+    full_record["conceptrecid"] = "12344"
+    full_record["conceptdoi"] = "10.1234/foo.concept"
     r = Record.create(full_record)
 
     PersistentIdentifier.create(
-        'recid', '12345', object_type='rec', object_uuid=r.id,
-        status=PIDStatus.REGISTERED)
+        "recid",
+        "12345",
+        object_type="rec",
+        object_uuid=r.id,
+        status=PIDStatus.REGISTERED,
+    )
     db.session.commit()
 
-    csv_file = tmpdir.join('record-views.csv')
+    csv_file = tmpdir.join("record-views.csv")
     csv_file.write(
-        ',userAgent,ipAddress,url,serverTimePretty,timestamp,referrer\n'
-        ',foo,137.138.36.206,https://zenodo.org/record/12345,,1367928000,\n')
+        ",userAgent,ipAddress,url,serverTimePretty,timestamp,referrer\n"
+        ",foo,137.138.36.206,https://zenodo.org/record/12345,,1367928000,\n"
+    )
 
     runner = CliRunner()
     res = runner.invoke(
-        import_events, ['record-view', csv_file.dirname], obj=script_info)
+        import_events, ["record-view", csv_file.dirname], obj=script_info
+    )
     assert res.exit_code == 0
-    events = list(event_queues['stats-record-view'].consume())
+    events = list(event_queues["stats-record-view"].consume())
     assert len(events) == 1
     assert events[0] == {
-        'pid_type': 'recid',
-        'pid_value': '12345',
-        'communities': ['zenodo'],
-        'owners': [1],
-        'conceptdoi': '10.1234/foo.concept',
-        'conceptrecid': '12344',
-        'doi': '10.1234/foo.bar',
-        'ip_address': '137.138.36.206',
-        'recid': '12345',
-        'record_id': str(r.id),
-        'referrer': '',
-        'resource_type': {'subtype': 'book', 'type': 'publication'},
-        'access_right': 'open',
-        'timestamp': '2013-05-07T12:00:00',
-        'user_agent': 'foo',
-        'user_id': None,
+        "pid_type": "recid",
+        "pid_value": "12345",
+        "communities": ["zenodo"],
+        "owners": [1],
+        "conceptdoi": "10.1234/foo.concept",
+        "conceptrecid": "12344",
+        "doi": "10.1234/foo.bar",
+        "ip_address": "137.138.36.206",
+        "recid": "12345",
+        "record_id": str(r.id),
+        "referrer": "",
+        "resource_type": {"subtype": "book", "type": "publication"},
+        "access_right": "open",
+        "timestamp": "2013-05-07T12:00:00",
+        "user_agent": "foo",
+        "user_id": None,
     }

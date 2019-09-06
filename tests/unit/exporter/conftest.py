@@ -30,59 +30,63 @@ import pytest
 from flask import current_app
 from invenio_files_rest.models import Bucket
 
-from zenodo.modules.exporter import BucketWriter, BZip2ResultStream, \
-    ResultStream
+from zenodo.modules.exporter import BucketWriter, BZip2ResultStream, ResultStream
 
 
 @pytest.fixture()
 def exporter_bucket(db, locations):
     """Bucket to write in."""
-    bucket_uuid = current_app.config['EXPORTER_BUCKET_UUID']
+    bucket_uuid = current_app.config["EXPORTER_BUCKET_UUID"]
     return Bucket.create(id=bucket_uuid)
 
 
 @pytest.fixture()
 def writer(exporter_bucket):
     """Bucket writer object fixture."""
-    return BucketWriter(bucket_id=exporter_bucket.id, key='test.json')
+    return BucketWriter(bucket_id=exporter_bucket.id, key="test.json")
 
 
 @pytest.fixture()
 def searchobj():
     """Search object."""
+
     class Hit(dict):
         def __init__(self, *args, **kwargs):
             super(Hit, self).__init__(*args, **kwargs)
 
             class Meta(object):
-                id = args[0]['id']
+                id = args[0]["id"]
 
             self.meta = Meta()
             self._d_ = args[0]
 
     class Search(object):
         def scan(self):
-            return iter([
-                Hit({'id': 1, 'title': 'test 1'}),
-                Hit({'id': 2, 'title': 'test 2'}),
-            ])
+            return iter(
+                [Hit({"id": 1, "title": "test 1"}), Hit({"id": 2, "title": "test 2"})]
+            )
+
     return Search()
 
 
 @pytest.fixture()
 def serializerobj():
     """Serialize object."""
+
     class Serializer(object):
         def serialize_exporter(self, pid, record):
-            return record['_source']['title'].encode('utf8')
+            return record["_source"]["title"].encode("utf8")
+
     return Serializer()
 
 
 @pytest.fixture()
 def fetcher():
     """PID fetcher method."""
+
     def fetcher(id_, data):
         return id_
+
     return fetcher
 
 

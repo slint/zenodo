@@ -37,256 +37,228 @@ from zenodo.modules.records.serializers import marcxml_v1
 def test_full_record(app, db, full_record):
     """Test MARC21 serialization of full record."""
     # Add embargo date and OAI-PMH set information.
-    full_record['embargo_date'] = '0900-12-31'
-    full_record['_oai'] = {
+    full_record["embargo_date"] = "0900-12-31"
+    full_record["_oai"] = {
         "id": "oai:zenodo.org:1",
-        "sets": ["user-zenodo", "user-ecfunded"]
+        "sets": ["user-zenodo", "user-ecfunded"],
     }
 
     # Create record and PID.
     record = Record.create(full_record)
     pid = PersistentIdentifier.create(
-        pid_type='recid',
-        pid_value='12345',
-        object_type='rec',
-        object_uuid=record.id,
+        pid_type="recid", pid_value="12345", object_type="rec", object_uuid=record.id
     )
     assert record.validate() is None
 
     expected = {
-        u'control_number': u'12345',
-        u'date_and_time_of_latest_transaction': (
-            record.model.updated.strftime("%Y%m%d%H%M%S.0")),
-        u'resource_type': {
-            u'subtype': u'book',
-            u'type': u'publication'
-        },
-        u'title_statement': {
-            u'title': u'Test title'
-        },
-        u'publication_distribution_imprint': [
-            {u'date_of_publication_distribution': u'2014-02-27'},
+        u"control_number": u"12345",
+        u"date_and_time_of_latest_transaction": (
+            record.model.updated.strftime("%Y%m%d%H%M%S.0")
+        ),
+        u"resource_type": {u"subtype": u"book", u"type": u"publication"},
+        u"title_statement": {u"title": u"Test title"},
+        u"publication_distribution_imprint": [
+            {u"date_of_publication_distribution": u"2014-02-27"}
         ],
-        u'main_entry_personal_name': {
-            u'affiliation': u'CERN',
-            u'personal_name': u'Doe, John',
-            u'authority_record_control_number_or_standard_number': [
-                u'(gnd)170118215', u'(orcid)0000-0002-1694-233X'
-            ]
+        u"main_entry_personal_name": {
+            u"affiliation": u"CERN",
+            u"personal_name": u"Doe, John",
+            u"authority_record_control_number_or_standard_number": [
+                u"(gnd)170118215",
+                u"(orcid)0000-0002-1694-233X",
+            ],
         },
-        u'added_entry_personal_name': [
+        u"added_entry_personal_name": [
             {
-                u'affiliation': u'CERN',
-                u'personal_name': u'Doe, Jane',
-                u'authority_record_control_number_or_standard_number': [
-                    u'(orcid)0000-0002-1825-0097'
-                ]
+                u"affiliation": u"CERN",
+                u"personal_name": u"Doe, Jane",
+                u"authority_record_control_number_or_standard_number": [
+                    u"(orcid)0000-0002-1825-0097"
+                ],
+            },
+            {u"affiliation": u"CERN", u"personal_name": u"Smith, John"},
+            {
+                u"affiliation": u"CERN",
+                u"personal_name": u"Nowak, Jack",
+                u"authority_record_control_number_or_standard_number": [
+                    u"(gnd)170118215"
+                ],
             },
             {
-                u'affiliation': u'CERN',
-                u'personal_name': u'Smith, John',
+                u"affiliation": u"CERN",
+                u"relator_code": [u"oth"],
+                u"personal_name": u"Smith, Other",
+                u"authority_record_control_number_or_standard_number": [
+                    u"(orcid)0000-0002-1825-0097"
+                ],
             },
+            {u"personal_name": u"Hansen, Viggo", u"relator_code": [u"oth"]},
             {
-                u'affiliation': u'CERN',
-                u'personal_name': u'Nowak, Jack',
-                u'authority_record_control_number_or_standard_number': [
-                    u'(gnd)170118215'
-                ]
+                u"affiliation": u"CERN",
+                u"relator_code": [u"dtm"],
+                u"personal_name": u"Kowalski, Manager",
             },
-            {
-                u'affiliation': u'CERN',
-                u'relator_code': [u'oth'],
-                u'personal_name': u'Smith, Other',
-                u'authority_record_control_number_or_standard_number': [
-                    u'(orcid)0000-0002-1825-0097'
-                ]
-            },
-            {
-                u'personal_name': u'Hansen, Viggo',
-                u'relator_code': [u'oth'],
-            },
-            {
-                u'affiliation': u'CERN',
-                u'relator_code': [u'dtm'],
-                u'personal_name': u'Kowalski, Manager'
-            },
-            {
-                u'relator_code': [u'ths'],
-                u'personal_name': u'Smith, Professor'
-            },
+            {u"relator_code": [u"ths"], u"personal_name": u"Smith, Professor"},
         ],
-        u'summary': {
-            u'summary': u'Test Description'
-        },
-        u'index_term_uncontrolled': [
-            {u'uncontrolled_term': u'kw1'},
-            {u'uncontrolled_term': u'kw2'},
-            {u'uncontrolled_term': u'kw3'},
+        u"summary": {u"summary": u"Test Description"},
+        u"index_term_uncontrolled": [
+            {u"uncontrolled_term": u"kw1"},
+            {u"uncontrolled_term": u"kw2"},
+            {u"uncontrolled_term": u"kw3"},
         ],
-        u'subject_added_entry_topical_term': [
+        u"subject_added_entry_topical_term": [
             {
-                u'topical_term_or_geographic_name_entry_element': u'cc-by',
-                u'source_of_heading_or_term': u'opendefinition.org',
-                u'level_of_subject': u'Primary',
-                u'thesaurus': u'Source specified in subfield $2',
+                u"topical_term_or_geographic_name_entry_element": u"cc-by",
+                u"source_of_heading_or_term": u"opendefinition.org",
+                u"level_of_subject": u"Primary",
+                u"thesaurus": u"Source specified in subfield $2",
             },
             {
-                u'topical_term_or_geographic_name_entry_element': u'Astronomy',
-                u'authority_record_control_number_or_standard_number': (
-                    u'(url)http://id.loc.gov/authorities/subjects/sh85009003'),
-                u'level_of_subject': u'Primary',
-            },
-
-        ],
-        u'general_note': {
-            u'general_note': u'notes'
-        },
-        u'information_relating_to_copyright_status': {
-            u'copyright_status': u'open'
-        },
-        u'terms_governing_use_and_reproduction_note': {
-            u'uniform_resource_identifier':
-                u'https://creativecommons.org/licenses/by/4.0/',
-            u'terms_governing_use_and_reproduction':
-                u'Creative Commons Attribution 4.0'
-        },
-        u'communities': [
-            u'zenodo',
-        ],
-        u'funding_information_note': [
-            {u'grant_number': u'1234', u'text_of_note': u'Grant Title'},
-            {u'grant_number': u'4321', u'text_of_note': u'Title Grant'}
-        ],
-        u'host_item_entry': [
-            {
-                u'main_entry_heading': u'10.1234/foo.bar',
-                u'note': u'doi',
-                u'relationship_information': u'cites',
-            },
-            {
-                'main_entry_heading': u'1234.4325',
-                'note': u'arxiv',
-                'relationship_information': u'isIdenticalTo'
-            },
-            {
-                u'main_entry_heading': u'1234.4321',
-                u'note': u'arxiv',
-                u'relationship_information': u'cites',
-            },
-            {
-                'main_entry_heading': u'1234.4328',
-                'note': u'arxiv',
-                'relationship_information': u'references'
-            },
-            {
-                'main_entry_heading': u'10.1234/zenodo.4321',
-                'note': u'doi',
-                'relationship_information': u'isPartOf'
-            },
-            {
-                'main_entry_heading': u'10.1234/zenodo.1234',
-                'note': u'doi',
-                'relationship_information': u'hasPart'
-            },
-            {
-                u'main_entry_heading': u'Staszkowka',
-                u'edition': u'Jol',
-                u'title': u'Bum',
-                u'related_parts': u'1-2',
-                u'international_standard_book_number': u'978-0201633610',
+                u"topical_term_or_geographic_name_entry_element": u"Astronomy",
+                u"authority_record_control_number_or_standard_number": (
+                    u"(url)http://id.loc.gov/authorities/subjects/sh85009003"
+                ),
+                u"level_of_subject": u"Primary",
             },
         ],
-        u'other_standard_identifier': [
+        u"general_note": {u"general_note": u"notes"},
+        u"information_relating_to_copyright_status": {u"copyright_status": u"open"},
+        u"terms_governing_use_and_reproduction_note": {
+            u"uniform_resource_identifier": u"https://creativecommons.org/licenses/by/4.0/",
+            u"terms_governing_use_and_reproduction": u"Creative Commons Attribution 4.0",
+        },
+        u"communities": [u"zenodo"],
+        u"funding_information_note": [
+            {u"grant_number": u"1234", u"text_of_note": u"Grant Title"},
+            {u"grant_number": u"4321", u"text_of_note": u"Title Grant"},
+        ],
+        u"host_item_entry": [
             {
-                u'standard_number_or_code': u'10.1234/foo.bar',
-                u'source_of_number_or_code': u'doi',
+                u"main_entry_heading": u"10.1234/foo.bar",
+                u"note": u"doi",
+                u"relationship_information": u"cites",
             },
             {
-                u'standard_number_or_code': (
-                    u'urn:lsid:ubio.org:namebank:11815'),
-                u'source_of_number_or_code': u'lsid',
-                u'qualifying_information': u'alternateidentifier',
+                "main_entry_heading": u"1234.4325",
+                "note": u"arxiv",
+                "relationship_information": u"isIdenticalTo",
             },
             {
-                u'standard_number_or_code': u'2011ApJS..192...18K',
-                u'source_of_number_or_code': u'ads',
-                u'qualifying_information': u'alternateidentifier',
+                u"main_entry_heading": u"1234.4321",
+                u"note": u"arxiv",
+                u"relationship_information": u"cites",
             },
             {
-                u'standard_number_or_code': u'0317-8471',
-                u'source_of_number_or_code': u'issn',
-                u'qualifying_information': u'alternateidentifier',
+                "main_entry_heading": u"1234.4328",
+                "note": u"arxiv",
+                "relationship_information": u"references",
             },
             {
-                u'standard_number_or_code': u'10.1234/alternate.doi',
-                u'source_of_number_or_code': u'doi',
-                u'qualifying_information': u'alternateidentifier',
+                "main_entry_heading": u"10.1234/zenodo.4321",
+                "note": u"doi",
+                "relationship_information": u"isPartOf",
+            },
+            {
+                "main_entry_heading": u"10.1234/zenodo.1234",
+                "note": u"doi",
+                "relationship_information": u"hasPart",
+            },
+            {
+                u"main_entry_heading": u"Staszkowka",
+                u"edition": u"Jol",
+                u"title": u"Bum",
+                u"related_parts": u"1-2",
+                u"international_standard_book_number": u"978-0201633610",
+            },
+        ],
+        u"other_standard_identifier": [
+            {
+                u"standard_number_or_code": u"10.1234/foo.bar",
+                u"source_of_number_or_code": u"doi",
+            },
+            {
+                u"standard_number_or_code": (u"urn:lsid:ubio.org:namebank:11815"),
+                u"source_of_number_or_code": u"lsid",
+                u"qualifying_information": u"alternateidentifier",
+            },
+            {
+                u"standard_number_or_code": u"2011ApJS..192...18K",
+                u"source_of_number_or_code": u"ads",
+                u"qualifying_information": u"alternateidentifier",
+            },
+            {
+                u"standard_number_or_code": u"0317-8471",
+                u"source_of_number_or_code": u"issn",
+                u"qualifying_information": u"alternateidentifier",
+            },
+            {
+                u"standard_number_or_code": u"10.1234/alternate.doi",
+                u"source_of_number_or_code": u"doi",
+                u"qualifying_information": u"alternateidentifier",
+            },
+        ],
+        u"references": [
+            {
+                u"raw_reference": u"Doe, John et al (2012). Some title. "
+                "Zenodo. 10.5281/zenodo.12"
+            },
+            {
+                u"raw_reference": u"Smith, Jane et al (2012). Some title. "
+                "Zenodo. 10.5281/zenodo.34"
+            },
+        ],
+        u"added_entry_meeting_name": [
+            {
+                u"date_of_meeting": u"23-25 June, 2014",
+                u"meeting_name_or_jurisdiction_name_as_entry_element": u"The 13th Biennial HITRAN Conference",
+                u"number_of_part_section_meeting": u"VI",
+                u"miscellaneous_information": u"HITRAN13",
+                u"name_of_part_section_of_a_work": u"1",
+                u"location_of_meeting": u"Harvard-Smithsonian Center for Astrophysics",
             }
         ],
-        u'references': [
+        u"conference_url": "http://hitran.org/conferences/hitran-13-2014/",
+        u"dissertation_note": {u"name_of_granting_institution": u"I guess important"},
+        u"journal": {
+            "issue": "2",
+            "pages": "20",
+            "volume": "20",
+            "title": "Bam",
+            "year": "2014",
+        },
+        u"embargo_date": "0900-12-31",
+        u"language_code": {
+            "language_code_of_text_sound_track_or_separate_title": "eng"
+        },
+        u"_oai": {
+            u"sets": [u"user-zenodo", u"user-ecfunded"],
+            u"id": u"oai:zenodo.org:1",
+        },
+        u"_files": [
             {
-                u'raw_reference': u'Doe, John et al (2012). Some title. '
-                'Zenodo. 10.5281/zenodo.12'
-            }, {
-                u'raw_reference': u'Smith, Jane et al (2012). Some title. '
-                'Zenodo. 10.5281/zenodo.34'
+                "uri": "https://zenodo.org/record/12345/files/test",
+                "checksum": "md5:11111111111111111111111111111111",
+                "type": "txt",
+                "size": 4,
             }
         ],
-        u'added_entry_meeting_name': [{
-            u'date_of_meeting': u'23-25 June, 2014',
-            u'meeting_name_or_jurisdiction_name_as_entry_element':
-            u'The 13th Biennial HITRAN Conference',
-            u'number_of_part_section_meeting': u'VI',
-            u'miscellaneous_information': u'HITRAN13',
-            u'name_of_part_section_of_a_work': u'1',
-            u'location_of_meeting':
-            u'Harvard-Smithsonian Center for Astrophysics'
-        }],
-        u'conference_url': 'http://hitran.org/conferences/hitran-13-2014/',
-        u'dissertation_note': {
-            u'name_of_granting_institution': u'I guess important',
-        },
-        u'journal': {
-            'issue': '2',
-            'pages': '20',
-            'volume': '20',
-            'title': 'Bam',
-            'year': '2014',
-        },
-        u'embargo_date': '0900-12-31',
-        u'language_code': {
-            'language_code_of_text_sound_track_or_separate_title': 'eng',
-        },
-        u'_oai': {
-            u'sets': [u'user-zenodo', u'user-ecfunded'],
-            u'id': u'oai:zenodo.org:1'
-        },
-        u'_files': [
-            {
-                'uri': 'https://zenodo.org/record/12345/files/test',
-                'checksum': 'md5:11111111111111111111111111111111',
-                'type': 'txt',
-                'size': 4,
-            },
-        ],
-        'leader': {
-            'base_address_of_data': '00000',
-            'bibliographic_level': 'monograph_item',
-            'character_coding_scheme': 'marc-8',
-            'descriptive_cataloging_form': 'unknown',
-            'encoding_level': 'unknown',
-            'indicator_count': 2,
-            'length_of_the_implementation_defined_portion': 0,
-            'length_of_the_length_of_field_portion': 4,
-            'length_of_the_starting_character_position_portion': 5,
-            'multipart_resource_record_level':
-                'not_specified_or_not_applicable',
-            'record_length': '00000',
-            'record_status': 'new',
-            'subfield_code_count': 2,
-            'type_of_control': 'no_specified_type',
-            'type_of_record': 'language_material',
-            'undefined': 0,
+        "leader": {
+            "base_address_of_data": "00000",
+            "bibliographic_level": "monograph_item",
+            "character_coding_scheme": "marc-8",
+            "descriptive_cataloging_form": "unknown",
+            "encoding_level": "unknown",
+            "indicator_count": 2,
+            "length_of_the_implementation_defined_portion": 0,
+            "length_of_the_length_of_field_portion": 4,
+            "length_of_the_starting_character_position_portion": 5,
+            "multipart_resource_record_level": "not_specified_or_not_applicable",
+            "record_length": "00000",
+            "record_status": "new",
+            "subfield_code_count": 2,
+            "type_of_control": "no_specified_type",
+            "type_of_record": "language_material",
+            "undefined": 0,
         },
     }
 
@@ -305,64 +277,54 @@ def test_minimal_record(app, db, minimal_record):
     record = Record.create(minimal_record)
     record.model.updated = datetime.utcnow()
     pid = PersistentIdentifier.create(
-            pid_type='recid',
-            pid_value='123',
-            object_type='rec',
-            object_uuid=record.id)
+        pid_type="recid", pid_value="123", object_type="rec", object_uuid=record.id
+    )
     assert record.validate() is None
 
     expected = {
-        u'date_and_time_of_latest_transaction': (
-            record.model.updated.strftime("%Y%m%d%H%M%S.0")),
-        u'publication_distribution_imprint': [{
-            'date_of_publication_distribution': record['publication_date']
-        }],
-        u'control_number': '123',
-        u'other_standard_identifier': [
+        u"date_and_time_of_latest_transaction": (
+            record.model.updated.strftime("%Y%m%d%H%M%S.0")
+        ),
+        u"publication_distribution_imprint": [
+            {"date_of_publication_distribution": record["publication_date"]}
+        ],
+        u"control_number": "123",
+        u"other_standard_identifier": [
             {
-                'source_of_number_or_code': u'doi',
-                'standard_number_or_code': u'10.5072/zenodo.123'
+                "source_of_number_or_code": u"doi",
+                "standard_number_or_code": u"10.5072/zenodo.123",
             }
         ],
-        u'information_relating_to_copyright_status': {
-            'copyright_status': 'open'
-        },
-        u'summary': {
-            'summary': 'My description'
-        },
-        u'main_entry_personal_name': {
-            'personal_name': 'Test'
-        },
-        u'resource_type': {
-            'type': 'software'
-        },
-        u'title_statement': {
-            'title': 'Test'
-        },
-        u'leader': {
-            'base_address_of_data': '00000',
-            'bibliographic_level': 'monograph_item',
-            'character_coding_scheme': 'marc-8',
-            'descriptive_cataloging_form': 'unknown',
-            'encoding_level': 'unknown',
-            'indicator_count': 2,
-            'length_of_the_implementation_defined_portion': 0,
-            'length_of_the_length_of_field_portion': 4,
-            'length_of_the_starting_character_position_portion': 5,
-            'multipart_resource_record_level':
-                'not_specified_or_not_applicable',
-            'record_length': '00000',
-            'record_status': 'new',
-            'subfield_code_count': 2,
-            'type_of_control': 'no_specified_type',
-            'type_of_record': 'computer_file',
-            'undefined': 0,
+        u"information_relating_to_copyright_status": {"copyright_status": "open"},
+        u"summary": {"summary": "My description"},
+        u"main_entry_personal_name": {"personal_name": "Test"},
+        u"resource_type": {"type": "software"},
+        u"title_statement": {"title": "Test"},
+        u"leader": {
+            "base_address_of_data": "00000",
+            "bibliographic_level": "monograph_item",
+            "character_coding_scheme": "marc-8",
+            "descriptive_cataloging_form": "unknown",
+            "encoding_level": "unknown",
+            "indicator_count": 2,
+            "length_of_the_implementation_defined_portion": 0,
+            "length_of_the_length_of_field_portion": 4,
+            "length_of_the_starting_character_position_portion": 5,
+            "multipart_resource_record_level": "not_specified_or_not_applicable",
+            "record_length": "00000",
+            "record_status": "new",
+            "subfield_code_count": 2,
+            "type_of_control": "no_specified_type",
+            "type_of_record": "computer_file",
+            "undefined": 0,
         },
     }
 
-    data = marcxml_v1.schema_class().dump(marcxml_v1.preprocess_record(
-        pid=pid,
-        record=record)).data
+    data = (
+        marcxml_v1.schema_class()
+        .dump(marcxml_v1.preprocess_record(pid=pid, record=record))
+        .data
+    )
     assert expected == data
 
     marcxml_v1.serialize(pid=pid, record=record)

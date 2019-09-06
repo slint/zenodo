@@ -26,16 +26,16 @@
 
 from __future__ import absolute_import, print_function
 
-ZENODO_COMMUNITIES_NOTIFY_DISABLED = ['zenodo', ]
+ZENODO_COMMUNITIES_NOTIFY_DISABLED = ["zenodo"]
 """Communities with disabled email notification on requests."""
 
 ZENODO_COMMUNITIES_AUTO_ENABLED = True
 """Automatically add and request to communities upon publishing."""
 
-ZENODO_COMMUNITIES_AUTO_REQUEST = ['zenodo', ]
+ZENODO_COMMUNITIES_AUTO_REQUEST = ["zenodo"]
 """Communities which are to be auto-requested upon first publishing."""
 
-ZENODO_COMMUNITIES_REQUEST_IF_GRANTS = ['ecfunded', ]
+ZENODO_COMMUNITIES_REQUEST_IF_GRANTS = ["ecfunded"]
 """Communities which are to be auto-requested if record has grants."""
 
 ZENODO_COMMUNITIES_ADD_IF_GRANTS = []

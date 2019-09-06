@@ -33,19 +33,19 @@ from invenio_search import current_search
 from six import BytesIO
 
 
-def test_zenodo_quickstart_workflow(api, db, es, locations, write_token,
-                                    json_auth_headers, license_record):
+def test_zenodo_quickstart_workflow(
+    api, db, es, locations, write_token, json_auth_headers, license_record
+):
     """Test zenodo quickstart workflow."""
     with api.test_request_context():
         with api.test_client() as client:
             # Try get deposits as anonymous user
-            res = client.get(url_for('invenio_deposit_rest.depid_list'))
+            res = client.get(url_for("invenio_deposit_rest.depid_list"))
             assert res.status_code == 401
 
             # Try get deposits as logged-in user
             res = client.get(
-                url_for('invenio_deposit_rest.depid_list'),
-                headers=json_auth_headers
+                url_for("invenio_deposit_rest.depid_list"), headers=json_auth_headers
             )
             assert res.status_code == 200
             data = json.loads(res.get_data(as_text=True))
@@ -53,40 +53,42 @@ def test_zenodo_quickstart_workflow(api, db, es, locations, write_token,
 
             # Create a new deposit
             res = client.post(
-                url_for('invenio_deposit_rest.depid_list'),
+                url_for("invenio_deposit_rest.depid_list"),
                 headers=json_auth_headers,
-                data=json.dumps({})
+                data=json.dumps({}),
             )
             assert res.status_code == 201
             data = json.loads(res.get_data(as_text=True))
-            deposit_id = data['id']
-            assert data['files'] == []
-            assert data['title'] == ''
-            assert 'created' in data
-            assert 'modified' in data
-            assert 'id' in data
-            assert 'metadata' in data
-            assert 'doi' not in data
-            assert data['state'] == 'unsubmitted'
-            assert data['owner'] == write_token['token'].user_id
+            deposit_id = data["id"]
+            assert data["files"] == []
+            assert data["title"] == ""
+            assert "created" in data
+            assert "modified" in data
+            assert "id" in data
+            assert "metadata" in data
+            assert "doi" not in data
+            assert data["state"] == "unsubmitted"
+            assert data["owner"] == write_token["token"].user_id
 
-            current_search.flush_and_refresh(index='deposits')
+            current_search.flush_and_refresh(index="deposits")
 
             # Upload a file
-            files = {'file': (BytesIO(b'1, 2, 3'), "myfirstfile.csv"),
-                     'name': 'myfirstfile.csv'}
+            files = {
+                "file": (BytesIO(b"1, 2, 3"), "myfirstfile.csv"),
+                "name": "myfirstfile.csv",
+            }
             res = client.post(
-                data['links']['files'],
+                data["links"]["files"],
                 headers=json_auth_headers,
                 data=files,
-                content_type='multipart/form-data',
+                content_type="multipart/form-data",
             )
             assert res.status_code == 201
             data = json.loads(res.get_data(as_text=True))
-            assert data['checksum'] == '66ce05ea43c73b8e33c74c12d0371bc9'
-            assert data['filename'] == 'myfirstfile.csv'
-            assert data['filesize'] == 7
-            assert data['id']
+            assert data["checksum"] == "66ce05ea43c73b8e33c74c12d0371bc9"
+            assert data["filename"] == "myfirstfile.csv"
+            assert data["filesize"] == 7
+            assert data["id"]
 
             # modify deposit
             deposit = {
@@ -94,37 +96,35 @@ def test_zenodo_quickstart_workflow(api, db, es, locations, write_token,
                     "title": "My first upload",
                     "upload_type": "poster",
                     "description": "This is my first upload",
-                    "creators": [
-                        {
-                            "name": "Doe, John",
-                            "affiliation": "Zenodo"
-                        }
-                    ]
+                    "creators": [{"name": "Doe, John", "affiliation": "Zenodo"}],
                 }
             }
             res = client.put(
-                url_for(
-                    'invenio_deposit_rest.depid_item', pid_value=deposit_id),
+                url_for("invenio_deposit_rest.depid_item", pid_value=deposit_id),
                 headers=json_auth_headers,
-                data=json.dumps(deposit)
+                data=json.dumps(deposit),
             )
             assert res.status_code == 200
 
             # Publish deposit
             res = client.post(
-                url_for('invenio_deposit_rest.depid_actions',
-                        pid_value=deposit_id, action='publish'),
+                url_for(
+                    "invenio_deposit_rest.depid_actions",
+                    pid_value=deposit_id,
+                    action="publish",
+                ),
                 headers=json_auth_headers,
             )
             assert res.status_code == 202
-            recid = json.loads(res.get_data(as_text=True))['record_id']
+            recid = json.loads(res.get_data(as_text=True))["record_id"]
 
             # Check that record exists.
-            current_search.flush_and_refresh(index='records')
-            res = client.get(url_for(
-                'invenio_records_rest.recid_item', pid_value=recid))
+            current_search.flush_and_refresh(index="records")
+            res = client.get(
+                url_for("invenio_records_rest.recid_item", pid_value=recid)
+            )
             assert res.status_code == 200
             data = json.loads(res.get_data(as_text=True))
 
             # Assert that a DOI has been assigned.
-            assert data['doi'] == '10.5072/zenodo.{0}'.format(recid)
+            assert data["doi"] == "10.5072/zenodo.{0}".format(recid)

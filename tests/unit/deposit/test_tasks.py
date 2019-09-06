@@ -40,25 +40,25 @@ from invenio_search.api import RecordsSearch
 
 from zenodo.modules.deposit.api import ZenodoDeposit
 from zenodo.modules.deposit.minters import zenodo_deposit_minter
-from zenodo.modules.deposit.tasks import cleanup_indexed_deposits, \
-    datacite_register
+from zenodo.modules.deposit.tasks import cleanup_indexed_deposits, datacite_register
 from zenodo.modules.records.api import ZenodoRecord
 from zenodo.modules.records.minters import zenodo_record_minter
 
 
 def test_datacite_register(mocker, app, db, es, minimal_record):
-    dc_mock = mocker.patch(
-        'invenio_pidstore.providers.datacite.DataCiteMDSClient')
+    dc_mock = mocker.patch("invenio_pidstore.providers.datacite.DataCiteMDSClient")
     doi_tags = [
         '<identifier identifierType="DOI">{doi}</identifier>',
-        ('<relatedIdentifier relatedIdentifierType="DOI" '
-         'relationType="IsVersionOf">{conceptdoi}</relatedIdentifier>'),
+        (
+            '<relatedIdentifier relatedIdentifierType="DOI" '
+            'relationType="IsVersionOf">{conceptdoi}</relatedIdentifier>'
+        ),
     ]
-    conceptdoi_tags = [
-        '<identifier identifierType="DOI">{conceptdoi}</identifier>',
-    ]
-    has_part_tag = ('<relatedIdentifier relatedIdentifierType="DOI" '
-                    'relationType="HasVersion">{doi}</relatedIdentifier>')
+    conceptdoi_tags = ['<identifier identifierType="DOI">{conceptdoi}</identifier>']
+    has_part_tag = (
+        '<relatedIdentifier relatedIdentifierType="DOI" '
+        'relationType="HasVersion">{doi}</relatedIdentifier>'
+    )
 
     # Assert calls and content
     def assert_datacite_calls_and_content(record, doi_tags, conceptdoi_tags):
@@ -67,33 +67,35 @@ def test_datacite_register(mocker, app, db, es, minimal_record):
         _, doi_args, _ = dc_mock().metadata_post.mock_calls[0]
         _, conceptdoi_args, _ = dc_mock().metadata_post.mock_calls[1]
         assert all([t.format(**record) in doi_args[0] for t in doi_tags])
-        assert all([t.format(**record) in conceptdoi_args[0]
-                    for t in conceptdoi_tags])
+        assert all([t.format(**record) in conceptdoi_args[0] for t in conceptdoi_tags])
 
         dc_mock().doi_post.call_count == 2
         dc_mock().doi_post.assert_any_call(
-            record['doi'],
-            'https://zenodo.org/record/{}'.format(record['recid']))
+            record["doi"], "https://zenodo.org/record/{}".format(record["recid"])
+        )
         dc_mock().doi_post.assert_any_call(
-            record['conceptdoi'],
-            'https://zenodo.org/record/{}'.format(record['conceptrecid']))
+            record["conceptdoi"],
+            "https://zenodo.org/record/{}".format(record["conceptrecid"]),
+        )
 
     # Create conceptrecid for the records
     conceptrecid = PersistentIdentifier.create(
-        'recid', '100', status=PIDStatus.RESERVED)
+        "recid", "100", status=PIDStatus.RESERVED
+    )
 
     def create_versioned_record(recid_value, conceptrecid):
         """Utility function for creating versioned records."""
         recid = PersistentIdentifier.create(
-            'recid', recid_value, status=PIDStatus.RESERVED)
+            "recid", recid_value, status=PIDStatus.RESERVED
+        )
         pv = PIDVersioning(parent=conceptrecid)
         pv.insert_draft_child(recid)
 
         record_metadata = deepcopy(minimal_record)
         # Remove the DOI
-        del record_metadata['doi']
-        record_metadata['conceptrecid'] = conceptrecid.pid_value
-        record_metadata['recid'] = int(recid.pid_value)
+        del record_metadata["doi"]
+        record_metadata["conceptrecid"] = conceptrecid.pid_value
+        record_metadata["recid"] = int(recid.pid_value)
         record = ZenodoRecord.create(record_metadata)
         zenodo_record_minter(record.id, record)
         record.commit()
@@ -101,7 +103,7 @@ def test_datacite_register(mocker, app, db, es, minimal_record):
         return recid, record
 
     # Create a reserved recid
-    recid1, r1 = create_versioned_record('101', conceptrecid)
+    recid1, r1 = create_versioned_record("101", conceptrecid)
     db.session.commit()
 
     datacite_register(recid1.pid_value, str(r1.id))
@@ -110,7 +112,7 @@ def test_datacite_register(mocker, app, db, es, minimal_record):
     assert_datacite_calls_and_content(r1, doi_tags, conceptdoi_tags)
 
     # Create a new version
-    recid2, r2 = create_versioned_record('102', conceptrecid)
+    recid2, r2 = create_versioned_record("102", conceptrecid)
     db.session.commit()
 
     dc_mock().reset_mock()
@@ -122,16 +124,14 @@ def test_datacite_register(mocker, app, db, es, minimal_record):
 
 def test_datacite_register_fail(mocker, app, db, es, minimal_record):
     # Make the datacite API unavailable
-    dc_mock = mocker.patch(
-        'invenio_pidstore.providers.datacite.DataCiteMDSClient')
+    dc_mock = mocker.patch("invenio_pidstore.providers.datacite.DataCiteMDSClient")
     dc_mock().metadata_post.side_effect = datacite.errors.HttpError()
 
     # Create a reserved recid
     record = Record.create(minimal_record)
     record_uuid = record.id
-    recid = record['recid']
-    recid_pid = PersistentIdentifier.create(
-        'recid', recid, status=PIDStatus.RESERVED)
+    recid = record["recid"]
+    recid_pid = PersistentIdentifier.create("recid", recid, status=PIDStatus.RESERVED)
 
     # Mint the record
     zenodo_record_minter(record_uuid, record)
@@ -146,30 +146,41 @@ def test_datacite_register_fail(mocker, app, db, es, minimal_record):
     assert dc_calls == datacite_register.max_retries + 1
 
 
-def test_cleanup_indexed_deposits(app, db, es, locations, users,
-                                  deposit_metadata, sip_metadata_types):
+def test_cleanup_indexed_deposits(
+    app, db, es, locations, users, deposit_metadata, sip_metadata_types
+):
     with app.test_request_context():
-        datastore = app.extensions['security'].datastore
-        login_user(datastore.get_user(users[0]['email']))
+        datastore = app.extensions["security"].datastore
+        login_user(datastore.get_user(users[0]["email"]))
         id_ = uuid4()
         depid = zenodo_deposit_minter(id_, deposit_metadata)
         ZenodoDeposit.create(deposit_metadata, id_=id_)
 
     # Emulate a database "failure", which would wipe any models in the session
     db.session.remove()
-    current_search.flush_and_refresh(index='deposits')
+    current_search.flush_and_refresh(index="deposits")
 
     # Deposit has been indexed in ES, but not commimted in DB
-    assert PersistentIdentifier.query.filter(
-        PersistentIdentifier.pid_type == depid.pid_type,
-        PersistentIdentifier.pid_value == depid.pid_value).count() == 0
-    assert (RecordsSearch(index='deposits').get_record(id_).execute()[0]
-            ._deposit.id == depid.pid_value)
+    assert (
+        PersistentIdentifier.query.filter(
+            PersistentIdentifier.pid_type == depid.pid_type,
+            PersistentIdentifier.pid_value == depid.pid_value,
+        ).count()
+        == 0
+    )
+    assert (
+        RecordsSearch(index="deposits").get_record(id_).execute()[0]._deposit.id
+        == depid.pid_value
+    )
 
     cleanup_indexed_deposits.apply()
-    current_search.flush_and_refresh(index='deposits')
+    current_search.flush_and_refresh(index="deposits")
 
-    assert PersistentIdentifier.query.filter(
-        PersistentIdentifier.pid_type == depid.pid_type,
-        PersistentIdentifier.pid_value == depid.pid_value).count() == 0
-    assert len(RecordsSearch(index='deposits').get_record(id_).execute()) == 0
+    assert (
+        PersistentIdentifier.query.filter(
+            PersistentIdentifier.pid_type == depid.pid_type,
+            PersistentIdentifier.pid_value == depid.pid_value,
+        ).count()
+        == 0
+    )
+    assert len(RecordsSearch(index="deposits").get_record(id_).execute()) == 0

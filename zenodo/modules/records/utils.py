@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 #
 # This file is part of Zenodo.
@@ -47,55 +46,56 @@ def schema_prefix(schema):
     """Get index prefix for a given schema."""
     if not schema:
         return None
-    index, doctype = schema_to_index(
-        schema, index_names=current_search.mappings.keys())
-    return index.split('-')[0]
+    index, doctype = schema_to_index(schema, index_names=current_search.mappings.keys())
+    return index.split("-")[0]
 
 
 def is_record(record):
     """Determine if a record is a bibliographic record."""
-    return schema_prefix(record.get('$schema')) == 'records'
+    return schema_prefix(record.get("$schema")) == "records"
 
 
 def is_deposit(record):
     """Determine if a record is a deposit record."""
-    return schema_prefix(record.get('$schema')) == 'deposits'
+    return schema_prefix(record.get("$schema")) == "deposits"
 
 
-def transform_record(record, pid, serializer, module=None, throws=True,
-                     **kwargs):
+def transform_record(record, pid, serializer, module=None, throws=True, **kwargs):
     """Transform a record using a serializer."""
     if isinstance(record, Record):
         try:
-            module = module or 'zenodo.modules.records.serializers'
-            serializer = import_string('.'.join((module, serializer)))
+            module = module or "zenodo.modules.records.serializers"
+            serializer = import_string(".".join((module, serializer)))
             return serializer.transform_record(pid, record, **kwargs)
         except Exception:
             current_app.logger.exception(
-                u'Record transformation failed {}.'.format(str(record.id)))
+                u"Record transformation failed {}.".format(str(record.id))
+            )
             if throws:
                 raise
 
 
-def serialize_record(record, pid, serializer, module=None, throws=True,
-                     **kwargs):
+def serialize_record(record, pid, serializer, module=None, throws=True, **kwargs):
     """Serialize record according to the passed serializer."""
     if isinstance(record, Record):
         try:
-            module = module or 'zenodo.modules.records.serializers'
-            serializer = import_string('.'.join((module, serializer)))
+            module = module or "zenodo.modules.records.serializers"
+            serializer = import_string(".".join((module, serializer)))
             return serializer.serialize(pid, record, **kwargs)
         except Exception:
             current_app.logger.exception(
-                u'Record serialization failed {}.'.format(str(record.id)))
+                u"Record serialization failed {}.".format(str(record.id))
+            )
             if throws:
                 raise
 
 
 def is_doi_locally_managed(doi_value):
     """Determine if a DOI value is locally managed."""
-    return any(doi_value.startswith(prefix) for prefix in
-               current_app.config['ZENODO_LOCAL_DOI_PREFIXES'])
+    return any(
+        doi_value.startswith(prefix)
+        for prefix in current_app.config["ZENODO_LOCAL_DOI_PREFIXES"]
+    )
 
 
 def is_valid_openaire_type(resource_type, communities):
@@ -106,18 +106,18 @@ def is_valid_openaire_type(resource_type, communities):
     :returns: True if the 'openaire_subtype' (if it exists) is valid w.r.t.
         the `resource_type.type` and the selected communities, False otherwise.
     """
-    if 'openaire_subtype' not in resource_type:
+    if "openaire_subtype" not in resource_type:
         return True
-    oa_subtype = resource_type['openaire_subtype']
-    prefix = oa_subtype.split(':')[0] if ':' in oa_subtype else ''
+    oa_subtype = resource_type["openaire_subtype"]
+    prefix = oa_subtype.split(":")[0] if ":" in oa_subtype else ""
 
     cfg = current_openaire.openaire_communities
-    defined_comms = [c for c in cfg.get(prefix, {}).get('communities', [])]
-    type_ = resource_type['type']
-    subtypes = cfg.get(prefix, {}).get('types', {}).get(type_, [])
+    defined_comms = [c for c in cfg.get(prefix, {}).get("communities", [])]
+    type_ = resource_type["type"]
+    subtypes = cfg.get(prefix, {}).get("types", {}).get(type_, [])
     # Check if the OA subtype is defined in config and at least one of its
     # corresponding communities is present
-    is_defined = any(t['id'] == oa_subtype for t in subtypes)
+    is_defined = any(t["id"] == oa_subtype for t in subtypes)
     comms_match = len(set(communities) & set(defined_comms))
     return is_defined and comms_match
 
@@ -125,12 +125,14 @@ def is_valid_openaire_type(resource_type, communities):
 def find_registered_doi_pids(from_date, until_date, prefixes):
     """Find all local DOI's which are in the REGISTERED state."""
     query = db.session.query(PersistentIdentifier).filter(
-        PersistentIdentifier.pid_type == 'doi',
+        PersistentIdentifier.pid_type == "doi",
         PersistentIdentifier.status == PIDStatus.REGISTERED,
-        PersistentIdentifier.updated.between(from_date, until_date)
+        PersistentIdentifier.updated.between(from_date, until_date),
     )
 
-    query.filter(or_(PersistentIdentifier.pid_value.like(prefix + '%') for prefix in prefixes))
+    query.filter(
+        or_(PersistentIdentifier.pid_value.like(prefix + "%") for prefix in prefixes)
+    )
 
     query.order_by(PersistentIdentifier.updated)
 
@@ -142,17 +144,16 @@ def xsd41():
     from zenodo.modules.records.httpretty_mock import httpretty
 
     # Ensure the schema validator doesn't make any http requests.
-    with open(join(dirname(__file__), 'data', 'xml.xsd')) as fp:
+    with open(join(dirname(__file__), "data", "xml.xsd")) as fp:
         xmlxsd = fp.read()
 
     httpretty.enable()
     httpretty.register_uri(
-        httpretty.GET,
-        'https://www.w3.org/2009/01/xml.xsd',
-        body=xmlxsd)
+        httpretty.GET, "https://www.w3.org/2009/01/xml.xsd", body=xmlxsd
+    )
 
     yield etree.XMLSchema(
-        file='file://' + join(dirname(__file__), 'data', 'metadata41.xsd')
+        file="file://" + join(dirname(__file__), "data", "metadata41.xsd")
     )
 
     httpretty.disable()
@@ -161,23 +162,16 @@ def xsd41():
 def build_record_custom_fields(record):
     """Build the custom metadata fields for ES indexing."""
     valid_terms = current_custom_metadata.terms
-    es_custom_fields = dict(
-        custom_keywords=[],
-        custom_text=[]
-    )
-    custom_fields_mapping = {
-        'keyword': 'custom_keywords',
-        'text': 'custom_text',
-    }
+    es_custom_fields = dict(custom_keywords=[], custom_text=[])
+    custom_fields_mapping = {"keyword": "custom_keywords", "text": "custom_text"}
 
-    custom_metadata = record.get('custom', {})
+    custom_metadata = record.get("custom", {})
     for term, value in custom_metadata.items():
-        term_type = valid_terms.get(term)['term_type']
+        term_type = valid_terms.get(term)["term_type"]
         if term_type:
             # TODO: in the futurem also add "community"
-            es_object = {'key': term, 'value': value}
+            es_object = {"key": term, "value": value}
             es_custom_field = custom_fields_mapping[term_type]
             es_custom_fields[es_custom_field].append(es_object)
 
-    return {k: es_custom_fields[k] for k in es_custom_fields
-            if es_custom_fields[k]}
+    return {k: es_custom_fields[k] for k in es_custom_fields if es_custom_fields[k]}

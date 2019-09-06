@@ -46,38 +46,39 @@ class PiwikExporter:
     def run(self, start_date=None, end_date=None, update_bookmark=True):
         """Run export job."""
         if start_date is None:
-            bookmark = current_cache.get('piwik_export:bookmark')
+            bookmark = current_cache.get("piwik_export:bookmark")
             if bookmark is None:
-                msg = 'Bookmark not found, and no start date specified.'
+                msg = "Bookmark not found, and no start date specified."
                 current_app.logger.warning(msg)
                 return
             start_date = dateutil_parse(bookmark) if bookmark else None
 
         time_range = {}
         if start_date is not None:
-            time_range['gte'] = start_date.replace(microsecond=0).isoformat()
+            time_range["gte"] = start_date.replace(microsecond=0).isoformat()
         if end_date is not None:
-            time_range['lte'] = end_date.replace(microsecond=0).isoformat()
+            time_range["lte"] = end_date.replace(microsecond=0).isoformat()
 
-        events = Search(
-            using=current_search_client,
-            index='events-stats-*'
-        ).filter(
-            'range', timestamp=time_range
-        ).sort(
-            {'timestamp': {'order': 'asc'}}
-        ).params(preserve_order=True).scan()
+        events = (
+            Search(using=current_search_client, index="events-stats-*")
+            .filter("range", timestamp=time_range)
+            .sort({"timestamp": {"order": "asc"}})
+            .params(preserve_order=True)
+            .scan()
+        )
 
-        url = current_app.config['ZENODO_STATS_PIWIK_EXPORTER'].get('url', None)
-        token_auth = current_app.config['ZENODO_STATS_PIWIK_EXPORTER'] \
-            .get('token_auth', None)
-        chunk_size = current_app.config['ZENODO_STATS_PIWIK_EXPORTER']\
-            .get('chunk_size', 0)
+        url = current_app.config["ZENODO_STATS_PIWIK_EXPORTER"].get("url", None)
+        token_auth = current_app.config["ZENODO_STATS_PIWIK_EXPORTER"].get(
+            "token_auth", None
+        )
+        chunk_size = current_app.config["ZENODO_STATS_PIWIK_EXPORTER"].get(
+            "chunk_size", 0
+        )
 
         for event_chunk in chunkify(events, chunk_size):
             query_strings = []
             for event in event_chunk:
-                if 'recid' not in event:
+                if "recid" not in event:
                     continue
                 try:
                     query_string = self._build_query_string(event)
@@ -85,45 +86,41 @@ class PiwikExporter:
                 except PIDDeletedError:
                     pass
 
-            payload = {
-                'requests': query_strings,
-                'token_auth': token_auth
-            }
+            payload = {"requests": query_strings, "token_auth": token_auth}
 
             res = requests.post(url, json=payload)
 
             # Failure: not 200 or not "success"
             content = res.json() if res.ok else None
-            if res.status_code == 200 and content.get('status') == 'success':
-                if content.get('invalid') != 0:
-                    msg = 'Invalid events in Piwik export request.'
+            if res.status_code == 200 and content.get("status") == "success":
+                if content.get("invalid") != 0:
+                    msg = "Invalid events in Piwik export request."
                     info = {
-                        'begin_event_timestamp': event_chunk[0].timestamp,
-                        'end_event_timestamp': event_chunk[-1].timestamp,
-                        'invalid_events': content.get('invalid')
+                        "begin_event_timestamp": event_chunk[0].timestamp,
+                        "end_event_timestamp": event_chunk[-1].timestamp,
+                        "invalid_events": content.get("invalid"),
                     }
                     current_app.logger.warning(msg, extra=info)
                 elif update_bookmark is True:
-                    current_cache.set('piwik_export:bookmark',
-                                      event_chunk[-1].timestamp,
-                                      timeout=-1)
+                    current_cache.set(
+                        "piwik_export:bookmark", event_chunk[-1].timestamp, timeout=-1
+                    )
             else:
-                msg = 'Invalid events in Piwik export request.'
+                msg = "Invalid events in Piwik export request."
                 info = {
-                    'begin_event_timestamp': event_chunk[0].timestamp,
-                    'end_event_timestamp': event_chunk[-1].timestamp,
+                    "begin_event_timestamp": event_chunk[0].timestamp,
+                    "end_event_timestamp": event_chunk[-1].timestamp,
                 }
                 raise PiwikExportRequestError(msg, export_info=info)
 
     def _build_query_string(self, event):
-        id_site = current_app.config['ZENODO_STATS_PIWIK_EXPORTER']\
-            .get('id_site', None)
-        url = ui_link_for('record_html', id=event.recid)
+        id_site = current_app.config["ZENODO_STATS_PIWIK_EXPORTER"].get("id_site", None)
+        url = ui_link_for("record_html", id=event.recid)
         visitor_id = event.visitor_id[0:16]
         _, record = fetch_record(event.recid)
-        oai = record.get('_oai', {}).get('id')
-        cvar = json.dumps({'1': ['oaipmhID', oai]})
-        action_name = record.get('title')[:150]  # max 150 characters
+        oai = record.get("_oai", {}).get("id")
+        cvar = json.dumps({"1": ["oaipmhID", oai]})
+        action_name = record.get("title")[:150]  # max 150 characters
 
         params = dict(
             idsite=id_site,
@@ -134,14 +131,15 @@ class PiwikExporter:
             cvar=cvar,
             cdt=event.timestamp,
             urlref=event.referrer,
-            action_name=action_name
+            action_name=action_name,
         )
 
-        if event.to_dict().get('country'):
-            params['country'] = event.country.lower()
-        if event.to_dict().get('file_key'):
-            params['url'] = ui_link_for('record_file', id=event.recid,
-                                        filename=event.file_key)
-            params['download'] = params['url']
+        if event.to_dict().get("country"):
+            params["country"] = event.country.lower()
+        if event.to_dict().get("file_key"):
+            params["url"] = ui_link_for(
+                "record_file", id=event.recid, filename=event.file_key
+            )
+            params["download"] = params["url"]
 
-        return '?{}'.format(urlencode(params, 'utf-8'))
+        return "?{}".format(urlencode(params, "utf-8"))

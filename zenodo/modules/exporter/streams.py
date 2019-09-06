@@ -64,11 +64,10 @@ class ResultStream(object):
         # Fetch next hit.
         hit = next(self._iter)
         # Serialize and return hit.
-        result = ''
+        result = ""
         try:
             result = self.serializer.serialize_exporter(
-                self.pid_fetcher(hit.meta.id, hit),
-                dict(_source=hit._d_, _version=0),
+                self.pid_fetcher(hit.meta.id, hit), dict(_source=hit._d_, _version=0)
             )
         except Exception as e:
             self.failed_record_ids.append(hit.meta.id)
@@ -91,7 +90,7 @@ class ResultStream(object):
             if self.failed_record_ids:
                 # raise an exception with the list of not serialized records
                 raise FailedExportJobError(record_ids=self.failed_record_ids)
-            return b''
+            return b""
 
 
 class BZip2ResultStream(ResultStream):

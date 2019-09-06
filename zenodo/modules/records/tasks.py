@@ -48,7 +48,7 @@ def update_expired_embargos():
     """Release expired embargoes every midnight."""
     record_ids = AccessRight.get_expired_embargos()
     for record in Record.get_records(record_ids):
-        record['access_right'] = AccessRight.OPEN
+        record["access_right"] = AccessRight.OPEN
         record.commit()
     db.session.commit()
 
@@ -57,7 +57,7 @@ def update_expired_embargos():
     indexer.process_bulk_queue()
 
 
-@shared_task(ignore_result=True, rate_limit='1000/h')
+@shared_task(ignore_result=True, rate_limit="1000/h")
 def update_datacite_metadata(doi, object_uuid, job_id):
     """Update DataCite metadata of a single PersistentIdentifier.
 
@@ -69,9 +69,9 @@ def update_datacite_metadata(doi, object_uuid, job_id):
     :param job_id: id of the job to which this task belongs.
     :type job_id: str
     """
-    task_details = current_cache.get('update_datacite:task_details')
+    task_details = current_cache.get("update_datacite:task_details")
 
-    if task_details is None or job_id != task_details['job_id']:
+    if task_details is None or job_id != task_details["job_id"]:
         return
 
     record = Record.get_record(object_uuid)
@@ -83,15 +83,17 @@ def update_datacite_metadata(doi, object_uuid, job_id):
     doc = datacite_v41.serialize(dcp.pid, record)
 
     for validator in xsd41():
-        validator.assertValid(etree.XML(doc.encode('utf8')))
+        validator.assertValid(etree.XML(doc.encode("utf8")))
 
     url = None
-    if doi == record.get('doi'):
-        url = current_app.config['ZENODO_RECORDS_UI_LINKS_FORMAT'].format(
-            recid=str(record['recid']))
-    elif doi == record.get('conceptdoi'):
-        url = current_app.config['ZENODO_RECORDS_UI_LINKS_FORMAT'].format(
-            recid=str(record['conceptrecid']))
+    if doi == record.get("doi"):
+        url = current_app.config["ZENODO_RECORDS_UI_LINKS_FORMAT"].format(
+            recid=str(record["recid"])
+        )
+    elif doi == record.get("conceptdoi"):
+        url = current_app.config["ZENODO_RECORDS_UI_LINKS_FORMAT"].format(
+            recid=str(record["conceptrecid"])
+        )
 
     result = dcp.update(url, doc)
     if result is True:
@@ -102,30 +104,36 @@ def update_datacite_metadata(doi, object_uuid, job_id):
 @shared_task(ignore_result=True)
 def schedule_update_datacite_metadata(max_count):
     """Schedule the update of DataCite metadata."""
-    task_details = current_cache.get('update_datacite:task_details')
+    task_details = current_cache.get("update_datacite:task_details")
 
-    if task_details is None or 'from_date' not in task_details or 'until_date' not in task_details:
+    if (
+        task_details is None
+        or "from_date" not in task_details
+        or "until_date" not in task_details
+    ):
         return
 
-    doi_pids = find_registered_doi_pids(task_details['from_date'],
-                                        task_details['until_date'],
-                                        current_app.config['ZENODO_LOCAL_DOI_PREFIXES'])
+    doi_pids = find_registered_doi_pids(
+        task_details["from_date"],
+        task_details["until_date"],
+        current_app.config["ZENODO_LOCAL_DOI_PREFIXES"],
+    )
     dois_count = doi_pids.count()
 
-    task_details['left_pids'] = dois_count
-    task_details['last_update'] = datetime.utcnow()
-    current_cache.set('update_datacite:task_details', task_details, timeout=-1)
+    task_details["left_pids"] = dois_count
+    task_details["last_update"] = datetime.utcnow()
+    current_cache.set("update_datacite:task_details", task_details, timeout=-1)
 
     if dois_count == 0:
-        if 'finish_date' not in task_details:
-            task_details['finish_date'] = datetime.utcnow()
-            current_cache.set('update_datacite:task_details', task_details, timeout=-1)
+        if "finish_date" not in task_details:
+            task_details["finish_date"] = datetime.utcnow()
+            current_cache.set("update_datacite:task_details", task_details, timeout=-1)
         return
 
     scheduled_dois_count = max_count if max_count < dois_count else dois_count
     scheduled_dois_pids = doi_pids.limit(scheduled_dois_count)
 
     for doi_pid in scheduled_dois_pids:
-        update_datacite_metadata.delay(doi_pid.pid_value,
-                                       str(doi_pid.object_uuid),
-                                       task_details['job_id'])
+        update_datacite_metadata.delay(
+            doi_pid.pid_value, str(doi_pid.object_uuid), task_details["job_id"]
+        )

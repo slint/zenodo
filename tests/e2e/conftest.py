@@ -43,12 +43,12 @@ from zenodo.config import APP_DEFAULT_SECURE_HEADERS
 from zenodo.factory import create_app
 
 
-@pytest.yield_fixture(scope='session', autouse=True)
+@pytest.yield_fixture(scope="session", autouse=True)
 def base_app(request):
     """Flask application fixture."""
     # Disable HTTPS
-    APP_DEFAULT_SECURE_HEADERS['force_https'] = False
-    APP_DEFAULT_SECURE_HEADERS['session_cookie_secure'] = False
+    APP_DEFAULT_SECURE_HEADERS["force_https"] = False
+    APP_DEFAULT_SECURE_HEADERS["session_cookie_secure"] = False
 
     app = create_app(
         # CELERY_ALWAYS_EAGER=True,
@@ -61,7 +61,8 @@ def base_app(request):
         SECURITY_PASSWORD_SALT="CHANGE_ME",
         MAIL_SUPPRESS_SEND=True,
         SQLALCHEMY_DATABASE_URI=os.environ.get(
-            'SQLALCHEMY_DATABASE_URI', 'sqlite:///test.db'),
+            "SQLALCHEMY_DATABASE_URI", "sqlite:///test.db"
+        ),
         TESTING=True,
     )
 
@@ -69,7 +70,7 @@ def base_app(request):
         yield app
 
 
-@pytest.yield_fixture(scope='session')
+@pytest.yield_fixture(scope="session")
 def es(base_app):
     """Provide elasticsearch access."""
     try:
@@ -82,7 +83,7 @@ def es(base_app):
     list(current_search.delete(ignore=[404]))
 
 
-@pytest.yield_fixture(scope='session')
+@pytest.yield_fixture(scope="session")
 def db(base_app):
     """Setup database."""
     if not database_exists(str(db_.engine.url)):
@@ -93,7 +94,7 @@ def db(base_app):
     db_.drop_all()
 
 
-@pytest.yield_fixture(scope='session', autouse=True)
+@pytest.yield_fixture(scope="session", autouse=True)
 def app(base_app, es, db):
     """Application with ES and DB."""
     yield base_app
@@ -106,12 +107,11 @@ def pytest_generate_tests(metafunc):
     the given test is called once for each value found in the
     `E2E_WEBDRIVER_BROWSERS` environment variable.
     """
-    if 'env_browser' in metafunc.fixturenames:
+    if "env_browser" in metafunc.fixturenames:
         # In Python 2.7 the fallback kwarg of os.environ.get is `failobj`,
         # in 3.x it's `default`.
-        browsers = os.environ.get('E2E_WEBDRIVER_BROWSERS',
-                                  'Firefox').split()
-        metafunc.parametrize('env_browser', browsers, indirect=True)
+        browsers = os.environ.get("E2E_WEBDRIVER_BROWSERS", "Firefox").split()
+        metafunc.parametrize("env_browser", browsers, indirect=True)
 
 
 @pytest.yield_fixture()

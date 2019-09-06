@@ -33,8 +33,8 @@ from invenio_oaiserver.models import OAISet
 def loadoaisets(force=False):
     """Load default file store location."""
     sets = [
-        ('openaire', 'OpenAIRE', None),
-        ('openaire_data', 'OpenAIRE data sets', None),
+        ("openaire", "OpenAIRE", None),
+        ("openaire_data", "OpenAIRE data sets", None),
     ]
     try:
         for setid, name, pattern in sets:

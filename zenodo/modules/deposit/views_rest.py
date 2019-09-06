@@ -43,32 +43,24 @@ from .extra_formats import ExtraFormats
 from .scopes import extra_formats_scope
 from .utils import suggest_language
 
-blueprint = Blueprint(
-    'zenodo_deposit',
-    __name__,
-    url_prefix='',
-)
+blueprint = Blueprint("zenodo_deposit", __name__, url_prefix="")
 
 
-@blueprint.route(
-    '/language/',
-    methods=['GET']
-)
+@blueprint.route("/language/", methods=["GET"])
 @login_required
 def language():
     """Suggest a language on the deposit form."""
-    q = request.args.get('q', '')
-    limit = int(request.args.get('limit', '5').lower())
+    q = request.args.get("q", "")
+    limit = int(request.args.get("limit", "5").lower())
     langs = suggest_language(q, limit=limit)
-    langs = [{'code': l.alpha_3, 'name': l.name} for l in langs]
-    d = {
-        'suggestions': langs
-    }
+    langs = [{"code": l.alpha_3, "name": l.name} for l in langs]
+    d = {"suggestions": langs}
     return jsonify(d)
 
 
-def pass_extra_formats_mimetype(from_query_string=None, from_content_type=None,
-                                from_accept=None):
+def pass_extra_formats_mimetype(
+    from_query_string=None, from_content_type=None, from_accept=None
+):
     """Decorator to validate the request's extra formats MIMEType."""
     assert from_content_type or from_accept or from_query_string
 
@@ -77,22 +69,23 @@ def pass_extra_formats_mimetype(from_query_string=None, from_content_type=None,
         def inner(self, *args, **kwargs):
             mimetype = None
             if from_query_string:
-                mimetype = request.args.get('mimetype')
+                mimetype = request.args.get("mimetype")
             if not mimetype and from_content_type:
-                mimetype = request.headers.get('Content-Type')
+                mimetype = request.headers.get("Content-Type")
             if not mimetype and from_accept:
                 mimetype = next((m for m, _ in request.accept_mimetypes), None)
             if mimetype not in ExtraFormats.mimetype_whitelist:
-                abort(400, '"{}" is not an acceptable MIMEType.'
-                      .format(mimetype))
+                abort(400, '"{}" is not an acceptable MIMEType.'.format(mimetype))
             return f(self, *args, mimetype=mimetype, **kwargs)
+
         return inner
+
     return decorator
 
 
 def extra_formats_scope_permission():
     """Helper function to check the existence of extra_formats_scope."""
-    if getattr(request, 'oauth', None) is not None:
+    if getattr(request, "oauth", None) is not None:
         token_scopes = set(request.oauth.access_token.scopes)
         return extra_formats_scope.id in token_scopes
     return False
@@ -100,13 +93,16 @@ def extra_formats_scope_permission():
 
 def check_extra_formats_permission(f):
     """Extra formats permission decorator."""
+
     @wraps(f)
     def decorator(self, record=None, *args, **kwargs):
-        if Permission(ActionNeed('admin-access')) or \
-             (deposit_update_permission_factory(record=record).can() and
-              extra_formats_scope_permission()):
+        if Permission(ActionNeed("admin-access")) or (
+            deposit_update_permission_factory(record=record).can()
+            and extra_formats_scope_permission()
+        ):
             return f(self, record=record, *args, **kwargs)
         abort(403)
+
     return decorator
 
 
@@ -130,8 +126,7 @@ class DepositExtraFormatsResource(MethodView):
     def put(self, pid, record, mimetype=None, **kwargs):
         """Create or replace an extra format."""
         depid, deposit = pid, record  # this is a deposit endpoint
-        stream, content_length, content_md5 = \
-            current_files_rest.upload_factory()
+        stream, content_length, content_md5 = current_files_rest.upload_factory()
         with db.session.begin_nested():
             extra_formats_bucket = ExtraFormats.get_or_create_bucket(deposit)
 
@@ -141,16 +136,14 @@ class DepositExtraFormatsResource(MethodView):
                 ExtraFormats.link_to_record(record, extra_formats_bucket)
 
             obj = ObjectVersion.create(
-                extra_formats_bucket, mimetype, mimetype=mimetype)
+                extra_formats_bucket, mimetype, mimetype=mimetype
+            )
             obj.set_contents(
-                stream,
-                size=content_length,
-                size_limit=extra_formats_bucket.size_limit)
+                stream, size=content_length, size_limit=extra_formats_bucket.size_limit
+            )
         db.session.commit()
 
-        return jsonify({
-            'message': 'Extra format "{}" updated.'.format(mimetype)
-        })
+        return jsonify({"message": 'Extra format "{}" updated.'.format(mimetype)})
 
     @pass_extra_formats_mimetype(from_content_type=True)
     @pass_record
@@ -161,8 +154,7 @@ class DepositExtraFormatsResource(MethodView):
         if mimetype in deposit.extra_formats:
             del deposit.extra_formats[mimetype]
         db.session.commit()
-        return jsonify({
-            'message': 'Extra format "{}" deleted.'.format(mimetype)})
+        return jsonify({"message": 'Extra format "{}" deleted.'.format(mimetype)})
 
     @pass_record
     @check_extra_formats_permission
@@ -204,11 +196,11 @@ _DEPID = 'pid(depid,record_class="zenodo.modules.deposit.api:ZenodoDeposit")'
 _RECID = 'pid(recid,record_class="zenodo.modules.records.api:ZenodoRecord")'
 
 blueprint.add_url_rule(
-    '/deposit/depositions/<{}:pid_value>/formats'.format(_DEPID),
-    view_func=DepositExtraFormatsResource.as_view('depid_extra_formats'),
+    "/deposit/depositions/<{}:pid_value>/formats".format(_DEPID),
+    view_func=DepositExtraFormatsResource.as_view("depid_extra_formats"),
 )
 
 blueprint.add_url_rule(
-    '/records/<{}:pid_value>/formats'.format(_RECID),
-    view_func=RecordExtraFormatsResource.as_view('recid_extra_formats'),
+    "/records/<{}:pid_value>/formats".format(_RECID),
+    view_func=RecordExtraFormatsResource.as_view("recid_extra_formats"),
 )

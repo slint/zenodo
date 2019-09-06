@@ -28,4 +28,4 @@ from __future__ import absolute_import, print_function
 
 from invenio_app.wsgi import application
 
-__all__ = ('application', )
+__all__ = ("application",)

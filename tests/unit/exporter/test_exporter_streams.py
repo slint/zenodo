@@ -36,39 +36,44 @@ from zenodo.modules.exporter import BZip2ResultStream, ResultStream
 @pytest.fixture()
 def searchobj():
     """Search object"""
+
     class Hit(dict):
         def __init__(self, *args, **kwargs):
             super(Hit, self).__init__(*args, **kwargs)
 
             class Meta(object):
-                id = args[0]['id']
+                id = args[0]["id"]
 
             self.meta = Meta()
             self._d_ = args[0]
 
     class Search(object):
         def scan(self):
-            return iter([
-                Hit({'id': 1, 'title': 'test 1'}),
-                Hit({'id': 2, 'title': 'test 2'}),
-            ])
+            return iter(
+                [Hit({"id": 1, "title": "test 1"}), Hit({"id": 2, "title": "test 2"})]
+            )
+
     return Search()
 
 
 @pytest.fixture()
 def serializerobj():
     """Serialize object"""
+
     class Serializer(object):
         def serialize_exporter(self, pid, record):
-            return record['_source']['title'].encode('utf8')
+            return record["_source"]["title"].encode("utf8")
+
     return Serializer()
 
 
 @pytest.fixture()
 def fetcher():
     """PID fetcher method"""
+
     def fetcher(id_, data):
         return id_
+
     return fetcher
 
 
@@ -86,18 +91,18 @@ def bzip2resultstream(searchobj, serializerobj, fetcher):
 
 def test_resultstream(resultstream):
     """Test result stream serializer."""
-    assert resultstream.read() == b'test 1'
-    assert resultstream.read() == b'test 2'
-    assert resultstream.read() == b''
-    assert resultstream.read() == b''
+    assert resultstream.read() == b"test 1"
+    assert resultstream.read() == b"test 2"
+    assert resultstream.read() == b""
+    assert resultstream.read() == b""
 
 
 def test_resultstream(bzip2resultstream):
     """Test result stream serializer."""
     c = bz2.BZ2Compressor()
-    c.compress(b'test 1')
-    c.compress(b'test 2')
+    c.compress(b"test 1")
+    c.compress(b"test 2")
     data = c.flush()
 
     assert bzip2resultstream.read() == data
-    assert bzip2resultstream.read() == b''
+    assert bzip2resultstream.read() == b""

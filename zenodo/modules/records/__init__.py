@@ -28,7 +28,4 @@ from __future__ import absolute_import, print_function
 
 from .proxies import current_custom_metadata, current_zenodo_records
 
-__all__ = (
-    'current_custom_metadata',
-    'current_zenodo_records',
-)
+__all__ = ("current_custom_metadata", "current_zenodo_records")

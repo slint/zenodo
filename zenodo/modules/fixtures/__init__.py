@@ -28,4 +28,4 @@ from __future__ import absolute_import, print_function
 
 from .ext import ZenodoFixtures
 
-__all__ = ('ZenodoFixtures', )
+__all__ = ("ZenodoFixtures",)

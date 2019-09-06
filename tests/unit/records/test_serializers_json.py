@@ -31,59 +31,67 @@ from flask import url_for
 from helpers import login_user_via_session
 
 
-@pytest.mark.parametrize('user_info, file_info_visible', [
-    # anonymous user
-    (None, False),
-    # owner
-    (dict(email='info@zenodo.org', password='tester'), True),
-    # not owner
-    (dict(email='test@zenodo.org', password='tester2'), False),
-    # admin user
-    (dict(email='admin@zenodo.org', password='admin'), True),
-])
-def test_closed_access_record_serializer(api, users, json_headers,
-                                         closed_access_record,
-                                         user_info, file_info_visible):
+@pytest.mark.parametrize(
+    "user_info, file_info_visible",
+    [
+        # anonymous user
+        (None, False),
+        # owner
+        (dict(email="info@zenodo.org", password="tester"), True),
+        # not owner
+        (dict(email="test@zenodo.org", password="tester2"), False),
+        # admin user
+        (dict(email="admin@zenodo.org", password="admin"), True),
+    ],
+)
+def test_closed_access_record_serializer(
+    api, users, json_headers, closed_access_record, user_info, file_info_visible
+):
     """Test closed access record serialisation using records API."""
     with api.test_request_context():
         with api.test_client() as client:
             if user_info:
                 # Login as user
-                login_user_via_session(client, email=user_info['email'])
+                login_user_via_session(client, email=user_info["email"])
             res = client.get(
-                url_for('invenio_records_rest.recid_item',
-                        pid_value=closed_access_record['recid']),
-                headers=json_headers
+                url_for(
+                    "invenio_records_rest.recid_item",
+                    pid_value=closed_access_record["recid"],
+                ),
+                headers=json_headers,
             )
-            r = json.loads(res.data.decode('utf-8'))
+            r = json.loads(res.data.decode("utf-8"))
 
-            assert (r['links'].get('bucket') is not None) == file_info_visible
-            assert (r.get('files') is not None) == file_info_visible
+            assert (r["links"].get("bucket") is not None) == file_info_visible
+            assert (r.get("files") is not None) == file_info_visible
 
 
-@pytest.mark.parametrize('user_info', [
-    # anonymous user
-    None,
-    # owner
-    dict(email='info@zenodo.org', password='tester'),
-    # not owner
-    dict(email='test@zenodo.org', password='tester2'),
-    # admin user
-    dict(email='admin@zenodo.org', password='admin'),
-])
+@pytest.mark.parametrize(
+    "user_info",
+    [
+        # anonymous user
+        None,
+        # owner
+        dict(email="info@zenodo.org", password="tester"),
+        # not owner
+        dict(email="test@zenodo.org", password="tester2"),
+        # admin user
+        dict(email="admin@zenodo.org", password="admin"),
+    ],
+)
 def test_closed_access_record_search_serializer(
-        api, users, json_headers, user_info, closed_access_record):
+    api, users, json_headers, user_info, closed_access_record
+):
     """Test closed access record serialisation of the search result."""
     with api.test_request_context():
         with api.test_client() as client:
             if user_info:
                 # Login as user
-                login_user_via_session(client, email=user_info['email'])
+                login_user_via_session(client, email=user_info["email"])
             res = client.get(
-                url_for('invenio_records_rest.recid_list'),
-                headers=json_headers
+                url_for("invenio_records_rest.recid_list"), headers=json_headers
             )
 
-            r = json.loads(res.data.decode('utf-8'))
-            assert r[0]['links'].get('bucket', None) is None
-            assert len(r[0].get('files', [])) == 0
+            r = json.loads(res.data.decode("utf-8"))
+            assert r[0]["links"].get("bucket", None) is None
+            assert len(r[0].get("files", [])) == 0

@@ -26,5 +26,5 @@
 
 from __future__ import absolute_import, print_function
 
-ZENODO_OPENAIRE_COMMUNITIES = { }
+ZENODO_OPENAIRE_COMMUNITIES = {}
 """OpenAIRE communities resource subtypes configuration."""

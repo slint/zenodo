@@ -28,8 +28,7 @@ from invenio_cache import current_cache
 from mock import mock
 from stats_helpers import create_stats_fixtures
 
-from zenodo.modules.stats.exporters import PiwikExporter, \
-    PiwikExportRequestError
+from zenodo.modules.stats.exporters import PiwikExporter, PiwikExportRequestError
 
 
 class MockResponse:
@@ -43,12 +42,12 @@ class MockResponse:
 
 
 def mocked_requests_success(*args, **kwargs):
-    json = {'status': 'success', 'invalid': 0}
+    json = {"status": "success", "invalid": 0}
     return MockResponse(json, 200)
 
 
 def mocked_requests_invalid(*args, **kwargs):
-    json = {'status': 'success', 'invalid': 1}
+    json = {"status": "success", "invalid": 1}
     return MockResponse(json, 200)
 
 
@@ -56,76 +55,90 @@ def mocked_requests_fail(*args, **kwargs):
     return MockResponse({}, 500)
 
 
-@mock.patch('zenodo.modules.stats.exporters.requests.post',
-            side_effect=mocked_requests_success)
+@mock.patch(
+    "zenodo.modules.stats.exporters.requests.post", side_effect=mocked_requests_success
+)
 def test_piwik_exporter(app, db, es, locations, event_queues, full_record):
     records = create_stats_fixtures(
-        metadata=full_record, n_records=1, n_versions=1, n_files=1,
-        event_data={'user_id': '1', 'country': 'CH'},
+        metadata=full_record,
+        n_records=1,
+        n_versions=1,
+        n_files=1,
+        event_data={"user_id": "1", "country": "CH"},
         # 4 event timestamps
         start_date=datetime(2018, 1, 1, 13),
         end_date=datetime(2018, 1, 1, 15),
         interval=timedelta(minutes=30),
         do_process_events=True,
         do_aggregate_events=False,
-        do_update_record_statistics=False
+        do_update_record_statistics=False,
     )
 
-    current_cache.delete('piwik_export:bookmark')
-    bookmark = current_cache.get('piwik_export:bookmark')
+    current_cache.delete("piwik_export:bookmark")
+    bookmark = current_cache.get("piwik_export:bookmark")
     assert bookmark is None
 
     start_date = datetime(2018, 1, 1, 12)
     end_date = datetime(2018, 1, 1, 14)
     PiwikExporter().run(start_date=start_date, end_date=end_date)
-    bookmark = current_cache.get('piwik_export:bookmark')
-    assert bookmark == u'2018-01-01T14:00:00'
+    bookmark = current_cache.get("piwik_export:bookmark")
+    assert bookmark == u"2018-01-01T14:00:00"
 
     PiwikExporter().run()
-    bookmark = current_cache.get('piwik_export:bookmark')
-    assert bookmark == u'2018-01-01T14:30:00'
+    bookmark = current_cache.get("piwik_export:bookmark")
+    assert bookmark == u"2018-01-01T14:30:00"
 
 
-@mock.patch('zenodo.modules.stats.exporters.requests.post',
-            side_effect=mocked_requests_invalid)
-def test_piwik_exporter_invalid_request(app, db, es, locations, event_queues,
-                                        full_record):
+@mock.patch(
+    "zenodo.modules.stats.exporters.requests.post", side_effect=mocked_requests_invalid
+)
+def test_piwik_exporter_invalid_request(
+    app, db, es, locations, event_queues, full_record
+):
     records = create_stats_fixtures(
-        metadata=full_record, n_records=1, n_versions=1, n_files=1,
-        event_data={'user_id': '1', 'country': 'CH'},
+        metadata=full_record,
+        n_records=1,
+        n_versions=1,
+        n_files=1,
+        event_data={"user_id": "1", "country": "CH"},
         # 4 event timestamps
         start_date=datetime(2018, 1, 1, 13),
         end_date=datetime(2018, 1, 1, 15),
         interval=timedelta(minutes=30),
-        do_process_events=True)
+        do_process_events=True,
+    )
 
-    current_cache.delete('piwik_export:bookmark')
-    bookmark = current_cache.get('piwik_export:bookmark')
+    current_cache.delete("piwik_export:bookmark")
+    bookmark = current_cache.get("piwik_export:bookmark")
     assert bookmark is None
 
     start_date = datetime(2018, 1, 1, 12)
     end_date = datetime(2018, 1, 1, 14)
 
     PiwikExporter().run(start_date=start_date, end_date=end_date)
-    bookmark = current_cache.get('piwik_export:bookmark')
+    bookmark = current_cache.get("piwik_export:bookmark")
     assert bookmark is None
 
 
-@mock.patch('zenodo.modules.stats.exporters.requests.post',
-            side_effect=mocked_requests_fail)
-def test_piwik_exporter_request_fail(app, db, es, locations, event_queues,
-                                     full_record):
+@mock.patch(
+    "zenodo.modules.stats.exporters.requests.post", side_effect=mocked_requests_fail
+)
+def test_piwik_exporter_request_fail(app, db, es, locations, event_queues, full_record):
     records = create_stats_fixtures(
-        metadata=full_record, n_records=1, n_versions=1, n_files=1,
-        event_data={'user_id': '1', 'country': 'CH'},
+        metadata=full_record,
+        n_records=1,
+        n_versions=1,
+        n_files=1,
+        event_data={"user_id": "1", "country": "CH"},
         # 4 event timestamps
         start_date=datetime(2018, 1, 1, 13),
         end_date=datetime(2018, 1, 1, 15),
         interval=timedelta(minutes=30),
-        do_process_events=True)
+        do_process_events=True,
+    )
 
-    current_cache.delete('piwik_export:bookmark')
-    bookmark = current_cache.get('piwik_export:bookmark')
+    current_cache.delete("piwik_export:bookmark")
+    bookmark = current_cache.get("piwik_export:bookmark")
     assert bookmark is None
 
     start_date = datetime(2018, 1, 1, 12)
@@ -133,27 +146,30 @@ def test_piwik_exporter_request_fail(app, db, es, locations, event_queues,
 
     with pytest.raises(PiwikExportRequestError):
         PiwikExporter().run(start_date=start_date, end_date=end_date)
-    bookmark = current_cache.get('piwik_export:bookmark')
+    bookmark = current_cache.get("piwik_export:bookmark")
     assert bookmark is None
 
 
-def test_piwik_exporter_no_bookmark(app, db, es, locations, event_queues,
-                                    full_record):
+def test_piwik_exporter_no_bookmark(app, db, es, locations, event_queues, full_record):
     records = create_stats_fixtures(
-        metadata=full_record, n_records=1, n_versions=1, n_files=1,
-        event_data={'user_id': '1', 'country': 'CH'},
+        metadata=full_record,
+        n_records=1,
+        n_versions=1,
+        n_files=1,
+        event_data={"user_id": "1", "country": "CH"},
         # 4 event timestamps
         start_date=datetime(2018, 1, 1, 13),
         end_date=datetime(2018, 1, 1, 15),
         interval=timedelta(minutes=30),
-        do_process_events=True)
+        do_process_events=True,
+    )
 
-    current_cache.delete('piwik_export:bookmark')
-    bookmark = current_cache.get('piwik_export:bookmark')
+    current_cache.delete("piwik_export:bookmark")
+    bookmark = current_cache.get("piwik_export:bookmark")
     assert bookmark is None
 
-    with mock.patch('zenodo.modules.stats.exporters.requests.post') as mocked:
+    with mock.patch("zenodo.modules.stats.exporters.requests.post") as mocked:
         PiwikExporter().run()
         mocked.assert_not_called()
-    bookmark = current_cache.get('piwik_export:bookmark')
+    bookmark = current_cache.get("piwik_export:bookmark")
     assert bookmark is None

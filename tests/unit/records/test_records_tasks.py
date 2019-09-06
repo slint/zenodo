@@ -37,14 +37,14 @@ from zenodo.modules.records.tasks import schedule_update_datacite_metadata
 
 
 def test_datacite_update(mocker, db, minimal_record):
-    dc_mock = mocker.patch(
-        'invenio_pidstore.providers.datacite.DataCiteMDSClient'
-    )
+    dc_mock = mocker.patch("invenio_pidstore.providers.datacite.DataCiteMDSClient")
 
     doi_tags = [
         '<identifier identifierType="DOI">{doi}</identifier>',
-        ('<relatedIdentifier relatedIdentifierType="DOI" '
-         'relationType="IsVersionOf">{conceptdoi}</relatedIdentifier>'),
+        (
+            '<relatedIdentifier relatedIdentifierType="DOI" '
+            'relationType="IsVersionOf">{conceptdoi}</relatedIdentifier>'
+        ),
     ]
 
     # Assert calls and content
@@ -56,8 +56,8 @@ def test_datacite_update(mocker, db, minimal_record):
 
         assert dc_mock().doi_post.call_count == 1
         dc_mock().doi_post.assert_any_call(
-            record['doi'],
-            'https://zenodo.org/record/{}'.format(record['recid']))
+            record["doi"], "https://zenodo.org/record/{}".format(record["recid"])
+        )
 
     def assert_datacite_calls_with_missing_data():
         """Datacite client calls assertion helper."""
@@ -67,15 +67,16 @@ def test_datacite_update(mocker, db, minimal_record):
     def create_versioned_record(recid_value, conceptrecid):
         """Utility function for creating versioned records."""
         recid = PersistentIdentifier.create(
-            'recid', recid_value, status=PIDStatus.RESERVED)
+            "recid", recid_value, status=PIDStatus.RESERVED
+        )
         pv = PIDVersioning(parent=conceptrecid)
         pv.insert_draft_child(recid)
 
         record_metadata = deepcopy(minimal_record)
         # Remove the DOI
-        del record_metadata['doi']
-        record_metadata['conceptrecid'] = conceptrecid.pid_value
-        record_metadata['recid'] = int(recid.pid_value)
+        del record_metadata["doi"]
+        record_metadata["conceptrecid"] = conceptrecid.pid_value
+        record_metadata["recid"] = int(recid.pid_value)
         record = ZenodoRecord.create(record_metadata)
         zenodo_record_minter(record.id, record)
         record.commit()
@@ -84,17 +85,19 @@ def test_datacite_update(mocker, db, minimal_record):
 
     # Create conceptrecid for the records
     conceptrecid = PersistentIdentifier.create(
-        'recid', '100', status=PIDStatus.RESERVED)
+        "recid", "100", status=PIDStatus.RESERVED
+    )
 
     # Create a reserved recid
-    recid1, r1 = create_versioned_record('352543', conceptrecid)
+    recid1, r1 = create_versioned_record("352543", conceptrecid)
 
     # no registered local DOIs
     schedule_update_datacite_metadata(1)
     assert_datacite_calls_with_missing_data()
 
     doi_pids = PersistentIdentifier.query.filter(
-        PersistentIdentifier.pid_value == '10.5072/zenodo.352543')
+        PersistentIdentifier.pid_value == "10.5072/zenodo.352543"
+    )
     doi_pids[0].status = PIDStatus.REGISTERED
 
     db.session.commit()
@@ -111,9 +114,9 @@ def test_datacite_update(mocker, db, minimal_record):
         job_id=str(uuid.uuid4()),
         from_date=datetime(2015, 1, 1, 13, 33),
         until_date=datetime(2016, 1, 1, 13, 33),
-        last_update=datetime.utcnow()
+        last_update=datetime.utcnow(),
     )
-    current_cache.set('update_datacite:task_details', task_details, timeout=-1)
+    current_cache.set("update_datacite:task_details", task_details, timeout=-1)
 
     # no registered local DOIs updated inside the interval
     schedule_update_datacite_metadata(1)
@@ -125,9 +128,9 @@ def test_datacite_update(mocker, db, minimal_record):
         job_id=str(uuid.uuid4()),
         from_date=datetime(2015, 1, 1, 13, 33),
         until_date=datetime.utcnow(),
-        last_update=datetime.utcnow()
+        last_update=datetime.utcnow(),
     )
-    current_cache.set('update_datacite:task_details', task_details, timeout=-1)
+    current_cache.set("update_datacite:task_details", task_details, timeout=-1)
 
     schedule_update_datacite_metadata(1)
     new_update_date3 = doi_pids[0].updated

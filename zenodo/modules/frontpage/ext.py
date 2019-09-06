@@ -41,11 +41,11 @@ class ZenodoFrontpage(object):
         """Flask application initialization."""
         self.init_config(app)
 
-        app.extensions['zenodo-frontpage'] = self
+        app.extensions["zenodo-frontpage"] = self
 
     @staticmethod
     def init_config(app):
         """Initialize configuration."""
         for k in dir(config):
-            if k.startswith('ZENODO_FRONTPAGE'):
+            if k.startswith("ZENODO_FRONTPAGE"):
                 app.config.setdefault(k, getattr(config, k))

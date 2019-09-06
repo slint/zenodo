@@ -48,16 +48,16 @@ class OpenAIREGrantsDump(object):
 
     def _parse_grant_line(self, line):
         json_data = json.loads(line)
-        body = json_data['body']['$binary']
+        body = json_data["body"]["$binary"]
         zip_bytes = BytesIO(b64decode(body))
         with ZipFile(zip_bytes) as zf:
-            return zf.read('body').decode('utf-8')
+            return zf.read("body").decode("utf-8")
 
     @property
     def _grants_iterator(self):
         with GzipFile(self.path) as gf:
             for line in gf:
-                yield self._parse_grant_line(line.decode('utf-8'))
+                yield self._parse_grant_line(line.decode("utf-8"))
 
     def split(self, filepath_prefix, grants_per_file=None):
         """Dump grants into multiple SQLite files.
@@ -72,9 +72,8 @@ class OpenAIREGrantsDump(object):
         grants_iter = self._grants_iterator
         file_row_count = 1
         while file_row_count > 0:
-            filepath = '{0}{1:02d}.db'.format(filepath_prefix, file_idx)
-            file_row_count = self.write(
-                filepath, islice(grants_iter, grants_per_file))
+            filepath = "{0}{1:02d}.db".format(filepath_prefix, file_idx)
+            file_row_count = self.write(filepath, islice(grants_iter, grants_per_file))
             file_idx += 1
             if file_row_count > 0:
                 yield filepath, file_row_count
@@ -91,13 +90,13 @@ class OpenAIREGrantsDump(object):
         """
         chunk_size = chunk_size or self.rows_write_chunk_size
         with sqlite3.connect(filepath) as conn:
-            conn.execute('CREATE TABLE grants (data text, format text)')
+            conn.execute("CREATE TABLE grants (data text, format text)")
             total_rows_inserted = 0
             rows_inserted = 1
             while rows_inserted > 0:
                 rows_inserted = conn.executemany(
-                    'INSERT INTO grants VALUES (?, ?)',
-                    zip(islice(grants, chunk_size), repeat('xml'))
+                    "INSERT INTO grants VALUES (?, ?)",
+                    zip(islice(grants, chunk_size), repeat("xml")),
                 ).rowcount
                 if rows_inserted > 0:
                     total_rows_inserted += rows_inserted

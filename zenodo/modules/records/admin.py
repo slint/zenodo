@@ -42,22 +42,18 @@ class UpdateDataciteForm(FlaskForm):
     """Form for updating datacite metadata."""
 
     from_date = DateField(
-        _('From'),
-        description=_('Required.'),
-        validators=[DataRequired()],
+        _("From"), description=_("Required."), validators=[DataRequired()]
     )
 
     until_date = DateField(
-        _('Until'),
-        description=_('Required.'),
-        validators=[DataRequired()],
+        _("Until"), description=_("Required."), validators=[DataRequired()]
     )
 
 
 class UpdateDataciteView(BaseView):
     """View for updating datacite metadata."""
 
-    @expose('/', methods=('GET', 'POST'))
+    @expose("/", methods=("GET", "POST"))
     def update_datacite(self):
         """."""
         form = UpdateDataciteForm()
@@ -65,35 +61,40 @@ class UpdateDataciteView(BaseView):
 
         is_task_running = False
         time = 0
-        task_details = current_cache.get('update_datacite:task_details')
+        task_details = current_cache.get("update_datacite:task_details")
 
         if task_details:
             is_task_running = True
             if cancel_or_new_task_form.validate_on_submit():
-                current_cache.set('update_datacite:task_details', None)
-                return redirect(url_for('updatedataciteview.update_datacite'))
+                current_cache.set("update_datacite:task_details", None)
+                return redirect(url_for("updatedataciteview.update_datacite"))
         else:
             if form.validate_on_submit():
-                from_date = request.form['from_date']
-                until_date = request.form['until_date']
+                from_date = request.form["from_date"]
+                until_date = request.form["until_date"]
 
-                action = request.form['action']
-                if action == 'SubmitDates':
+                action = request.form["action"]
+                if action == "SubmitDates":
                     if from_date > until_date:
                         flash("Error: the 'From' date should precede the 'Until' date.")
                     else:
-                        pids_count = find_registered_doi_pids(from_date,
-                                                                until_date,
-                                                                current_app.config['ZENODO_LOCAL_DOI_PREFIXES']).count()
-                        task_details = dict(
-                            total_pids=pids_count
+                        pids_count = find_registered_doi_pids(
+                            from_date,
+                            until_date,
+                            current_app.config["ZENODO_LOCAL_DOI_PREFIXES"],
+                        ).count()
+                        task_details = dict(total_pids=pids_count)
+                        time = (
+                            pids_count
+                            / current_app.config["DATACITE_UPDATING_RATE_PER_HOUR"]
                         )
-                        time = pids_count/current_app.config['DATACITE_UPDATING_RATE_PER_HOUR']
 
-                elif action == 'Confirm':
-                    pids_count = find_registered_doi_pids(from_date,
-                                                          until_date,
-                                                          current_app.config['ZENODO_LOCAL_DOI_PREFIXES']).count()
+                elif action == "Confirm":
+                    pids_count = find_registered_doi_pids(
+                        from_date,
+                        until_date,
+                        current_app.config["ZENODO_LOCAL_DOI_PREFIXES"],
+                    ).count()
                     task_details = dict(
                         start_date=datetime.utcnow(),
                         job_id=str(uuid.uuid4()),
@@ -101,24 +102,27 @@ class UpdateDataciteView(BaseView):
                         until_date=until_date,
                         total_pids=pids_count,
                         left_pids=pids_count,
-                        last_update=datetime.utcnow()
+                        last_update=datetime.utcnow(),
                     )
-                    current_cache.set('update_datacite:task_details',
-                                      task_details, timeout=-1)
-                    return redirect(url_for('updatedataciteview.update_datacite'))
+                    current_cache.set(
+                        "update_datacite:task_details", task_details, timeout=-1
+                    )
+                    return redirect(url_for("updatedataciteview.update_datacite"))
 
-                elif action == 'Cancel':
-                    return redirect(url_for('updatedataciteview.update_datacite'))
+                elif action == "Cancel":
+                    return redirect(url_for("updatedataciteview.update_datacite"))
 
-        return self.render('zenodo_records/update_datacite.html',
-                           form=form,
-                           cancel_or_new_task_form=cancel_or_new_task_form,
-                           details=task_details,
-                           is_task_running=is_task_running, time=time)
+        return self.render(
+            "zenodo_records/update_datacite.html",
+            form=form,
+            cancel_or_new_task_form=cancel_or_new_task_form,
+            details=task_details,
+            is_task_running=is_task_running,
+            time=time,
+        )
 
 
 updatedatacite_adminview = {
-    'view_class': UpdateDataciteView,
-    'kwargs': {'name': 'Update Datacite', 'category': 'Records'},
-
+    "view_class": UpdateDataciteView,
+    "kwargs": {"name": "Update Datacite", "category": "Records"},
 }

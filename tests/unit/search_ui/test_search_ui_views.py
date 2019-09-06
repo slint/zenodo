@@ -28,7 +28,7 @@
 def test_for_smoke(app, db, es):
     """Test search view."""
     with app.test_client() as client:
-        res = client.get('/search')
+        res = client.get("/search")
         assert res.status_code == 200
-        res = client.get('/api/records/')
+        res = client.get("/api/records/")
         assert res.status_code == 200

@@ -39,4 +39,4 @@ class ZenodoUnderdo(Underdo):
         self.index = Index(self.rules, branch_size=98)
 
 
-to_marc21 = ZenodoUnderdo(entry_point_group='dojson.contrib.to_marc21')
+to_marc21 = ZenodoUnderdo(entry_point_group="dojson.contrib.to_marc21")

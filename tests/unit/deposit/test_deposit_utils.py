@@ -31,20 +31,20 @@ from zenodo.modules.deposit.utils import suggest_language
 
 def test_suggest_language():
     """Test language suggestions."""
-    s = suggest_language('pl')
+    s = suggest_language("pl")
     assert len(s) == 1
-    assert s[0].alpha_3 == 'pol'
+    assert s[0].alpha_3 == "pol"
     # 'Northern Sami' doesn't contain 'sme' substring but should be first
     # in suggestions, since 'sme' is its ISO 639-2 code.
-    s = suggest_language('sme')
+    s = suggest_language("sme")
     assert len(s) > 1  # More than one result
-    assert s[0].alpha_3 == 'sme'
-    assert 'sme' not in s[0].name.lower()
-    assert 'sme' in s[1].name.lower()  # Second result matched by name
+    assert s[0].alpha_3 == "sme"
+    assert "sme" not in s[0].name.lower()
+    assert "sme" in s[1].name.lower()  # Second result matched by name
 
-    s = suggest_language('POLISH')
-    assert s[0].alpha_3 == 'pol'
+    s = suggest_language("POLISH")
+    assert s[0].alpha_3 == "pol"
 
     # lower-case
-    s = suggest_language('polish')
-    assert s[0].alpha_3 == 'pol'
+    s = suggest_language("polish")
+    assert s[0].alpha_3 == "pol"

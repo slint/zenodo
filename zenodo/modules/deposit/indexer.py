@@ -39,8 +39,7 @@ from zenodo.modules.records.utils import build_record_custom_fields
 from .api import ZenodoDeposit
 
 
-def indexer_receiver(sender, json=None, record=None, index=None,
-                     **dummy_kwargs):
+def indexer_receiver(sender, json=None, record=None, index=None, **dummy_kwargs):
     """Connect to before_record_index signal to transform record for ES.
 
     In order to avoid that a record and published deposit differs (e.g. if an
@@ -55,64 +54,61 @@ def indexer_receiver(sender, json=None, record=None, index=None,
     :param index: Elasticsearch index name.
     :type index: str
     """
-    if not index.startswith('deposits-records-'):
+    if not index.startswith("deposits-records-"):
         return
     if not isinstance(record, ZenodoDeposit):
         record = ZenodoDeposit(record, model=record.model)
 
-    if record['_deposit']['status'] == 'published':
-        schema = json['$schema']
+    if record["_deposit"]["status"] == "published":
+        schema = json["$schema"]
 
         pub_record = record.fetch_published()[1]
 
         # Temporarily set to draft mode to ensure that `clear` can be called
-        json['_deposit']['status'] = 'draft'
+        json["_deposit"]["status"] = "draft"
         json.clear()
         json.update(copy.deepcopy(pub_record.replace_refs()))
 
         # Set back to published mode and restore schema.
-        json['_deposit']['status'] = 'published'
-        json['$schema'] = schema
-        json['_updated'] = pub_record.updated
+        json["_deposit"]["status"] = "published"
+        json["$schema"] = schema
+        json["_updated"] = pub_record.updated
     else:
-        json['_updated'] = record.updated
-    json['_created'] = record.created
+        json["_updated"] = record.updated
+    json["_created"] = record.created
 
     # Compute filecount and total file size
-    files = json.get('_files', [])
-    json['filecount'] = len(files)
-    json['size'] = sum([f.get('size', 0) for f in files])
+    files = json.get("_files", [])
+    json["filecount"] = len(files)
+    json["size"] = sum([f.get("size", 0) for f in files])
 
-    recid = record.get('recid')
+    recid = record.get("recid")
     if recid:
-        pid = PersistentIdentifier.get('recid', recid)
+        pid = PersistentIdentifier.get("recid", recid)
         pv = PIDVersioning(child=pid)
         relations = serialize_relations(pid)
         if pv.exists:
             if pv.draft_child_deposit:
-                is_last = (pv.draft_child_deposit.pid_value
-                           == record['_deposit']['id'])
-                relations['version'][0]['is_last'] = is_last
-                relations['version'][0]['count'] += 1
+                is_last = pv.draft_child_deposit.pid_value == record["_deposit"]["id"]
+                relations["version"][0]["is_last"] = is_last
+                relations["version"][0]["count"] += 1
         else:
-            relations = {'version': [{'is_last': True, 'index': 0}, ]}
+            relations = {"version": [{"is_last": True, "index": 0}]}
         if relations:
-            json['relations'] = relations
+            json["relations"] = relations
 
-    for loc in json.get('locations', []):
-        loc['point'] = {'lat': loc['lat'], 'lon': loc['lon']}
+    for loc in json.get("locations", []):
+        loc["point"] = {"lat": loc["lat"], "lon": loc["lon"]}
 
     custom_es_fields = build_record_custom_fields(json)
     for es_field, es_value in custom_es_fields.items():
         json[es_field] = es_value
 
 
-def index_versioned_record_siblings(sender, action=None, pid=None,
-                                    deposit=None):
+def index_versioned_record_siblings(sender, action=None, pid=None, deposit=None):
     """Send previous version of published record for indexing."""
-    first_publish = (deposit.get('_deposit', {}).get('pid', {})
-                     .get('revision_id')) == 0
+    first_publish = (deposit.get("_deposit", {}).get("pid", {}).get("revision_id")) == 0
     if action == "publish" and first_publish:
         recid_pid, _ = deposit.fetch_published()
-        current_app.logger.info(u'indexing siblings of {}', recid_pid)
+        current_app.logger.info(u"indexing siblings of {}", recid_pid)
         index_siblings(recid_pid, neighbors_eager=True)

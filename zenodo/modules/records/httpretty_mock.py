@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 #
 # This file is part of Zenodo.
@@ -35,8 +34,11 @@ import httpretty.core
 from httpretty import HTTPretty as OriginalHTTPretty
 
 try:
-    from requests.packages.urllib3.contrib.pyopenssl import \
-        inject_into_urllib3, extract_from_urllib3
+    from requests.packages.urllib3.contrib.pyopenssl import (
+        inject_into_urllib3,
+        extract_from_urllib3,
+    )
+
     pyopenssl_override = True
 except:
     pyopenssl_override = False

@@ -31,54 +31,53 @@ from invenio_pidrelations.proxies import current_pidrelations
 from invenio_pidrelations.serializers.utils import serialize_relations
 from invenio_pidstore.models import PersistentIdentifier
 
-from zenodo.modules.records.serializers.pidrelations import \
-    serialize_related_identifiers
+from zenodo.modules.records.serializers.pidrelations import (
+    serialize_related_identifiers,
+)
 from zenodo.modules.records.utils import build_record_custom_fields
 from zenodo.modules.stats.utils import build_record_stats
 
 
-def indexer_receiver(sender, json=None, record=None, index=None,
-                     **dummy_kwargs):
+def indexer_receiver(sender, json=None, record=None, index=None, **dummy_kwargs):
     """Connect to before_record_index signal to transform record for ES."""
-    if not index.startswith('records-') or record.get('$schema') is None:
+    if not index.startswith("records-") or record.get("$schema") is None:
         return
 
     # Remove files from index if record is not open access.
-    if json['access_right'] != 'open' and '_files' in json:
-        del json['_files']
+    if json["access_right"] != "open" and "_files" in json:
+        del json["_files"]
     else:
         # Compute file count and total size
-        files = json.get('_files', [])
-        json['filecount'] = len(files)
-        json['size'] = sum([f.get('size', 0) for f in files])
+        files = json.get("_files", [])
+        json["filecount"] = len(files)
+        json["size"] = sum([f.get("size", 0) for f in files])
 
     pid = PersistentIdentifier.query.filter(
         PersistentIdentifier.object_uuid == record.id,
         PersistentIdentifier.pid_type == current_pidrelations.primary_pid_type,
-        ).one_or_none()
+    ).one_or_none()
     if pid:
         pv = PIDVersioning(child=pid)
         if pv.exists:
             relations = serialize_relations(pid)
         else:
-            relations = {'version': [{'is_last': True, 'index': 0}, ]}
+            relations = {"version": [{"is_last": True, "index": 0}]}
         if relations:
-            json['relations'] = relations
+            json["relations"] = relations
 
         rels = serialize_related_identifiers(pid)
         if rels:
-            json.setdefault('related_identifiers', []).extend(rels)
+            json.setdefault("related_identifiers", []).extend(rels)
 
-    for loc in json.get('locations', []):
-        if loc.get('lat') and loc.get('lon'):
-            loc['point'] = {'lat': loc['lat'], 'lon': loc['lon']}
+    for loc in json.get("locations", []):
+        if loc.get("lat") and loc.get("lon"):
+            loc["point"] = {"lat": loc["lat"], "lon": loc["lon"]}
 
     # Remove internal data.
-    if '_internal' in json:
-        del json['_internal']
+    if "_internal" in json:
+        del json["_internal"]
 
-    json['_stats'] = build_record_stats(record['recid'],
-                                        record.get('conceptrecid'))
+    json["_stats"] = build_record_stats(record["recid"], record.get("conceptrecid"))
 
     custom_es_fields = build_record_custom_fields(json)
     for es_field, es_value in custom_es_fields.items():

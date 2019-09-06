@@ -386,7 +386,8 @@ def disable_strict_slashes(sender, app=None, **kwargs):
     """Disable strict slashes on URL map."""
     app.url_map.strict_slashes = False  # Legacy support
 
+
 app_created.connect(disable_strict_slashes, sender=create_app)
 app_created.connect(disable_strict_slashes, sender=create_ui)
 
-__all__ = ('__version__', )
+__all__ = ("__version__",)

@@ -31,35 +31,35 @@ import bleach
 from .sanitizedunicode import SanitizedUnicode
 
 ALLOWED_TAGS = [
-            'a',
-            'abbr',
-            'acronym',
-            'b',
-            'blockquote',
-            'br',
-            'code',
-            'div',
-            'em',
-            'i',
-            'li',
-            'ol',
-            'p',
-            'pre',
-            'span',
-            'strike',
-            'strong',
-            'sub',
-            'sup',
-            'u',
-            'ul',
-        ]
+    "a",
+    "abbr",
+    "acronym",
+    "b",
+    "blockquote",
+    "br",
+    "code",
+    "div",
+    "em",
+    "i",
+    "li",
+    "ol",
+    "p",
+    "pre",
+    "span",
+    "strike",
+    "strong",
+    "sub",
+    "sup",
+    "u",
+    "ul",
+]
 
 ALLOWED_ATTRS = {
-            '*': ['class'],
-            'a': ['href', 'title', 'name', 'class', 'rel'],
-            'abbr': ['title'],
-            'acronym': ['title'],
-        }
+    "*": ["class"],
+    "a": ["href", "title", "name", "class", "rel"],
+    "abbr": ["title"],
+    "acronym": ["title"],
+}
 
 
 class SanitizedHTML(SanitizedUnicode):
@@ -75,8 +75,5 @@ class SanitizedHTML(SanitizedUnicode):
         """Deserialize string by sanitizing HTML."""
         value = super(SanitizedHTML, self)._deserialize(value, attr, data)
         return bleach.clean(
-            value,
-            tags=self.tags,
-            attributes=self.attrs,
-            strip=True,
+            value, tags=self.tags, attributes=self.attrs, strip=True
         ).strip()

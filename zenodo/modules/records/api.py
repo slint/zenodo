@@ -33,8 +33,13 @@ from invenio_db import db
 from invenio_files_rest.models import ObjectVersion
 from invenio_pidstore.models import PersistentIdentifier
 from invenio_records.api import Record
-from invenio_records_files.api import FileObject, FilesIterator, FilesMixin, \
-    MissingModelError, _writable
+from invenio_records_files.api import (
+    FileObject,
+    FilesIterator,
+    FilesMixin,
+    MissingModelError,
+    _writable,
+)
 from invenio_records_files.models import RecordsBuckets
 
 from .fetchers import zenodo_record_fetcher
@@ -46,11 +51,13 @@ class ZenodoFileObject(FileObject):
     def dumps(self):
         """Create a dump."""
         super(ZenodoFileObject, self).dumps()
-        self.data.update({
-            # Remove dot from extension.
-            'type': splitext(self.data['key'])[1][1:].lower(),
-            'file_id': str(self.file_id),
-        })
+        self.data.update(
+            {
+                # Remove dot from extension.
+                "type": splitext(self.data["key"])[1][1:].lower(),
+                "file_id": str(self.file_id),
+            }
+        )
         return self.data
 
 
@@ -62,10 +69,11 @@ class ZenodoFilesIterator(FilesIterator):
         """Add file inside a deposit."""
         with db.session.begin_nested():
             size = None
-            if request and request.files and request.files.get('file'):
-                size = request.files['file'].content_length or None
+            if request and request.files and request.files.get("file"):
+                size = request.files["file"].content_length or None
             obj = ObjectVersion.create(
-                bucket=self.bucket, key=key, stream=stream, size=size)
+                bucket=self.bucket, key=key, stream=stream, size=size
+            )
             self.filesmap[key] = self.file_cls(obj, {}).dumps()
             self.flush()
 
@@ -82,25 +90,24 @@ class ZenodoFilesMixin(FilesMixin):
         if self.model is None:
             raise MissingModelError()
         extra_formats_bucket = None
-        records_buckets = RecordsBuckets.query.filter_by(
-            record_id=self.id)
+        records_buckets = RecordsBuckets.query.filter_by(record_id=self.id)
         for record_bucket in records_buckets:
-            if self['_buckets'].get('extra_formats') == \
-                    str(record_bucket.bucket.id):
+            if self["_buckets"].get("extra_formats") == str(record_bucket.bucket.id):
                 extra_formats_bucket = record_bucket.bucket
 
         if not extra_formats_bucket:
             return None
         else:
             return self.files_iter_cls(
-                self, bucket=extra_formats_bucket, file_cls=self.file_cls)
+                self, bucket=extra_formats_bucket, file_cls=self.file_cls
+            )
 
     @extra_formats.setter
     def extra_formats(self, data):
         """Set files from data."""
         current_files = self.extra_formats
         if current_files:
-            raise RuntimeError('Can not update existing files.')
+            raise RuntimeError("Can not update existing files.")
         for key in data:
             current_files[key] = data[key]
 
@@ -113,13 +120,12 @@ class ZenodoFilesMixin(FilesMixin):
         if self.model is None:
             raise MissingModelError()
 
-        records_buckets = RecordsBuckets.query.filter_by(
-            record_id=self.id)
+        records_buckets = RecordsBuckets.query.filter_by(record_id=self.id)
         bucket = None
         for record_bucket in records_buckets:
-            if self['_buckets'].get('record') == str(record_bucket.bucket.id):
+            if self["_buckets"].get("record") == str(record_bucket.bucket.id):
                 bucket = record_bucket.bucket
-            if self['_buckets'].get('deposit') == str(record_bucket.bucket.id):
+            if self["_buckets"].get("deposit") == str(record_bucket.bucket.id):
                 bucket = record_bucket.bucket
 
         if not bucket:
@@ -147,6 +153,5 @@ class ZenodoRecord(Record, ZenodoFilesMixin):
     def depid(self):
         """Return depid of the record."""
         return PersistentIdentifier.get(
-            pid_type='depid',
-            pid_value=self.get('_deposit', {}).get('id')
+            pid_type="depid", pid_value=self.get("_deposit", {}).get("id")
         )

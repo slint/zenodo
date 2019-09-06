@@ -28,8 +28,7 @@ from __future__ import absolute_import, print_function
 
 from flask_babelex import lazy_gettext as _
 from flask_wtf import Form
-from wtforms import BooleanField, SelectField, StringField, SubmitField, \
-    TextAreaField
+from wtforms import BooleanField, SelectField, StringField, SubmitField, TextAreaField
 
 
 def strip_filter(text):
@@ -41,39 +40,40 @@ class RecordDeleteForm(Form):
     """Form for deleting a record."""
 
     reason = TextAreaField(
-        _('Removal reason (custom)'),
+        _("Removal reason (custom)"),
         description=_(
-            'Please provide a reason for removing the record. This reason will'
-            ' be displayed on the record tombstone page.'),
+            "Please provide a reason for removing the record. This reason will"
+            " be displayed on the record tombstone page."
+        ),
         filters=[strip_filter],
     )
 
-    standard_reason = SelectField(
-        _('Removal reason (standard options)'),
-        coerce=str,
-    )
+    standard_reason = SelectField(_("Removal reason (standard options)"), coerce=str)
 
     remove_files = BooleanField(
-        _('Remove files from disk?'),
+        _("Remove files from disk?"),
         default=True,
         description=_(
-            'Files will be removed from disk. Recovery of files possible if '
-            'SIPs are not removed.'),
+            "Files will be removed from disk. Recovery of files possible if "
+            "SIPs are not removed."
+        ),
     )
 
     remove_sips = BooleanField(
-        _('Remove SIPs?'),
+        _("Remove SIPs?"),
         description=_(
-            'Also, remove Submission Information Packages for record. Recovery'
-            ' of files will not be possible.'),
+            "Also, remove Submission Information Packages for record. Recovery"
+            " of files will not be possible."
+        ),
         default=False,
     )
 
     confirm = StringField(
-        _('Confirm deletion'),
+        _("Confirm deletion"),
         description=_(
-            'Please manually type the record identifier in order to confirm'
-            ' the deletion.')
+            "Please manually type the record identifier in order to confirm"
+            " the deletion."
+        ),
     )
 
     delete = SubmitField(_("Permanently delete record"))

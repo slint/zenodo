@@ -31,7 +31,7 @@ from flask import current_app, render_template
 
 def too_many_requests(e):
     """Error handler to show a 429.html page in case of a 429 error."""
-    return render_template(current_app.config['THEME_429_TEMPLATE']), 429
+    return render_template(current_app.config["THEME_429_TEMPLATE"]), 429
 
 
 class ZenodoTheme(object):

@@ -27,8 +27,7 @@
 from __future__ import absolute_import, print_function
 
 from zenodo.modules.records.models import ObjectType
-from zenodo.modules.records.serializers.schemas.geojson import \
-    FeatureCollection
+from zenodo.modules.records.serializers.schemas.geojson import FeatureCollection
 
 from .json import ZenodoJSONSerializer
 

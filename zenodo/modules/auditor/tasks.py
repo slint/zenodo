@@ -46,7 +46,7 @@ def audit_records(logfile=None):
     logger = current_app.logger
     audit_id = audit_records.request.id or uuid.uuid4()
     if logfile:
-        logger = get_file_logger(logfile, 'records', audit_id)
+        logger = get_file_logger(logfile, "records", audit_id)
     audit = RecordAudit(audit_id, logger, all_records())
     for check in audit:
         pass
@@ -61,7 +61,7 @@ def audit_oai(logfile=None):
     logger = current_app.logger
     audit_id = audit_oai.request.id or uuid.uuid4()
     if logfile:
-        logger = get_file_logger(logfile, 'oai', audit_id)
+        logger = get_file_logger(logfile, "oai", audit_id)
     audit = OAIAudit(audit_id, logger, Community.query.all())
     try:
         for check in audit:

@@ -45,10 +45,7 @@ from .utils import is_deposit, is_record
 
 def get_public_bucket_uuids():
     """Return a list of UUIDs (strings) with publicly accessible buckets."""
-    buckets = [
-        'COMMUNITIES_BUCKET_UUID',
-        'EXPORTER_BUCKET_UUID',
-    ]
+    buckets = ["COMMUNITIES_BUCKET_UUID", "EXPORTER_BUCKET_UUID"]
     return [current_app.config[k] for k in buckets]
 
 
@@ -81,24 +78,23 @@ def files_permission_factory(obj, action=None):
         rbs = RecordsBuckets.query.filter_by(bucket_id=bucket_id).all()
         if len(rbs) >= 2:  # Extra formats bucket or bad records-buckets state
             # Only admins should access. Users use the ".../formats" endpoints
-            return Permission(ActionNeed('admin-access'))
+            return Permission(ActionNeed("admin-access"))
         rb = next(iter(rbs), None)  # Use first bucket
         if rb:
             record = Record.get_record(rb.record_id)
             # "Cache" the file's record in the request context (e.g for stats)
             if record and request:
-                setattr(request, 'current_file_record', record)
+                setattr(request, "current_file_record", record)
 
             # Bail if extra formats bucket
-            if str(bucket_id) == \
-                    record.get('_buckets', {}).get('extra_formats'):
-                return Permission(ActionNeed('admin-access'))
+            if str(bucket_id) == record.get("_buckets", {}).get("extra_formats"):
+                return Permission(ActionNeed("admin-access"))
             if is_record(record):
                 return RecordFilesPermission.create(record, action)
             elif is_deposit(record):
                 return DepositFilesPermission.create(record, action)
 
-    return Permission(ActionNeed('admin-access'))
+    return Permission(ActionNeed("admin-access"))
 
 
 def record_permission_factory(record=None, action=None):
@@ -108,35 +104,35 @@ def record_permission_factory(record=None, action=None):
 
 def record_create_permission_factory(record=None):
     """Create permission factory."""
-    return record_permission_factory(record=record, action='create')
+    return record_permission_factory(record=record, action="create")
 
 
 def record_read_permission_factory(record=None):
     """Read permission factory."""
-    return record_permission_factory(record=record, action='read')
+    return record_permission_factory(record=record, action="read")
 
 
 def record_read_files_permission_factory(record=None):
     """Read permission factory."""
-    return record_permission_factory(record=record, action='read-files')
+    return record_permission_factory(record=record, action="read-files")
 
 
 def record_update_permission_factory(record=None):
     """Update permission factory."""
-    return record_permission_factory(record=record, action='update')
+    return record_permission_factory(record=record, action="update")
 
 
 def record_delete_permission_factory(record=None):
     """Delete permission factory."""
-    return record_permission_factory(record=record, action='delete')
+    return record_permission_factory(record=record, action="delete")
 
 
 def deposit_read_permission_factory(record=None):
     """Record permission factory."""
-    if record and 'deposits' in record['$schema']:
-        return DepositPermission.create(record=record, action='read')
+    if record and "deposits" in record["$schema"]:
+        return DepositPermission.create(record=record, action="read")
     else:
-        return RecordPermission.create(record=record, action='read')
+        return RecordPermission.create(record=record, action="read")
 
 
 def deposit_update_permission_factory(record=None):
@@ -151,16 +147,16 @@ def deposit_update_permission_factory(record=None):
     # modified in order to be able to somehow provide a different permission
     # factory for the various Deposit API actions and avoid hacking our way
     # around to determine if it's an "action" or "update".
-    if request and request.endpoint == 'invenio_deposit_rest.depid_actions':
-        action = request.view_args.get('action')
+    if request and request.endpoint == "invenio_deposit_rest.depid_actions":
+        action = request.view_args.get("action")
         if action in DepositPermission.protected_actions:
             return DepositPermission.create(record=record, action=action)
-    return DepositPermission.create(record=record, action='update')
+    return DepositPermission.create(record=record, action="update")
 
 
 def deposit_delete_permission_factory(record=None):
     """Record permission factory."""
-    return DepositPermission.create(record=record, action='delete')
+    return DepositPermission.create(record=record, action="delete")
 
 
 #
@@ -178,10 +174,10 @@ class PublicBucketPermission(object):
 
     def can(self):
         """Check permission."""
-        if self.action == 'object-read':
+        if self.action == "object-read":
             return True
         else:
-            return Permission(ActionNeed('admin-access')).can()
+            return Permission(ActionNeed("admin-access")).can()
 
 
 class DepositFilesPermission(object):
@@ -191,16 +187,16 @@ class DepositFilesPermission(object):
     """
 
     update_actions = [
-        'bucket-read',
-        'bucket-read-versions',
-        'bucket-update',
-        'bucket-listmultiparts',
-        'object-read',
-        'object-read-version',
-        'object-delete',
-        'object-delete-version',
-        'multipart-read',
-        'multipart-delete',
+        "bucket-read",
+        "bucket-read-versions",
+        "bucket-update",
+        "bucket-listmultiparts",
+        "object-read",
+        "object-read-version",
+        "object-delete",
+        "object-delete-version",
+        "multipart-read",
+        "multipart-delete",
     ]
 
     def __init__(self, record, func):
@@ -235,16 +231,13 @@ class RecordFilesPermission(DepositFilesPermission):
       1. Administrators only.
     """
 
-    read_actions = [
-        'bucket-read',
-        'object-read',
-    ]
+    read_actions = ["bucket-read", "object-read"]
 
     admin_actions = [
-        'bucket-read',
-        'bucket-read-versions',
-        'object-read',
-        'object-read-version',
+        "bucket-read",
+        "bucket-read-versions",
+        "object-read",
+        "object-read-version",
     ]
 
     @classmethod
@@ -267,13 +260,13 @@ class RecordPermission(object):
     - Delete access given to admins only.
     """
 
-    create_actions = ['create']
-    read_actions = ['read']
-    read_files_actions = ['read-files']
-    update_actions = ['update']
-    newversion_actions = ['newversion', 'registerconceptdoi']
+    create_actions = ["create"]
+    read_actions = ["read"]
+    read_files_actions = ["read-files"]
+    update_actions = ["update"]
+    newversion_actions = ["newversion", "registerconceptdoi"]
     protected_actions = newversion_actions
-    delete_actions = ['delete']
+    delete_actions = ["delete"]
 
     def __init__(self, record, func, user):
         """Initialize a file permission object."""
@@ -337,15 +330,17 @@ def allow(user, record):
 def has_read_files_permission(user, record):
     """Check if user has read access to the record."""
     # Allow if record is open access
-    if AccessRight.get(
-            record.get('access_right', 'closed'),
-            record.get('embargo_date')) == AccessRight.OPEN:
+    if (
+        AccessRight.get(
+            record.get("access_right", "closed"), record.get("embargo_date")
+        )
+        == AccessRight.OPEN
+    ):
         return True
 
     # Allow token bearers
-    token = session.get('accessrequests-secret-token')
-    if token and SecretLink.validate_token(
-            token, dict(recid=int(record['recid']))):
+    token = session.get("accessrequests-secret-token")
+    if token and SecretLink.validate_token(token, dict(recid=int(record["recid"]))):
         return True
 
     return has_update_permission(user, record)
@@ -355,9 +350,9 @@ def has_update_permission(user, record):
     """Check if user has update access to the record."""
     # Allow owners
     user_id = int(user.get_id()) if user.is_authenticated else None
-    if user_id in record.get('owners', []):
+    if user_id in record.get("owners", []):
         return True
-    if user_id in record.get('_deposit', {}).get('owners', []):
+    if user_id in record.get("_deposit", {}).get("owners", []):
         return True
 
     return has_admin_permission(user, record)
@@ -366,9 +361,9 @@ def has_update_permission(user, record):
 def has_newversion_permission(user, record):
     """Check if the user has permission to create a newversion for a record."""
     # Only the owner of the latest version can create new versions
-    conceptrecid = record.get('conceptrecid')
+    conceptrecid = record.get("conceptrecid")
     if conceptrecid:
-        conceptrecid = PersistentIdentifier.get('recid', conceptrecid)
+        conceptrecid = PersistentIdentifier.get("recid", conceptrecid)
         pv = PIDVersioning(parent=conceptrecid)
         latest_recid = pv.last_child
         if latest_recid:
@@ -380,5 +375,5 @@ def has_newversion_permission(user, record):
 def has_admin_permission(user, record):
     """Check if user has admin access to record."""
     # Allow administrators
-    if Permission(ActionNeed('admin-access')):
+    if Permission(ActionNeed("admin-access")):
         return True

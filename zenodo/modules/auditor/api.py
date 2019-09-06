@@ -73,7 +73,7 @@ class Check(object):
 
     def dump(self):
         """Dump check issues."""
-        return {'issues': self.issues}
+        return {"issues": self.issues}
 
     @property
     def is_ok(self):

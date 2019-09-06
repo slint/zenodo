@@ -33,11 +33,10 @@ from invenio_records_rest.query import es_search_factory as _es_search_factory
 
 def apply_version_filters(search, urlkwargs):
     """Apply record version filters to search."""
-    if request and 'all_versions' in request.values:
-        urlkwargs.add('all_versions', None)
+    if request and "all_versions" in request.values:
+        urlkwargs.add("all_versions", None)
     else:
-        search = search.filter(
-            Q('term', **{'relations.version.is_last': True}))
+        search = search.filter(Q("term", **{"relations.version.is_last": True}))
     return (search, urlkwargs)
 
 

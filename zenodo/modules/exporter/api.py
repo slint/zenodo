@@ -41,9 +41,16 @@ class Exporter(object):
     executes the export job.
     """
 
-    def __init__(self, index='records', pid_fetcher=None, query=None,
-                 resultstream_cls=ResultStream, search_cls=RecordsSearch,
-                 serializer=None, writer=None, ):
+    def __init__(
+        self,
+        index="records",
+        pid_fetcher=None,
+        query=None,
+        resultstream_cls=ResultStream,
+        search_cls=RecordsSearch,
+        serializer=None,
+        writer=None,
+    ):
         """Initialize exporter."""
         self._index = index
         self._pid_fetcher = pid_fetcher
@@ -58,15 +65,16 @@ class Exporter(object):
         """Get Elasticsearch search instance."""
         s = self._search_cls(index=self._index)
         if self._query:
-            s = s.query(Q('query_string', query=self._query))
+            s = s.query(Q("query_string", query=self._query))
         return s
 
     def run(self, progress_updater=None):
         """Run export job."""
         fp = self._writer.open()
         try:
-            fp.write(self._resultstream_cls(
-                self.search, self._pid_fetcher, self._serializer))
+            fp.write(
+                self._resultstream_cls(self.search, self._pid_fetcher, self._serializer)
+            )
         except FailedExportJobError as e:
             current_app.logger.exception(e.message)
             fp.close()

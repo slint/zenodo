@@ -43,32 +43,40 @@ def _today_offset(val):
 def test_update_embargoed_records(app, db, es):
     """Test update embargoed records."""
     records = [
-        Record.create({
-            'title': 'yesterday',
-            'access_right': 'embargoed',
-            'embargo_date': _today_offset(-1)
-        }),
-        Record.create({
-            'title': 'today',
-            'access_right': 'embargoed',
-            'embargo_date': _today_offset(0)
-        }),
-        Record.create({
-            'title': 'tomorrow',
-            'access_right': 'embargoed',
-            'embargo_date': _today_offset(1)
-        }),
-        Record.create({
-            'title': 'already open',
-            'access_right': 'open',
-            'embargo_date': _today_offset(-1)
-        })
+        Record.create(
+            {
+                "title": "yesterday",
+                "access_right": "embargoed",
+                "embargo_date": _today_offset(-1),
+            }
+        ),
+        Record.create(
+            {
+                "title": "today",
+                "access_right": "embargoed",
+                "embargo_date": _today_offset(0),
+            }
+        ),
+        Record.create(
+            {
+                "title": "tomorrow",
+                "access_right": "embargoed",
+                "embargo_date": _today_offset(1),
+            }
+        ),
+        Record.create(
+            {
+                "title": "already open",
+                "access_right": "open",
+                "embargo_date": _today_offset(-1),
+            }
+        ),
     ]
     db.session.commit()
     for r in records:
         RecordIndexer().index(r)
 
-    current_search.flush_and_refresh('records-record-v1.0.0')
+    current_search.flush_and_refresh("records-record-v1.0.0")
 
     res = AccessRight.get_expired_embargos()
     assert len(res) == 2
@@ -77,66 +85,78 @@ def test_update_embargoed_records(app, db, es):
 
     update_expired_embargos()
 
-    assert Record.get_record(records[0].id)['access_right'] == AccessRight.OPEN
-    assert Record.get_record(records[1].id)['access_right'] == AccessRight.OPEN
+    assert Record.get_record(records[0].id)["access_right"] == AccessRight.OPEN
+    assert Record.get_record(records[1].id)["access_right"] == AccessRight.OPEN
 
 
 def test_access_right():
     """Test basic access right features."""
-    for val in ['open', 'embargoed', 'restricted', 'closed']:
+    for val in ["open", "embargoed", "restricted", "closed"]:
         assert getattr(AccessRight, val.upper()) == val
         assert AccessRight.is_valid(val)
 
-    assert not AccessRight.is_valid('invalid')
+    assert not AccessRight.is_valid("invalid")
 
-    assert AccessRight.as_title(AccessRight.OPEN) == 'Open Access'
-    assert AccessRight.as_category(AccessRight.EMBARGOED) == 'warning'
+    assert AccessRight.as_title(AccessRight.OPEN) == "Open Access"
+    assert AccessRight.as_category(AccessRight.EMBARGOED) == "warning"
 
     options = AccessRight.as_options()
     assert isinstance(options, tuple)
-    assert options[0] == ('open', 'Open Access')
+    assert options[0] == ("open", "Open Access")
 
 
 def test_access_right_embargo():
     """Test access right embargo."""
-    assert AccessRight.get(AccessRight.OPEN) == 'open'
-    assert AccessRight.get(AccessRight.EMBARGOED) == 'embargoed'
+    assert AccessRight.get(AccessRight.OPEN) == "open"
+    assert AccessRight.get(AccessRight.EMBARGOED) == "embargoed"
     # Embargo just lifted today.
     today = datetime.utcnow().date()
 
-    assert AccessRight.get(
-        AccessRight.EMBARGOED, embargo_date=today) == 'open'
+    assert AccessRight.get(AccessRight.EMBARGOED, embargo_date=today) == "open"
     # Future embargo date.
-    assert AccessRight.get(
-        AccessRight.EMBARGOED, embargo_date=today+timedelta(days=1)) \
-        == 'embargoed'
+    assert (
+        AccessRight.get(AccessRight.EMBARGOED, embargo_date=today + timedelta(days=1))
+        == "embargoed"
+    )
 
     # Should work with strings as well
-    assert AccessRight.get(
-        AccessRight.EMBARGOED, embargo_date='1253-01-01') == AccessRight.OPEN
-    assert AccessRight.get(
-        AccessRight.EMBARGOED,
-        embargo_date=str(today+timedelta(days=1))) == AccessRight.EMBARGOED
+    assert (
+        AccessRight.get(AccessRight.EMBARGOED, embargo_date="1253-01-01")
+        == AccessRight.OPEN
+    )
+    assert (
+        AccessRight.get(
+            AccessRight.EMBARGOED, embargo_date=str(today + timedelta(days=1))
+        )
+        == AccessRight.EMBARGOED
+    )
 
 
 def test_object_type():
     """Test object type."""
-    types = ['publication', 'poster', 'presentation', 'software', 'dataset',
-             'image', 'video']
+    types = [
+        "publication",
+        "poster",
+        "presentation",
+        "software",
+        "dataset",
+        "image",
+        "video",
+    ]
 
     def _assert_obj(obj):
-        assert '$schema' in obj
-        assert 'id' in obj
-        assert 'internal_id' in obj
-        assert 'title' in obj
-        assert 'en' in obj['title']
-        assert 'title_plural' in obj
-        assert 'en' in obj['title_plural']
-        assert 'schema.org' in obj
-        for c in obj.get('children', []):
+        assert "$schema" in obj
+        assert "id" in obj
+        assert "internal_id" in obj
+        assert "title" in obj
+        assert "en" in obj["title"]
+        assert "title_plural" in obj
+        assert "en" in obj["title_plural"]
+        assert "schema.org" in obj
+        for c in obj.get("children", []):
             _assert_obj(c)
 
     for t in types:
         _assert_obj(ObjectType.get(t))
 
-    assert ObjectType.get('invalid') is None
+    assert ObjectType.get("invalid") is None

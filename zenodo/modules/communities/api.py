@@ -62,21 +62,18 @@ class ZenodoCommunity(object):
             Query for all communities if 'None'.
         """
         if not pid:
-            pid = PersistentIdentifier.get('recid', record['recid'])
+            pid = PersistentIdentifier.get("recid", record["recid"])
         pv = PIDVersioning(child=pid)
         if pv.exists:
-            sq = pv.children.with_entities(
-                PersistentIdentifier.object_uuid).subquery()
-            filter_cond = [
-                InclusionRequest.id_record.in_(sq),
-            ]
+            sq = pv.children.with_entities(PersistentIdentifier.object_uuid).subquery()
+            filter_cond = [InclusionRequest.id_record.in_(sq)]
             if community_id:
-                filter_cond.append(
-                    InclusionRequest.id_community == community_id)
-            q = (db.session.query(InclusionRequest).filter(*filter_cond))
+                filter_cond.append(InclusionRequest.id_community == community_id)
+            q = db.session.query(InclusionRequest).filter(*filter_cond)
         else:
             q = InclusionRequest.query.filter_by(id_record=record.id).order_by(
-                InclusionRequest.id_community)
+                InclusionRequest.id_community
+            )
         return q
 
     def get_comm_irs(self, record, pid=None):
@@ -84,10 +81,9 @@ class ZenodoCommunity(object):
 
         :rtype: BaseQuery
         """
-        return ZenodoCommunity.get_irs(
-            record, community_id=self.community.id, pid=pid)
+        return ZenodoCommunity.get_irs(record, community_id=self.community.id, pid=pid)
 
-    def has_record(self, record, pid=None, scope='any'):
+    def has_record(self, record, pid=None, scope="any"):
         """Check if record is in a community.
 
         :type scope: str
@@ -98,28 +94,28 @@ class ZenodoCommunity(object):
             * 'this': returns if the specified 'record' is in the community.
         """
         if not pid:
-            pid = PersistentIdentifier.get('recid', record['recid'])
+            pid = PersistentIdentifier.get("recid", record["recid"])
 
         pv = PIDVersioning(child=pid)
-        if scope == 'this':
+        if scope == "this":
             return self.community.has_record(record)
-        q = (self.community.has_record(
-                ZenodoRecord.get_record(p.get_assigned_object()))
-             for p in pv.children)
-        if scope == 'all':
+        q = (
+            self.community.has_record(ZenodoRecord.get_record(p.get_assigned_object()))
+            for p in pv.children
+        )
+        if scope == "all":
             return all(q)
-        if scope == 'any':
+        if scope == "any":
             return any(q)
 
     def add_record(self, record, pid=None):
         """Add a record and all of its versions to a community."""
         if not pid:
-            pid = PersistentIdentifier.get('recid', record['recid'])
+            pid = PersistentIdentifier.get("recid", record["recid"])
 
         pv = PIDVersioning(child=pid)
         for child in pv.children.all():
-            rec = ZenodoRecord.get_record(
-                child.get_assigned_object())
+            rec = ZenodoRecord.get_record(child.get_assigned_object())
             if not self.community.has_record(rec):
                 self.community.add_record(rec)
                 rec.commit()
@@ -132,17 +128,15 @@ class ZenodoCommunity(object):
         :type pid: invenio_pidstore.models.PersistentIdentifier
         """
         if not pid:
-            pid = PersistentIdentifier.get('recid', record['recid'])
+            pid = PersistentIdentifier.get("recid", record["recid"])
         with db.session.begin_nested():
             pending_q = self.get_comm_irs(record, pid=pid)
             if not pending_q.count():
-                raise InclusionRequestMissingError(community=self,
-                                                   record=record)
+                raise InclusionRequestMissingError(community=self, record=record)
 
             pv = PIDVersioning(child=pid)
             for child in pv.children.all():
-                rec = ZenodoRecord.get_record(
-                    child.get_assigned_object())
+                rec = ZenodoRecord.get_record(child.get_assigned_object())
                 self.community.add_record(rec)
                 rec.commit()
             pending_q.delete(synchronize_session=False)
@@ -153,7 +147,7 @@ class ZenodoCommunity(object):
         :type record: zenodo.modules.records.api.ZenodoRecord
         """
         if not pid:
-            pid = PersistentIdentifier.get('recid', record['recid'])
+            pid = PersistentIdentifier.get("recid", record["recid"])
         with db.session.begin_nested():
             pending_q = self.get_comm_irs(record, pid=pid)
             pending_q.delete(synchronize_session=False)
@@ -164,13 +158,12 @@ class ZenodoCommunity(object):
         :type record: zenodo.modules.records.api.ZenodoRecord
         """
         if not pid:
-            pid = PersistentIdentifier.get('recid', record['recid'])
+            pid = PersistentIdentifier.get("recid", record["recid"])
 
         with db.session.begin_nested():
             pv = PIDVersioning(child=pid)
             for child in pv.children.all():
-                rec = ZenodoRecord.get_record(
-                    child.get_assigned_object())
+                rec = ZenodoRecord.get_record(child.get_assigned_object())
                 if self.community.has_record(rec):
                     self.community.remove_record(rec)
                 rec.commit()

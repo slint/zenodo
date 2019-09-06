@@ -41,12 +41,12 @@ class ZenodoJSONSchemas(object):
     def init_app(self, app):
         """Flask application initialization."""
         self.init_config(app)
-        app.extensions['zenodo-jsonschemas'] = self
+        app.extensions["zenodo-jsonschemas"] = self
         app.cli.add_command(jsonschemas)
 
     @staticmethod
     def init_config(app):
         """Initialize configuration."""
         for k in dir(config):
-            if k.startswith('ZENODO_JSONSCHEMAS_'):
+            if k.startswith("ZENODO_JSONSCHEMAS_"):
                 app.config.setdefault(k, getattr(config, k))

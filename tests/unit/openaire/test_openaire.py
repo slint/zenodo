@@ -31,15 +31,14 @@ from zenodo.modules.openaire import current_openaire
 
 def test_openaire_type(app):
     """Test OpenAIRE type."""
-    assert set(current_openaire.inverse_openaire_community_map.keys()) == \
-        set(['c1', 'c2', 'c3'])
+    assert set(current_openaire.inverse_openaire_community_map.keys()) == set(
+        ["c1", "c2", "c3"]
+    )
 
-    assert set(current_openaire.inverse_openaire_community_map['c1']) == \
-        set(['foo', 'bar'])
-    assert set(current_openaire.inverse_openaire_community_map['c2']) == \
-        set(['foo'])
-    assert set(current_openaire.inverse_openaire_community_map['c3']) == \
-        set(['bar'])
+    assert set(current_openaire.inverse_openaire_community_map["c1"]) == set(
+        ["foo", "bar"]
+    )
+    assert set(current_openaire.inverse_openaire_community_map["c2"]) == set(["foo"])
+    assert set(current_openaire.inverse_openaire_community_map["c3"]) == set(["bar"])
 
-    assert set(current_openaire.openaire_communities.keys()) == \
-        set(['foo', 'bar'])
+    assert set(current_openaire.openaire_communities.keys()) == set(["foo", "bar"])

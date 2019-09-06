@@ -31,8 +31,7 @@ from flask import current_app, request
 from flask_mail import Message
 from ua_parser import user_agent_parser
 
-from zenodo.modules.records.serializers.fields.html import ALLOWED_ATTRS, \
-    ALLOWED_TAGS
+from zenodo.modules.records.serializers.fields.html import ALLOWED_ATTRS, ALLOWED_TAGS
 
 from .proxies import current_support_categories
 
@@ -49,13 +48,13 @@ def check_attachment_size(attachment_files):
         return False
     if request.content_length:
         file_size = int(request.content_length)
-        if file_size > current_app.config['SUPPORT_ATTACHMENT_MAX_SIZE']:
+        if file_size > current_app.config["SUPPORT_ATTACHMENT_MAX_SIZE"]:
             return False
     else:
         size = 0
         for f in attachment_files:
-            f.seek(current_app.config['SUPPORT_ATTACHMENT_MAX_SIZE'] - size)
-            if f.read(1) == '':
+            f.seek(current_app.config["SUPPORT_ATTACHMENT_MAX_SIZE"] - size)
+            if f.read(1) == "":
                 return False
             size += len(f)
     return True
@@ -64,41 +63,43 @@ def check_attachment_size(attachment_files):
 def format_user_email(email, name):
     """Format the user's email as 'Full Name <email>' or 'email'."""
     if name:
-        email = '{name} <{email}>'.format(name=name, email=email)
+        email = "{name} <{email}>".format(name=name, email=email)
     # Remove commas (',') since they mess with the "TO" email field
-    return email.replace(',', '')
+    return email.replace(",", "")
 
 
 def format_user_email_ctx(context):
     """Format the user's email from form context."""
     return format_user_email(
-        context.get('info', {}).get('email'),
-        context.get('info', {}).get('name', None)
+        context.get("info", {}).get("email"), context.get("info", {}).get("name", None)
     )
 
 
 def get_support_email_recipients(context):
     """Return recipients for the support email."""
-    issue_category = context.get('info', {}).get('issue_category')
+    issue_category = context.get("info", {}).get("issue_category")
     category_config = current_support_categories.get(issue_category, {})
     return category_config.get(
-        'recipients', current_app.config['SUPPORT_SUPPORT_EMAIL'])
+        "recipients", current_app.config["SUPPORT_SUPPORT_EMAIL"]
+    )
 
 
 def send_support_email(context):
     """Signal for sending emails after contact form validated."""
     sanitized_description = bleach.clean(
-            context['info']['description'],
-            tags=ALLOWED_TAGS,
-            attributes=ALLOWED_ATTRS,
-            strip=True,
-        ).strip()
-    context['info']['description'] = sanitized_description
+        context["info"]["description"],
+        tags=ALLOWED_TAGS,
+        attributes=ALLOWED_ATTRS,
+        strip=True,
+    ).strip()
+    context["info"]["description"] = sanitized_description
 
     msg_body = render_template_to_string(
-        current_app.config['SUPPORT_EMAIL_BODY_TEMPLATE'], context)
+        current_app.config["SUPPORT_EMAIL_BODY_TEMPLATE"], context
+    )
     msg_title = render_template_to_string(
-        current_app.config['SUPPORT_EMAIL_TITLE_TEMPLATE'], context)
+        current_app.config["SUPPORT_EMAIL_TITLE_TEMPLATE"], context
+    )
     sender = format_user_email_ctx(context)
     recipients = get_support_email_recipients(context)
 
@@ -106,36 +107,29 @@ def send_support_email(context):
         msg_title,
         sender=sender,
         recipients=recipients,
-        reply_to=context.get('info', {}).get('email'),
-        body=msg_body
+        reply_to=context.get("info", {}).get("email"),
+        body=msg_body,
     )
 
     attachments = request.files.getlist("attachments")
     if attachments:
         for upload in attachments:
-            msg.attach(upload.filename,
-                       'application/octet-stream',
-                       upload.read())
+            msg.attach(upload.filename, "application/octet-stream", upload.read())
 
-    current_app.extensions['mail'].send(msg)
+    current_app.extensions["mail"].send(msg)
 
 
 def send_confirmation_email(context):
     """Sending support confirmation email."""
     recipient = format_user_email_ctx(context)
     sender = format_user_email(
-        current_app.config['SUPPORT_SENDER_EMAIL'],
-        current_app.config['SUPPORT_SENDER_NAME']
+        current_app.config["SUPPORT_SENDER_EMAIL"],
+        current_app.config["SUPPORT_SENDER_NAME"],
     )
-    title = current_app.config['SUPPORT_EMAIL_CONFIRM_TITLE']
-    body = current_app.config['SUPPORT_EMAIL_CONFIRM_BODY']
-    msg = Message(
-        title,
-        body=body,
-        sender=sender,
-        recipients=[recipient, ],
-    )
-    current_app.extensions['mail'].send(msg)
+    title = current_app.config["SUPPORT_EMAIL_CONFIRM_TITLE"]
+    body = current_app.config["SUPPORT_EMAIL_CONFIRM_BODY"]
+    msg = Message(title, body=body, sender=sender, recipients=[recipient])
+    current_app.extensions["mail"].send(msg)
 
 
 def format_uap_info(info):
@@ -145,14 +139,12 @@ def format_uap_info(info):
     :returns: Return user agent parsed string.
     :rtype: str
     """
-    info_version = '.'.join(
-        [v for v in (info.get('major'), info.get('minor'),
-                     info.get('patch')) if v]
+    info_version = ".".join(
+        [v for v in (info.get("major"), info.get("minor"), info.get("patch")) if v]
     )
 
-    return '{info} {info_version}'.format(
-        info=info.get('family'),
-        info_version=info_version
+    return "{info} {info_version}".format(
+        info=info.get("family"), info_version=info_version
     )
 
 
@@ -163,13 +155,17 @@ def user_agent_information():
     :rtype: dict
     """
     uap = user_agent_parser.Parse(str(request.user_agent))
-    os = format_uap_info(uap.get('os'))
-    browser = format_uap_info(uap.get('user_agent'))
-    device = ' '.join(
-        [v for v in (
-            uap.get('device').get('family'),
-            uap.get('device').get('brand'),
-            uap.get('device').get('model')
-            ) if v]
+    os = format_uap_info(uap.get("os"))
+    browser = format_uap_info(uap.get("user_agent"))
+    device = " ".join(
+        [
+            v
+            for v in (
+                uap.get("device").get("family"),
+                uap.get("device").get("brand"),
+                uap.get("device").get("model"),
+            )
+            if v
+        ]
     )
     return dict(os=os, browser=browser, device=device)

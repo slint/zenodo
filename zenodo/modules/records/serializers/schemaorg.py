@@ -41,9 +41,9 @@ class ZenodoSchemaOrgSerializer(ZenodoJSONSerializer):
 
     @classmethod
     def _get_schema_class(self, obj):
-        data = obj['metadata']
-        obj_type = ObjectType.get_by_dict(data['resource_type'])
-        return getattr(schemas, obj_type['schema.org'][19:])
+        data = obj["metadata"]
+        obj_type = ObjectType.get_by_dict(data["resource_type"])
+        return getattr(schemas, obj_type["schema.org"][19:])
 
     def dump(self, obj, context=None):
         """Serialize object with schema."""

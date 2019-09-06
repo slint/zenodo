@@ -34,7 +34,7 @@ from invenio_sipstore.models import SIPMetadataType
 def loaddemorecords(records):
     """Load demo records."""
     for item in records:
-        import_record.delay(item, source_type='json'),
+        import_record.delay(item, source_type="json"),
 
 
 def loadsipmetadatatypes(types):

@@ -30,11 +30,11 @@ from six import BytesIO
 
 def test_basic_workflow(app, db, users, deposit):
     """Test simple deposit publishing workflow."""
-    with app.test_request_context(environ_base={'REMOTE_ADDR': '127.0.0.1'}):
-        datastore = app.extensions['security'].datastore
-        login_user(datastore.get_user(users[0]['email']))
-        deposit.files['one.txt'] = BytesIO(b'Test')
-        deposit.files['two.txt'] = BytesIO(b'Test2')
+    with app.test_request_context(environ_base={"REMOTE_ADDR": "127.0.0.1"}):
+        datastore = app.extensions["security"].datastore
+        login_user(datastore.get_user(users[0]["email"]))
+        deposit.files["one.txt"] = BytesIO(b"Test")
+        deposit.files["two.txt"] = BytesIO(b"Test2")
         deposit = deposit.publish()
         # Should create one SIP, one RecordSIP and two SIPFiles
         assert SIP.query.count() == 1
@@ -42,9 +42,9 @@ def test_basic_workflow(app, db, users, deposit):
         assert RecordSIP.query.count() == 1
         assert SIPFile.query.count() == 2
         sip = SIP.query.one()
-        assert sip.user_id == users[0]['id']
-        assert sip.agent['email'] == users[0]['email']
-        assert sip.agent['ip_address'] == '127.0.0.1'
+        assert sip.user_id == users[0]["id"]
+        assert sip.agent["email"] == users[0]["email"]
+        assert sip.agent["ip_address"] == "127.0.0.1"
         assert len(sip.sip_files) == 2
         assert sip.sip_files[0].sip_id == sip.id
         assert sip.sip_files[1].sip_id == sip.id
@@ -53,7 +53,7 @@ def test_basic_workflow(app, db, users, deposit):
         # but no new SIPFiles. This is under assumption that users cannot
         # upload new files to the already published deposit.
         deposit = deposit.edit()
-        deposit['title'] = 'New Title'
+        deposit["title"] = "New Title"
         deposit = deposit.publish()
 
         assert SIP.query.count() == 2
@@ -77,27 +77,31 @@ def test_programmatic_publish(app, db, deposit, deposit_file):
     sip = SIP.query.one()
     assert not sip.user_id
     assert sip.sip_metadata[0].content == json.dumps(record.dumps())
-    assert sip.sip_metadata[0].type.format == 'json'
-    assert sip.sip_metadata[0].type.name == 'json'
-    assert sip.sip_metadata[0].type.schema == \
-        'https://zenodo.org/schemas/records/record-v1.0.0.json'
+    assert sip.sip_metadata[0].type.format == "json"
+    assert sip.sip_metadata[0].type.name == "json"
+    assert (
+        sip.sip_metadata[0].type.schema
+        == "https://zenodo.org/schemas/records/record-v1.0.0.json"
+    )
     assert len(sip.record_sips) == 1
     assert sip.record_sips[0].pid_id == pid.id
     assert len(sip.agent) == 1  # Just the '$schema' key in agent info
-    assert sip.agent['$schema'] == \
-        'https://zenodo.org/schemas/sipstore/agent-webclient-v1.0.0.json'
+    assert (
+        sip.agent["$schema"]
+        == "https://zenodo.org/schemas/sipstore/agent-webclient-v1.0.0.json"
+    )
 
 
 def test_anonymous_request(app, db, deposit):
     """Test sip creation during an anonymous request."""
-    with app.test_request_context(environ_base={'REMOTE_ADDR': '127.0.0.1'}):
-        deposit.files['one.txt'] = BytesIO(b'Test')
-        deposit.files['two.txt'] = BytesIO(b'Test2')
+    with app.test_request_context(environ_base={"REMOTE_ADDR": "127.0.0.1"}):
+        deposit.files["one.txt"] = BytesIO(b"Test")
+        deposit.files["two.txt"] = BytesIO(b"Test2")
         deposit.publish()
         sip = SIP.query.one()
         assert sip.user_id is None
-        assert 'email' not in sip.agent
-        assert sip.agent['ip_address'] == '127.0.0.1'
+        assert "email" not in sip.agent
+        assert sip.agent["ip_address"] == "127.0.0.1"
         assert len(sip.sip_files) == 2
         assert sip.sip_files[0].sip_id == sip.id
         assert sip.sip_files[1].sip_id == sip.id

@@ -42,20 +42,25 @@ def test_minimal_json(app, db, minimal_record):
 def test_recid(app, minimal_record):
     """Test recid property."""
     # String instead of number
-    minimal_record['recid'] = '123'
+    minimal_record["recid"] = "123"
     pytest.raises(ValidationError, Record.create, minimal_record)
 
 
-@pytest.mark.parametrize(('val', 'passing'), [
-    ('publication', False),
-    ({'type': 'publication', 'subtype': 'x'}, True),
-    ({'type': 'publication', 'openaire_subtype': 'foo:t1'}, True),
-    ({'type': 'publication', 'subtype': 'book',
-      'openaire_subtype': 'foo:t1'}, True),
-])
+@pytest.mark.parametrize(
+    ("val", "passing"),
+    [
+        ("publication", False),
+        ({"type": "publication", "subtype": "x"}, True),
+        ({"type": "publication", "openaire_subtype": "foo:t1"}, True),
+        (
+            {"type": "publication", "subtype": "book", "openaire_subtype": "foo:t1"},
+            True,
+        ),
+    ],
+)
 def test_resource_type(app, db, minimal_record, val, passing):
     """Test resource type."""
-    minimal_record['resource_type'] = val
+    minimal_record["resource_type"] = val
     if passing:
         Record.create(minimal_record)
     else:
@@ -64,18 +69,18 @@ def test_resource_type(app, db, minimal_record, val, passing):
 
 def test_publication_date(app, db, minimal_record):
     """Test publication date."""
-    minimal_record['publication_date'] = datetime.utcnow().date().isoformat()
+    minimal_record["publication_date"] = datetime.utcnow().date().isoformat()
     Record.create(minimal_record)
 
 
 def test_contributors(app, db, minimal_record):
     """Test contributors."""
-    minimal_record['contributors'] = [
-        {'name': 'test', 'affiliation': 'test', 'type': 'ContactPerson'}
+    minimal_record["contributors"] = [
+        {"name": "test", "affiliation": "test", "type": "ContactPerson"}
     ]
     Record.create(minimal_record)
-    minimal_record['contributors'] = [
-        {'name': 'test', 'affiliation': 'test', 'type': 'Invalid'}
+    minimal_record["contributors"] = [
+        {"name": "test", "affiliation": "test", "type": "Invalid"}
     ]
     pytest.raises(ValidationError, Record.create, minimal_record)
 
@@ -83,8 +88,8 @@ def test_contributors(app, db, minimal_record):
 def test_identifier_schemes(app, db, minimal_record):
     """Test supported identifier schemes."""
     supported_schemes = [s for s, _ in idutils.PID_SCHEMES]
-    minimal_record['related_identifiers'] = [
-        {'scheme': scheme, 'relation': 'references', 'identifier': 'foobar'}
+    minimal_record["related_identifiers"] = [
+        {"scheme": scheme, "relation": "references", "identifier": "foobar"}
         for scheme in supported_schemes
     ]
     # JSONSchema validation should allow all supported schemes

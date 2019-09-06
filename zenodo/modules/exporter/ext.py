@@ -43,14 +43,14 @@ class InvenioExporter(object):
     def init_config(app):
         """Initialize configuration."""
         for k in dir(config):
-            if k.startswith('EXPORTER_'):
+            if k.startswith("EXPORTER_"):
                 app.config.setdefault(k, getattr(config, k))
 
     def init_app(self, app):
         """Flask application initialization."""
         self.init_config(app)
-        app.extensions['invenio-exporter'] = self
+        app.extensions["invenio-exporter"] = self
 
     def job(self, job_id):
         """Get export job definition."""
-        return current_app.config['EXPORTER_JOBS'].get(job_id, None)
+        return current_app.config["EXPORTER_JOBS"].get(job_id, None)

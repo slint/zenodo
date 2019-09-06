@@ -30,8 +30,8 @@ from flask_babelex import lazy_gettext as _
 from invenio_deposit.scopes import DepositScope
 
 extra_formats_scope = DepositScope(
-    'extra_formats',
-    help_text=_('Allow CRUD operations on extra formats files.'),
+    "extra_formats",
+    help_text=_("Allow CRUD operations on extra formats files."),
     internal=True,
 )
 """Allow CRUD operations on extra formats files."""

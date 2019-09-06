@@ -40,7 +40,8 @@ class ZenodoSupport(object):
     def categories(self):
         """Return support issue categories."""
         return OrderedDict(
-            (c['key'], c) for c in self.app.config['SUPPORT_ISSUE_CATEGORIES'])
+            (c["key"], c) for c in self.app.config["SUPPORT_ISSUE_CATEGORIES"]
+        )
 
     def __init__(self, app=None):
         """Extension initialization."""
@@ -51,7 +52,7 @@ class ZenodoSupport(object):
         """Flask application initialization."""
         self.app = app
         self.init_config(app)
-        app.extensions['zenodo-support'] = self
+        app.extensions["zenodo-support"] = self
 
     def init_config(self, app):
         """Flask application initialization."""

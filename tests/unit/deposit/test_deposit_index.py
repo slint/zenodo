@@ -40,43 +40,37 @@ from zenodo.modules.records.resolvers import record_resolver
 
 def test_deposit_index(db, es):
     """Test update embargoed records."""
-    deposit_index_name = 'deposits-records-record-v1.0.0'
-    rec1 = Record.create({
-        'title': 'One',
-        '_deposit': {
-            'status': 'published',
-            'pid': {
-                'type': 'recid',
-                'value': '1'
-            }
+    deposit_index_name = "deposits-records-record-v1.0.0"
+    rec1 = Record.create(
+        {
+            "title": "One",
+            "_deposit": {"status": "published", "pid": {"type": "recid", "value": "1"}},
         }
-    })
-    PersistentIdentifier.create(pid_type='recid', pid_value='1',
-                                status=PIDStatus.REGISTERED,
-                                object_uuid=rec1.id, object_type='rec')
-    Deposit.create({
-        '_deposit': {
-            'status': 'published',
-            'pid': {
-                'type': 'recid',
-                'value': '1'
-            }
-        }
-    })
+    )
+    PersistentIdentifier.create(
+        pid_type="recid",
+        pid_value="1",
+        status=PIDStatus.REGISTERED,
+        object_uuid=rec1.id,
+        object_type="rec",
+    )
+    Deposit.create(
+        {"_deposit": {"status": "published", "pid": {"type": "recid", "value": "1"}}}
+    )
     db.session.commit()
     current_search.flush_and_refresh(deposit_index_name)
     res = current_search.client.search(index=deposit_index_name)
     # Make sure the 'title' was indexed from record
-    assert res['hits']['hits'][0]['_source']['title'] == 'One'
+    assert res["hits"]["hits"][0]["_source"]["title"] == "One"
 
 
 def test_versioning_indexing(db, es, deposit, deposit_file):
     """Test the indexing of 'version' relations."""
-    deposit_index_name = 'deposits-records-record-v1.0.0'
-    records_index_name = 'records-record-v1.0.0'
+    deposit_index_name = "deposits-records-record-v1.0.0"
+    records_index_name = "records-record-v1.0.0"
 
     deposit_v1 = publish_and_expunge(db, deposit)
-    depid_v1_value = deposit_v1['_deposit']['id']
+    depid_v1_value = deposit_v1["_deposit"]["id"]
     recid_v1, record_v1 = deposit_v1.fetch_published()
     recid_v1_value = recid_v1.pid_value
 
@@ -84,14 +78,12 @@ def test_versioning_indexing(db, es, deposit, deposit_file):
     RecordIndexer().process_bulk_queue()
     current_search.flush_and_refresh(index=deposit_index_name)
     current_search.flush_and_refresh(index=records_index_name)
-    s_dep = current_search.client.search(
-        index=deposit_index_name)['hits']['hits']
-    s_rec = current_search.client.search(
-        index=records_index_name)['hits']['hits']
+    s_dep = current_search.client.search(index=deposit_index_name)["hits"]["hits"]
+    s_rec = current_search.client.search(index=records_index_name)["hits"]["hits"]
     assert len(s_dep) == 1
     assert len(s_rec) == 1
-    assert 'relations' in s_dep[0]['_source']
-    assert 'relations' in s_rec[0]['_source']
+    assert "relations" in s_dep[0]["_source"]
+    assert "relations" in s_rec[0]["_source"]
 
     expected = {
         "version": [
@@ -99,89 +91,61 @@ def test_versioning_indexing(db, es, deposit, deposit_file):
                 "draft_child_deposit": None,
                 "index": 0,
                 "is_last": True,
-                "last_child": {
-                    "pid_type": "recid",
-                    "pid_value": "2"
-                },
+                "last_child": {"pid_type": "recid", "pid_value": "2"},
                 "count": 1,
-                "parent": {
-                    "pid_type": "recid",
-                    "pid_value": "1"
-                },
+                "parent": {"pid_type": "recid", "pid_value": "1"},
             }
         ]
     }
-    assert s_dep[0]['_source']['relations'] == expected
-    assert s_rec[0]['_source']['relations'] == expected
+    assert s_dep[0]["_source"]["relations"] == expected
+    assert s_rec[0]["_source"]["relations"] == expected
 
     deposit_v1.newversion()
     pv = PIDVersioning(child=recid_v1)
     depid_v2 = pv.draft_child_deposit
     deposit_v2 = ZenodoDeposit.get_record(depid_v2.object_uuid)
-    deposit_v2.files['file.txt'] = BytesIO(b('file1'))
+    deposit_v2.files["file.txt"] = BytesIO(b("file1"))
     depid_v1, deposit_v1 = deposit_resolver.resolve(depid_v1_value)
 
     RecordIndexer().process_bulk_queue()
     current_search.flush_and_refresh(index=deposit_index_name)
     current_search.flush_and_refresh(index=records_index_name)
-    s_dep = current_search.client.search(
-        index=deposit_index_name)['hits']['hits']
-    s_rec = current_search.client.search(
-        index=records_index_name)['hits']['hits']
+    s_dep = current_search.client.search(index=deposit_index_name)["hits"]["hits"]
+    s_rec = current_search.client.search(index=records_index_name)["hits"]["hits"]
 
     assert len(s_dep) == 2  # Two deposits should be indexed
     assert len(s_rec) == 1  # One, since record does not exist yet
 
-    s_dep1 = current_search.client.get(
-        index=deposit_index_name, id=deposit_v1.id)
-    s_dep2 = current_search.client.get(
-        index=deposit_index_name, id=deposit_v2.id)
+    s_dep1 = current_search.client.get(index=deposit_index_name, id=deposit_v1.id)
+    s_dep2 = current_search.client.get(index=deposit_index_name, id=deposit_v2.id)
 
     expected_d1 = {
         "version": [
             {
-                "draft_child_deposit": {
-                    "pid_type": "depid",
-                    "pid_value": "3"
-                },
+                "draft_child_deposit": {"pid_type": "depid", "pid_value": "3"},
                 "index": 0,
                 "is_last": False,
-                "last_child": {
-                    "pid_type": "recid",
-                    "pid_value": "2"
-                },
-                "parent": {
-                    "pid_type": "recid",
-                    "pid_value": "1"
-                },
-                "count": 2  # For deposit, draft children are also counted
+                "last_child": {"pid_type": "recid", "pid_value": "2"},
+                "parent": {"pid_type": "recid", "pid_value": "1"},
+                "count": 2,  # For deposit, draft children are also counted
             }
         ]
     }
     expected_d2 = {
         "version": [
             {
-                "draft_child_deposit": {
-                    "pid_type": "depid",
-                    "pid_value": "3"
-                },
+                "draft_child_deposit": {"pid_type": "depid", "pid_value": "3"},
                 "index": 1,
                 "is_last": True,
-                "last_child": {
-                    "pid_type": "recid",
-                    "pid_value": "2"
-                },
+                "last_child": {"pid_type": "recid", "pid_value": "2"},
                 "count": 2,  # For deposit, draft children are also counted
-                "parent": {
-                    "pid_type": "recid",
-                    "pid_value": "1"
-                },
+                "parent": {"pid_type": "recid", "pid_value": "1"},
             }
         ]
     }
 
-    assert s_dep1['_source']['relations'] == expected_d1
-    assert s_dep2['_source']['relations'] == expected_d2
+    assert s_dep1["_source"]["relations"] == expected_d1
+    assert s_dep2["_source"]["relations"] == expected_d2
 
     deposit_v2 = publish_and_expunge(db, deposit_v2)
     recid_v2, record_v2 = deposit_v2.fetch_published()
@@ -193,22 +157,16 @@ def test_versioning_indexing(db, es, deposit, deposit_file):
     current_search.flush_and_refresh(index=deposit_index_name)
     current_search.flush_and_refresh(index=records_index_name)
 
-    s_dep = current_search.client.search(
-        index=deposit_index_name)['hits']['hits']
-    s_rec = current_search.client.search(
-        index=records_index_name)['hits']['hits']
+    s_dep = current_search.client.search(index=deposit_index_name)["hits"]["hits"]
+    s_rec = current_search.client.search(index=records_index_name)["hits"]["hits"]
     assert len(s_dep) == 2
     assert len(s_rec) == 2
 
-    s_dep1 = current_search.client.get(
-        index=deposit_index_name, id=deposit_v1.id)
-    s_dep2 = current_search.client.get(
-        index=deposit_index_name, id=deposit_v2.id)
+    s_dep1 = current_search.client.get(index=deposit_index_name, id=deposit_v1.id)
+    s_dep2 = current_search.client.get(index=deposit_index_name, id=deposit_v2.id)
 
-    s_rec1 = current_search.client.get(
-        index=records_index_name, id=record_v1.id)
-    s_rec2 = current_search.client.get(
-        index=records_index_name, id=record_v2.id)
+    s_rec1 = current_search.client.get(index=records_index_name, id=record_v1.id)
+    s_rec2 = current_search.client.get(index=records_index_name, id=record_v2.id)
 
     expected_d1 = {
         "version": [
@@ -216,15 +174,9 @@ def test_versioning_indexing(db, es, deposit, deposit_file):
                 "draft_child_deposit": None,
                 "index": 0,
                 "is_last": False,
-                "last_child": {
-                    "pid_type": "recid",
-                    "pid_value": "3"
-                },
-                "parent": {
-                    "pid_type": "recid",
-                    "pid_value": "1"
-                },
-                "count": 2
+                "last_child": {"pid_type": "recid", "pid_value": "3"},
+                "parent": {"pid_type": "recid", "pid_value": "1"},
+                "count": 2,
             }
         ]
     }
@@ -234,20 +186,14 @@ def test_versioning_indexing(db, es, deposit, deposit_file):
                 "draft_child_deposit": None,
                 "index": 1,
                 "is_last": True,
-                "last_child": {
-                    "pid_type": "recid",
-                    "pid_value": "3"
-                },
+                "last_child": {"pid_type": "recid", "pid_value": "3"},
                 "count": 2,
-                "parent": {
-                    "pid_type": "recid",
-                    "pid_value": "1"
-                },
+                "parent": {"pid_type": "recid", "pid_value": "1"},
             }
         ]
     }
-    assert s_dep1['_source']['relations'] == expected_d1
-    assert s_dep2['_source']['relations'] == expected_d2
+    assert s_dep1["_source"]["relations"] == expected_d1
+    assert s_dep2["_source"]["relations"] == expected_d2
 
     expected_r1 = {
         "version": [
@@ -255,15 +201,9 @@ def test_versioning_indexing(db, es, deposit, deposit_file):
                 "draft_child_deposit": None,
                 "index": 0,
                 "is_last": False,
-                "last_child": {
-                    "pid_type": "recid",
-                    "pid_value": "3"
-                },
-                "parent": {
-                    "pid_type": "recid",
-                    "pid_value": "1"
-                },
-                "count": 2
+                "last_child": {"pid_type": "recid", "pid_value": "3"},
+                "parent": {"pid_type": "recid", "pid_value": "1"},
+                "count": 2,
             }
         ]
     }
@@ -273,17 +213,11 @@ def test_versioning_indexing(db, es, deposit, deposit_file):
                 "draft_child_deposit": None,
                 "index": 1,
                 "is_last": True,
-                "last_child": {
-                    "pid_type": "recid",
-                    "pid_value": "3"
-                },
+                "last_child": {"pid_type": "recid", "pid_value": "3"},
                 "count": 2,
-                "parent": {
-                    "pid_type": "recid",
-                    "pid_value": "1"
-                },
+                "parent": {"pid_type": "recid", "pid_value": "1"},
             }
         ]
     }
-    assert s_rec1['_source']['relations'] == expected_r1
-    assert s_rec2['_source']['relations'] == expected_r2
+    assert s_rec1["_source"]["relations"] == expected_r1
+    assert s_rec2["_source"]["relations"] == expected_r2

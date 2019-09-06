@@ -41,16 +41,16 @@ class OpenAIRECommunitiesMappingUpdater:
     def _parse_line(self, line):
         community_id = line[0]
         community_name = line[1]
-        zenodo_communities = line[2].split(';') if len(line) == 3 else []
+        zenodo_communities = line[2].split(";") if len(line) == 3 else []
 
-        openaire_community = dict(id=community_id,
-                                  name=community_name,
-                                  communities=zenodo_communities)
+        openaire_community = dict(
+            id=community_id, name=community_name, communities=zenodo_communities
+        )
         return openaire_community
 
     @property
     def _communities_iterator(self):
-        with open(self.path, 'rb') as csv_file:
+        with open(self.path, "rb") as csv_file:
             csv_reader = csv.reader(csv_file)
             csv_reader.next()  # skip csv header
             for line in csv_reader:
@@ -58,31 +58,36 @@ class OpenAIRECommunitiesMappingUpdater:
 
     def update_communities_mapping(self):
         """Update communities mapping."""
-        mapping = current_app.config['ZENODO_OPENAIRE_COMMUNITIES']
+        mapping = current_app.config["ZENODO_OPENAIRE_COMMUNITIES"]
         unresolved_communities = []
 
         for openaire_community in self._communities_iterator:
             zenodo_community_ids = []
-            for zenodo_community in openaire_community.get('communities'):
+            for zenodo_community in openaire_community.get("communities"):
                 # search for the corresponding community in Zenodo
                 query = db.session.query(Community).filter(
-                    Community.title.like(zenodo_community + '%')
+                    Community.title.like(zenodo_community + "%")
                 )
                 comm = query.one_or_none()
                 if comm is not None:
                     zenodo_community_ids.append(comm.id)
                 else:
-                    unresolved_communities.append(dict(
-                        openaire_community=openaire_community['id'],
-                        zenodo_community=zenodo_community))
+                    unresolved_communities.append(
+                        dict(
+                            openaire_community=openaire_community["id"],
+                            zenodo_community=zenodo_community,
+                        )
+                    )
 
-            comm_id = openaire_community['id']
+            comm_id = openaire_community["id"]
             if mapping.get(comm_id):
-                mapping[comm_id]['name'] = openaire_community['name']
-                mapping[comm_id]['communities'] = zenodo_community_ids
+                mapping[comm_id]["name"] = openaire_community["name"]
+                mapping[comm_id]["communities"] = zenodo_community_ids
             else:
-                mapping[comm_id] = dict(name=openaire_community['name'],
-                                        communities=zenodo_community_ids,
-                                        types={})
+                mapping[comm_id] = dict(
+                    name=openaire_community["name"],
+                    communities=zenodo_community_ids,
+                    types={},
+                )
 
         return mapping, unresolved_communities

@@ -26,43 +26,48 @@
 
 from __future__ import absolute_import, print_function
 
-from .utils import merge_dicts, remove_keys, replace_schema_refs, \
-    resolve_schema_path, resolve_schema_url
+from .utils import (
+    merge_dicts,
+    remove_keys,
+    replace_schema_refs,
+    resolve_schema_path,
+    resolve_schema_url,
+)
 
 
 def _iter_all_of(schema):
     """Iterate over the items within schema 'allOf' definition at the root."""
-    if 'allOf' in schema:
-        for sub_schema_ref in schema['allOf']:
-            sub_schema_url = sub_schema_ref['$ref']
+    if "allOf" in schema:
+        for sub_schema_ref in schema["allOf"]:
+            sub_schema_url = sub_schema_ref["$ref"]
             sub_schema = resolve_schema_url(sub_schema_url)
             yield sub_schema
 
 
 def _compile_common(schema):
     """Compile common parts for record and deposit."""
-    id_ = schema['id']
-    title = schema['title']
+    id_ = schema["id"]
+    title = schema["title"]
     # We need to iter 'allOf' manually because jsonresolver
     # will not preserve ordering of subschema keys
     for sub_schema in _iter_all_of(schema):
         schema = merge_dicts(schema, sub_schema)
     schema = replace_schema_refs(schema)
-    if 'allOf' in schema:
-        del schema['allOf']
-    schema['id'] = id_
-    schema['title'] = title
+    if "allOf" in schema:
+        del schema["allOf"]
+    schema["id"] = id_
+    schema["title"] = title
     return schema
 
 
 def _compile_deposit_base(schema):
     """Compile the base deposition jsonschema."""
-    deposit_base_schema = schema['allOf'][0]
-    assert 'deposits/deposit' in deposit_base_schema['$ref']
-    base_dep_schema = resolve_schema_url(deposit_base_schema['$ref'])
-    del base_dep_schema['properties']['_files']
+    deposit_base_schema = schema["allOf"][0]
+    assert "deposits/deposit" in deposit_base_schema["$ref"]
+    base_dep_schema = resolve_schema_url(deposit_base_schema["$ref"])
+    del base_dep_schema["properties"]["_files"]
     schema = merge_dicts(base_dep_schema, schema)
-    schema['allOf'] = schema['allOf'][1:]
+    schema["allOf"] = schema["allOf"][1:]
     return schema
 
 
@@ -71,7 +76,7 @@ def compile_deposit_jsonschema(schema_path):
     schema = resolve_schema_path(schema_path)
     schema = _compile_deposit_base(schema)
     schema = _compile_common(schema)
-    schema['properties'] = remove_keys(schema['properties'], ['required', ])
+    schema["properties"] = remove_keys(schema["properties"], ["required"])
     return schema
 
 
@@ -80,5 +85,5 @@ def compile_record_jsonschema(schema_path):
     compiled = resolve_schema_path(schema_path)
     compiled = _compile_deposit_base(compiled)
     compiled = _compile_common(compiled)
-    del compiled['description']  # Description inherited from deposit
+    del compiled["description"]  # Description inherited from deposit
     return compiled

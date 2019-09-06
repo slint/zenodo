@@ -35,21 +35,21 @@ class DeleteSpamForm(Form):
     """Form for deleting spam."""
 
     remove_all_communities = BooleanField(
-        _('Remove the user communities?'),
+        _("Remove the user communities?"),
         default=True,
-        description=_('Will remove all communities owned by the user.'),
+        description=_("Will remove all communities owned by the user."),
     )
 
     remove_all_records = BooleanField(
-        _('Remove all user records?'),
+        _("Remove all user records?"),
         default=True,
-        description=_('Will remove all records owned by the user.'),
+        description=_("Will remove all records owned by the user."),
     )
 
     deactivate_user = BooleanField(
-        _('Deactivate the user account?'),
+        _("Deactivate the user account?"),
         default=True,
-        description=_('Will deactivate the user account.'),
+        description=_("Will deactivate the user account."),
     )
 
     delete = SubmitField(_("Permanently delete"))

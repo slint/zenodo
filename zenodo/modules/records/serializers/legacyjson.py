@@ -35,14 +35,20 @@ from .json import ZenodoJSONSerializer
 class LegacyJSONSerializer(ZenodoJSONSerializer):
     """Legacy JSON Serializer."""
 
-    def serialize_search(self, pid_fetcher, search_result, links=None,
-                         item_links_factory=None):
+    def serialize_search(
+        self, pid_fetcher, search_result, links=None, item_links_factory=None
+    ):
         """Serialize as a json array."""
-        return json.dumps([self.transform_search_hit(
-            pid_fetcher(hit['_id'], hit['_source']),
-            hit,
-            links_factory=item_links_factory,
-        ) for hit in search_result['hits']['hits']])
+        return json.dumps(
+            [
+                self.transform_search_hit(
+                    pid_fetcher(hit["_id"], hit["_source"]),
+                    hit,
+                    links_factory=item_links_factory,
+                )
+                for hit in search_result["hits"]["hits"]
+            ]
+        )
 
 
 class DepositLegacyJSONSerializer(LegacyJSONSerializer):
@@ -57,5 +63,5 @@ class DepositLegacyJSONSerializer(LegacyJSONSerializer):
             pid, record, links_factory=links_factory
         )
         if isinstance(record, Record):
-            result['files'] = record.files.dumps()
+            result["files"] = record.files.dumps()
         return result

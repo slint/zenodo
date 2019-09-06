@@ -33,10 +33,9 @@ from pkg_resources import resource_stream, resource_string
 
 def read_json(path):
     """Retrieve JSON from package resource."""
-    return json.loads(
-        resource_string('zenodo.modules.fixtures', path).decode('utf8'))
+    return json.loads(resource_string("zenodo.modules.fixtures", path).decode("utf8"))
 
 
 def file_stream(path):
     """Retrieve JSON from package resource."""
-    return resource_stream('zenodo.modules.fixtures', path)
+    return resource_stream("zenodo.modules.fixtures", path)

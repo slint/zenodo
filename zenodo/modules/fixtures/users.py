@@ -36,24 +36,19 @@ from invenio_db import db
 def loaduser(user_data):
     """Load a single user to Zenodo from JSON fixture."""
     kwargs = {
-        'email': user_data['email'],
-        'password': hash_password(user_data['password']),
-        'active': user_data.get('active', True)
+        "email": user_data["email"],
+        "password": hash_password(user_data["password"]),
+        "active": user_data.get("active", True),
     }
 
-    datastore = current_app.extensions['security'].datastore
+    datastore = current_app.extensions["security"].datastore
     datastore.create_user(**kwargs)
     db.session.commit()
-    user = User.query.filter_by(email=user_data['email']).one()
-    actions = current_app.extensions['invenio-access'].actions
-    actionusers_f = {
-        'allow': ActionUsers.allow,
-        'deny': ActionUsers.deny,
-    }
+    user = User.query.filter_by(email=user_data["email"]).one()
+    actions = current_app.extensions["invenio-access"].actions
+    actionusers_f = {"allow": ActionUsers.allow, "deny": ActionUsers.deny}
     # e.g. [('allow', 'admin-access'), ]
-    for action_type, action_name in user_data.get('access', []):
+    for action_type, action_name in user_data.get("access", []):
         action = actions[action_name]
-        db.session.add(
-            actionusers_f[action_type](action, user_id=user.id)
-        )
+        db.session.add(actionusers_f[action_type](action, user_id=user.id))
     db.session.commit()

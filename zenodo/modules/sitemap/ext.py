@@ -45,7 +45,7 @@ class ZenodoSitemap(object):
         self.app = app
         self.init_config(app)
         self.generators = [fn for fn in generator_fns]
-        app.extensions['zenodo-sitemap'] = self
+        app.extensions["zenodo-sitemap"] = self
         # Keep the currently stored sitemap cache keys for easy clearing
         self.cache_keys = set()
 
@@ -69,7 +69,7 @@ class ZenodoSitemap(object):
     def init_config(app):
         """Initialize configuration."""
         for k in dir(config):
-            if k.startswith('ZENODO_SITEMAP_'):
+            if k.startswith("ZENODO_SITEMAP_"):
                 app.config.setdefault(k, getattr(config, k))
 
     def _generate_all_urls(self):

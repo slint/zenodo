@@ -41,42 +41,49 @@ def _sitemapdtformat(dt):
     UTC designator 'Z'. See more information at
     https://www.w3.org/TR/NOTE-datetime.
     """
-    adt = arrow.Arrow.fromdatetime(dt).to('utc')
-    return adt.format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    adt = arrow.Arrow.fromdatetime(dt).to("utc")
+    return adt.format("YYYY-MM-DDTHH:mm:ss") + "Z"
 
 
 def records_generator():
     """Generate the records links."""
-    q = (db.session.query(PersistentIdentifier, RecordMetadata)
-         .join(RecordMetadata,
-               RecordMetadata.id == PersistentIdentifier.object_uuid)
-         .filter(PersistentIdentifier.status == PIDStatus.REGISTERED,
-                 PersistentIdentifier.pid_type == 'recid'))
+    q = (
+        db.session.query(PersistentIdentifier, RecordMetadata)
+        .join(RecordMetadata, RecordMetadata.id == PersistentIdentifier.object_uuid)
+        .filter(
+            PersistentIdentifier.status == PIDStatus.REGISTERED,
+            PersistentIdentifier.pid_type == "recid",
+        )
+    )
 
-    scheme = current_app.config['ZENODO_SITEMAP_URL_SCHEME']
+    scheme = current_app.config["ZENODO_SITEMAP_URL_SCHEME"]
     for pid, rm in q.yield_per(1000):
         yield {
-            'loc': url_for('invenio_records_ui.recid', pid_value=pid.pid_value,
-                           _external=True, _scheme=scheme),
-            'lastmod': _sitemapdtformat(rm.updated)
+            "loc": url_for(
+                "invenio_records_ui.recid",
+                pid_value=pid.pid_value,
+                _external=True,
+                _scheme=scheme,
+            ),
+            "lastmod": _sitemapdtformat(rm.updated),
         }
 
 
 def communities_generator():
     """Generate the communities links."""
     q = Community.query.filter(Community.deleted_at.is_(None))
-    scheme = current_app.config['ZENODO_SITEMAP_URL_SCHEME']
+    scheme = current_app.config["ZENODO_SITEMAP_URL_SCHEME"]
     for comm in q.yield_per(1000):
-        for endpoint in 'detail', 'search', 'about':
+        for endpoint in "detail", "search", "about":
             yield {
-                'loc': url_for('invenio_communities.{}'.format(endpoint),
-                               community_id=comm.id, _external=True,
-                               _scheme=scheme),
-                'lastmod': _sitemapdtformat(comm.updated)
+                "loc": url_for(
+                    "invenio_communities.{}".format(endpoint),
+                    community_id=comm.id,
+                    _external=True,
+                    _scheme=scheme,
+                ),
+                "lastmod": _sitemapdtformat(comm.updated),
             }
 
 
-generator_fns = [
-    records_generator,
-    communities_generator,
-]
+generator_fns = [records_generator, communities_generator]

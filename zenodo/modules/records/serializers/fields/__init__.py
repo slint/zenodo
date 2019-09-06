@@ -35,12 +35,12 @@ from .sanitizedurl import SanitizedUrl
 from .trimmedstring import TrimmedString
 
 __all__ = (
-    'DateString',
-    'DOI',
-    'DOILink',
-    'PersistentId',
-    'SanitizedHTML',
-    'SanitizedUnicode',
-    'SanitizedUrl',
-    'TrimmedString',
+    "DateString",
+    "DOI",
+    "DOILink",
+    "PersistentId",
+    "SanitizedHTML",
+    "SanitizedUnicode",
+    "SanitizedUrl",
+    "TrimmedString",
 )

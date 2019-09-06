@@ -30,6 +30,7 @@ from werkzeug.local import LocalProxy
 
 def _get_current_openaire():
     """Return current state of the OpenAIRE extension."""
-    return current_app.extensions['zenodo-openaire']
+    return current_app.extensions["zenodo-openaire"]
+
 
 current_openaire = LocalProxy(_get_current_openaire)

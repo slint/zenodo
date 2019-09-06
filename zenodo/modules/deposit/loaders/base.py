@@ -35,6 +35,7 @@ from ..errors import MarshmallowErrors
 
 def json_loader(pre_validator=None, post_validator=None, translator=None):
     """Basic JSON loader with translation and pre/post validation support."""
+
     def loader(data=None):
         data = data or request.json
 
@@ -46,39 +47,42 @@ def json_loader(pre_validator=None, post_validator=None, translator=None):
             post_validator(data)
 
         return data
+
     return loader
 
 
 def marshmallow_loader(schema_class, **kwargs):
     """Basic marshmallow loader generator."""
+
     def translator(data):
         # Replace refs when we are in request context.
         context = dict(replace_refs=has_request_context())
 
         # DOI validation context
-        if request and request.view_args.get('pid_value'):
-            managed_prefix = current_app.config['PIDSTORE_DATACITE_DOI_PREFIX']
-            _, record = request.view_args.get('pid_value').data
+        if request and request.view_args.get("pid_value"):
+            managed_prefix = current_app.config["PIDSTORE_DATACITE_DOI_PREFIX"]
+            _, record = request.view_args.get("pid_value").data
 
-            context['recid'] = record['recid']
-            if record.has_minted_doi() or record.get('conceptdoi'):
+            context["recid"] = record["recid"]
+            if record.has_minted_doi() or record.get("conceptdoi"):
                 # if record has Zenodo DOI it's not allowed to change
-                context['required_doi'] = record['doi']
+                context["required_doi"] = record["doi"]
             elif not record.is_published():
-                context['allowed_dois'] = [doi_generator(record['recid'])]
-            if record.is_published() or record.get('conceptdoi'):
-                # if the record is published or this is a new version 
+                context["allowed_dois"] = [doi_generator(record["recid"])]
+            if record.is_published() or record.get("conceptdoi"):
+                # if the record is published or this is a new version
                 # of a published record then the DOI is required
-                context['doi_required'] = True
-                data.setdefault('metadata', {})
-                if 'doi' not in data['metadata']:
+                context["doi_required"] = True
+                data.setdefault("metadata", {})
+                if "doi" not in data["metadata"]:
                     # if the payload doesn't contain the DOI field
                     #  for the record keep the existing one
-                    data['metadata']['doi'] = record['doi']
+                    data["metadata"]["doi"] = record["doi"]
 
-            context['managed_prefixes'] = [managed_prefix]
-            context['banned_prefixes'] = \
-                ['10.5072'] if managed_prefix != '10.5072' else []
+            context["managed_prefixes"] = [managed_prefix]
+            context["banned_prefixes"] = (
+                ["10.5072"] if managed_prefix != "10.5072" else []
+            )
 
         # Extra context
         context.update(kwargs)
@@ -88,4 +92,5 @@ def marshmallow_loader(schema_class, **kwargs):
         if result.errors:
             raise MarshmallowErrors(result.errors)
         return result.data
+
     return translator

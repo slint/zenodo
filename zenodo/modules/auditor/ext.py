@@ -37,4 +37,4 @@ class ZenodoAuditor(object):
 
     def init_app(self, app):
         """Flask application initialization."""
-        app.extensions['zenodo-auditor'] = self
+        app.extensions["zenodo-auditor"] = self

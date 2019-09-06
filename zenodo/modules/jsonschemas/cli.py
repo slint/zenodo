@@ -64,9 +64,11 @@ def compile_common_cli(output_file, default_file, compile_fun, schema_paths):
     compiled_schema = compile_fun(schema_path_src)
     if default_file:
         abs_schema_path = get_abs_schema_path(schema_path_dst)
-        if click.confirm('This will overwrite the jsonschema in this'
-                         ' repository ({}). Continue?'.format(abs_schema_path),
-                         default=True):
+        if click.confirm(
+            "This will overwrite the jsonschema in this"
+            " repository ({}). Continue?".format(abs_schema_path),
+            default=True,
+        ):
             save_jsonschema(compiled_schema, abs_schema_path)
     elif output_file:
         save_jsonschema(compiled_schema, output_file)
@@ -74,23 +76,29 @@ def compile_common_cli(output_file, default_file, compile_fun, schema_paths):
         click.echo(json.dumps(compiled_schema, indent=2))
 
 
-@jsonschemas.command('compilerecord')
-@click.option('--output_file', '-f', type=click.Path(exists=False,
-              dir_okay=False))
-@click.option('--default_file', '-d', is_flag=True, default=False)
+@jsonschemas.command("compilerecord")
+@click.option("--output_file", "-f", type=click.Path(exists=False, dir_okay=False))
+@click.option("--default_file", "-d", is_flag=True, default=False)
 @with_appcontext
 def compile_record_cli(output_file, default_file):
     """Compile Zenodo record jsonschema."""
-    compile_common_cli(output_file, default_file, compile_record_jsonschema,
-                       current_app.config['ZENODO_JSONSCHEMAS_RECORD_SCHEMA'])
+    compile_common_cli(
+        output_file,
+        default_file,
+        compile_record_jsonschema,
+        current_app.config["ZENODO_JSONSCHEMAS_RECORD_SCHEMA"],
+    )
 
 
-@jsonschemas.command('compiledeposit')
-@click.option('--output_file', '-f', type=click.Path(exists=False,
-              dir_okay=False))
-@click.option('--default_file', '-d', is_flag=True, default=False)
+@jsonschemas.command("compiledeposit")
+@click.option("--output_file", "-f", type=click.Path(exists=False, dir_okay=False))
+@click.option("--default_file", "-d", is_flag=True, default=False)
 @with_appcontext
 def compile_deposit_cli(output_file, default_file):
     """Compile Zenodo deposit jsonschema."""
-    compile_common_cli(output_file, default_file, compile_deposit_jsonschema,
-                       current_app.config['ZENODO_JSONSCHEMAS_DEPOSIT_SCHEMA'])
+    compile_common_cli(
+        output_file,
+        default_file,
+        compile_deposit_jsonschema,
+        current_app.config["ZENODO_JSONSCHEMAS_DEPOSIT_SCHEMA"],
+    )

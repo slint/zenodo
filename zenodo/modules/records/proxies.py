@@ -27,8 +27,8 @@
 from flask import current_app
 from werkzeug.local import LocalProxy
 
-current_zenodo_records = LocalProxy(
-    lambda: current_app.extensions['zenodo-records'])
+current_zenodo_records = LocalProxy(lambda: current_app.extensions["zenodo-records"])
 
 current_custom_metadata = LocalProxy(
-    lambda: current_app.extensions['zenodo-records'].custom_metadata)
+    lambda: current_app.extensions["zenodo-records"].custom_metadata
+)

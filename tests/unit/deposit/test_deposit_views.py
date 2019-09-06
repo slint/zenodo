@@ -46,13 +46,16 @@ def test_deposit_ui_login(app, app_client, deposit, deposit_file, users):
     """Test login on deposit views."""
     with app.test_request_context():
         record_url = url_for(
-            'invenio_records_ui.recid', pid_value=deposit['_deposit']['id'])
+            "invenio_records_ui.recid", pid_value=deposit["_deposit"]["id"]
+        )
         delete_url = url_for(
-            'zenodo_deposit.delete', pid_value=deposit['_deposit']['id'])
+            "zenodo_deposit.delete", pid_value=deposit["_deposit"]["id"]
+        )
         deposit_url = url_for(
-            'invenio_deposit_ui.depid', pid_value=deposit['_deposit']['id'])
-        new_url = url_for('invenio_deposit_ui.new')
-        index_url = url_for('invenio_deposit_ui.index')
+            "invenio_deposit_ui.depid", pid_value=deposit["_deposit"]["id"]
+        )
+        new_url = url_for("invenio_deposit_ui.new")
+        index_url = url_for("invenio_deposit_ui.index")
 
     # Unauthenticated users
     assert app_client.get(index_url).status_code == 302
@@ -64,7 +67,7 @@ def test_deposit_ui_login(app, app_client, deposit, deposit_file, users):
     assert app_client.post(record_url).status_code == 302
 
     # Login user NOT owner of deposit
-    login_user_via_session(app_client, email=users[1]['email'])
+    login_user_via_session(app_client, email=users[1]["email"])
 
     # Can list deposits, create new, and view record.
     assert app_client.get(index_url).status_code == 200
@@ -77,16 +80,16 @@ def test_deposit_ui_login(app, app_client, deposit, deposit_file, users):
     assert app_client.get(delete_url).status_code == 403
 
     # Login owner of deposit
-    login_user_via_session(app_client, email=users[0]['email'])
+    login_user_via_session(app_client, email=users[0]["email"])
 
     # - can view deposit or put record in edit mode
     res = app_client.post(record_url)
     assert res.status_code == 302
-    assert 'login' not in res.location
+    assert "login" not in res.location
     assert app_client.get(deposit_url).status_code == 200
     assert app_client.get(delete_url).status_code == 403
 
-    login_user_via_session(app_client, email=users[2]['email'])
+    login_user_via_session(app_client, email=users[2]["email"])
     # assert app_client.get(delete_url).status_code == 200
 
 
@@ -94,11 +97,14 @@ def test_tombstone(app, app_client, deposit, deposit_file, users):
     """Test tombstone for edit pages."""
     with app.test_request_context():
         record_url = url_for(
-            'invenio_records_ui.recid', pid_value=deposit['_deposit']['id'])
+            "invenio_records_ui.recid", pid_value=deposit["_deposit"]["id"]
+        )
         deposit_url = url_for(
-            'invenio_deposit_ui.depid', pid_value=deposit['_deposit']['id'])
+            "invenio_deposit_ui.depid", pid_value=deposit["_deposit"]["id"]
+        )
         delete_url = url_for(
-            'zenodo_deposit.delete', pid_value=deposit['_deposit']['id'])
+            "zenodo_deposit.delete", pid_value=deposit["_deposit"]["id"]
+        )
 
     deposit.publish()
     recid, record = deposit.fetch_published()
@@ -108,18 +114,17 @@ def test_tombstone(app, app_client, deposit, deposit_file, users):
     assert app_client.post(record_url).status_code == 302
     assert app_client.get(delete_url).status_code == 302
     assert app_client.get(deposit_url).status_code == 410
-    login_user_via_session(app_client, email=users[0]['email'])
+    login_user_via_session(app_client, email=users[0]["email"])
     assert app_client.post(record_url).status_code == 410
     assert app_client.get(deposit_url).status_code == 410
     assert app_client.get(delete_url).status_code == 410
-    login_user_via_session(app_client, email=users[2]['email'])
+    login_user_via_session(app_client, email=users[2]["email"])
     assert app_client.get(delete_url).status_code == 410
 
 
 def test_record_delete(mocker, app, db, users, deposit, deposit_file):
     """Delete the record with a single version."""
-    dc_mock = mocker.patch(
-        'invenio_pidstore.providers.datacite.DataCiteMDSClient')
+    dc_mock = mocker.patch("invenio_pidstore.providers.datacite.DataCiteMDSClient")
     deposit = publish_and_expunge(db, deposit)
     recid, record = deposit.fetch_published()
     # Stash a copy of record metadata for later
@@ -130,29 +135,28 @@ def test_record_delete(mocker, app, db, users, deposit, deposit_file):
     assert dc_mock().metadata_delete.call_count == 0
 
     # users[0] is not an Admin but it doesn't matter in this case.
-    delete_record(record.id, 'spam', users[0]['id'])
+    delete_record(record.id, "spam", users[0]["id"])
 
     # Make sure all PIDs are deleted
     # TODO: oai PID is left registered
     # assert PID.get('oai', rec['_oai']['id']) == PIDStatus.DELETED
-    assert PID.get('doi', rec['doi']).status == PIDStatus.DELETED
-    assert PID.get('doi', rec['conceptdoi']).status == PIDStatus.DELETED
-    assert PID.get('recid', rec['recid']).status == PIDStatus.DELETED
-    assert PID.get('recid', rec['conceptrecid']).status == PIDStatus.DELETED
-    assert PID.get('depid', rec['_deposit']['id']).status == PIDStatus.DELETED
+    assert PID.get("doi", rec["doi"]).status == PIDStatus.DELETED
+    assert PID.get("doi", rec["conceptdoi"]).status == PIDStatus.DELETED
+    assert PID.get("recid", rec["recid"]).status == PIDStatus.DELETED
+    assert PID.get("recid", rec["conceptrecid"]).status == PIDStatus.DELETED
+    assert PID.get("depid", rec["_deposit"]["id"]).status == PIDStatus.DELETED
 
     assert dc_mock().metadata_delete.call_count == 2
-    dc_mock().metadata_delete.assert_any_call('10.5072/zenodo.1')
-    dc_mock().metadata_delete.assert_any_call('10.5072/zenodo.2')
+    dc_mock().metadata_delete.assert_any_call("10.5072/zenodo.1")
+    dc_mock().metadata_delete.assert_any_call("10.5072/zenodo.2")
     record = Record.get_record(record_uuid)
-    assert record['removed_by'] == users[0]['id']
-    assert record['removal_reason'] == 'Spam record, removed by Zenodo staff.'
+    assert record["removed_by"] == users[0]["id"]
+    assert record["removal_reason"] == "Spam record, removed by Zenodo staff."
 
 
 def test_record_delete_v1(mocker, app, db, users, deposit, deposit_file):
     """Delete a record with multiple versions."""
-    dc_mock = mocker.patch(
-        'invenio_pidstore.providers.datacite.DataCiteMDSClient')
+    dc_mock = mocker.patch("invenio_pidstore.providers.datacite.DataCiteMDSClient")
     deposit_v1 = publish_and_expunge(db, deposit)
     recid_v1, record_v1 = deposit.fetch_published()
     recid_v1_value = recid_v1.pid_value
@@ -166,7 +170,7 @@ def test_record_delete_v1(mocker, app, db, users, deposit, deposit_file):
     pv = PIDVersioning(child=recid_v1)
     depid_v2 = pv.draft_child_deposit
     deposit_v2 = ZenodoDeposit.get_record(depid_v2.get_assigned_object())
-    deposit_v2.files['file.txt'] = BytesIO(b('file1'))
+    deposit_v2.files["file.txt"] = BytesIO(b("file1"))
     deposit_v2 = publish_and_expunge(db, deposit_v2)
     recid_v2, record_v2 = deposit_v2.fetch_published()
 
@@ -176,41 +180,39 @@ def test_record_delete_v1(mocker, app, db, users, deposit, deposit_file):
     assert dc_mock().metadata_delete.call_count == 0
 
     # Remove the first version
-    delete_record(rec1_id, 'spam', users[0]['id'])
+    delete_record(rec1_id, "spam", users[0]["id"])
 
     # Make sure all PIDs are deleted
-    assert PID.get('doi', rec1['doi']).status == PIDStatus.DELETED
-    assert PID.get('doi', rec1['conceptdoi']).status == PIDStatus.REGISTERED
-    assert PID.get('recid', rec1['recid']).status == PIDStatus.DELETED
+    assert PID.get("doi", rec1["doi"]).status == PIDStatus.DELETED
+    assert PID.get("doi", rec1["conceptdoi"]).status == PIDStatus.REGISTERED
+    assert PID.get("recid", rec1["recid"]).status == PIDStatus.DELETED
 
     # Make sure conceptrecid is redirecting to v2 (as before)
-    crecid = PID.get('recid', rec1['conceptrecid'])
-    assert crecid.get_redirect() == PID.get('recid', rec2['recid'])
+    crecid = PID.get("recid", rec1["conceptrecid"])
+    assert crecid.get_redirect() == PID.get("recid", rec2["recid"])
     assert crecid.status == PIDStatus.REDIRECTED
-    assert PID.get('depid', rec1['_deposit']['id']).status == PIDStatus.DELETED
+    assert PID.get("depid", rec1["_deposit"]["id"]).status == PIDStatus.DELETED
 
     # Make sure the v2 PIDs are kept intact
-    assert PID.get('oai', rec2['_oai']['id']).status == PIDStatus.REGISTERED
-    assert PID.get('doi', rec2['doi']).status == PIDStatus.REGISTERED
-    assert PID.get('recid', rec2['recid']).status == PIDStatus.REGISTERED
-    assert PID.get('depid', rec2['_deposit']['id']).status == \
-        PIDStatus.REGISTERED
+    assert PID.get("oai", rec2["_oai"]["id"]).status == PIDStatus.REGISTERED
+    assert PID.get("doi", rec2["doi"]).status == PIDStatus.REGISTERED
+    assert PID.get("recid", rec2["recid"]).status == PIDStatus.REGISTERED
+    assert PID.get("depid", rec2["_deposit"]["id"]).status == PIDStatus.REGISTERED
 
     # Only the v1 DOI should be deleted
     assert dc_mock().doi_post.call_count == 2
-    assert dc_mock().doi_post.has_any_call('10.5072/zenodo.3')
-    assert dc_mock().doi_post.has_any_call('10.5072/zenodo.1')
+    assert dc_mock().doi_post.has_any_call("10.5072/zenodo.3")
+    assert dc_mock().doi_post.has_any_call("10.5072/zenodo.1")
     assert dc_mock().metadata_delete.call_count == 1
-    dc_mock().metadata_delete.assert_any_call('10.5072/zenodo.2')
+    dc_mock().metadata_delete.assert_any_call("10.5072/zenodo.2")
     record = Record.get_record(rec1_id)
-    assert record['removed_by'] == users[0]['id']
-    assert record['removal_reason'] == 'Spam record, removed by Zenodo staff.'
+    assert record["removed_by"] == users[0]["id"]
+    assert record["removal_reason"] == "Spam record, removed by Zenodo staff."
 
 
 def test_record_delete_v2(mocker, app, db, users, deposit, deposit_file):
     """Delete a record (only last version) with multiple versions."""
-    dc_mock = mocker.patch(
-        'invenio_pidstore.providers.datacite.DataCiteMDSClient')
+    dc_mock = mocker.patch("invenio_pidstore.providers.datacite.DataCiteMDSClient")
     deposit_v1 = publish_and_expunge(db, deposit)
     recid_v1, record_v1 = deposit.fetch_published()
     recid_v1_value = recid_v1.pid_value
@@ -223,7 +225,7 @@ def test_record_delete_v2(mocker, app, db, users, deposit, deposit_file):
     pv = PIDVersioning(child=recid_v1)
     depid_v2 = pv.draft_child_deposit
     deposit_v2 = ZenodoDeposit.get_record(depid_v2.get_assigned_object())
-    deposit_v2.files['file.txt'] = BytesIO(b('file1'))
+    deposit_v2.files["file.txt"] = BytesIO(b("file1"))
     deposit_v2 = publish_and_expunge(db, deposit_v2)
     recid_v2, record_v2 = deposit_v2.fetch_published()
 
@@ -234,49 +236,47 @@ def test_record_delete_v2(mocker, app, db, users, deposit, deposit_file):
     assert dc_mock().metadata_delete.call_count == 0
 
     # Remove the first version
-    delete_record(rec2_id, 'spam', users[0]['id'])
+    delete_record(rec2_id, "spam", users[0]["id"])
 
     # Make sure all PIDs are deleted
-    assert PID.get('doi', rec2['doi']).status == PIDStatus.DELETED
-    assert PID.get('recid', rec2['recid']).status == PIDStatus.DELETED
-    assert PID.get('depid', rec2['_deposit']['id']).status == PIDStatus.DELETED
+    assert PID.get("doi", rec2["doi"]).status == PIDStatus.DELETED
+    assert PID.get("recid", rec2["recid"]).status == PIDStatus.DELETED
+    assert PID.get("depid", rec2["_deposit"]["id"]).status == PIDStatus.DELETED
 
     # Concept DOI should be left registered
-    assert PID.get('doi', rec2['conceptdoi']).status == PIDStatus.REGISTERED
+    assert PID.get("doi", rec2["conceptdoi"]).status == PIDStatus.REGISTERED
 
     # Make sure conceptrecid is redirecting to v1
-    crecid = PID.get('recid', rec2['conceptrecid'])
+    crecid = PID.get("recid", rec2["conceptrecid"])
     assert crecid.status == PIDStatus.REDIRECTED
-    assert crecid.get_redirect() == PID.get('recid', rec1['recid'])
+    assert crecid.get_redirect() == PID.get("recid", rec1["recid"])
 
     # Make sure the v1 PIDs are kept intact
-    assert PID.get('oai', rec1['_oai']['id']).status == PIDStatus.REGISTERED
-    assert PID.get('doi', rec1['doi']).status == PIDStatus.REGISTERED
-    assert PID.get('recid', rec1['recid']).status == PIDStatus.REGISTERED
-    assert PID.get('depid', rec1['_deposit']['id']).status == \
-        PIDStatus.REGISTERED
+    assert PID.get("oai", rec1["_oai"]["id"]).status == PIDStatus.REGISTERED
+    assert PID.get("doi", rec1["doi"]).status == PIDStatus.REGISTERED
+    assert PID.get("recid", rec1["recid"]).status == PIDStatus.REGISTERED
+    assert PID.get("depid", rec1["_deposit"]["id"]).status == PIDStatus.REGISTERED
 
     # Only the v1 DOI should be deleted
     assert dc_mock().doi_post.call_count == 2
-    assert dc_mock().doi_post.has_any_call('10.5072/zenodo.2')
-    assert dc_mock().doi_post.has_any_call('10.5072/zenodo.1')
+    assert dc_mock().doi_post.has_any_call("10.5072/zenodo.2")
+    assert dc_mock().doi_post.has_any_call("10.5072/zenodo.1")
     assert dc_mock().metadata_delete.call_count == 1
-    dc_mock().metadata_delete.assert_any_call('10.5072/zenodo.3')
+    dc_mock().metadata_delete.assert_any_call("10.5072/zenodo.3")
     record = Record.get_record(rec2_id)
-    assert record['removed_by'] == users[0]['id']
-    assert record['removal_reason'] == 'Spam record, removed by Zenodo staff.'
+    assert record["removed_by"] == users[0]["id"]
+    assert record["removal_reason"] == "Spam record, removed by Zenodo staff."
 
 
 def test_record_delete_legacy(mocker, app, db, users, deposit, deposit_file):
     """Delete the non-versioned record."""
-    dc_mock = mocker.patch(
-        'invenio_pidstore.providers.datacite.DataCiteMDSClient')
+    dc_mock = mocker.patch("invenio_pidstore.providers.datacite.DataCiteMDSClient")
     deposit = publish_and_expunge(db, deposit)
     recid, record = deposit.fetch_published()
 
     # 'Simulate' a non-versioned record by removing 'conceptdoi' key
-    del deposit['conceptdoi']
-    del record['conceptdoi']
+    del deposit["conceptdoi"]
+    del record["conceptdoi"]
     deposit.commit()
     record.commit()
     db.session.commit()
@@ -288,18 +288,18 @@ def test_record_delete_legacy(mocker, app, db, users, deposit, deposit_file):
     assert dc_mock().metadata_delete.call_count == 0
 
     # users[0] is not an Admin but it doesn't matter in this case.
-    delete_record(record.id, 'spam', users[0]['id'])
+    delete_record(record.id, "spam", users[0]["id"])
 
     # Make sure all PIDs are deleted
     # TODO: oai PID is left registered
     # assert PID.get('oai', rec['_oai']['id']) == PIDStatus.DELETED
-    assert PID.get('doi', rec['doi']).status == PIDStatus.DELETED
-    assert PID.get('recid', rec['recid']).status == PIDStatus.DELETED
-    assert PID.get('recid', rec['conceptrecid']).status == PIDStatus.DELETED
-    assert PID.get('depid', rec['_deposit']['id']).status == PIDStatus.DELETED
+    assert PID.get("doi", rec["doi"]).status == PIDStatus.DELETED
+    assert PID.get("recid", rec["recid"]).status == PIDStatus.DELETED
+    assert PID.get("recid", rec["conceptrecid"]).status == PIDStatus.DELETED
+    assert PID.get("depid", rec["_deposit"]["id"]).status == PIDStatus.DELETED
 
     assert dc_mock().metadata_delete.call_count == 1
-    dc_mock().metadata_delete.assert_any_call('10.5072/zenodo.2')
+    dc_mock().metadata_delete.assert_any_call("10.5072/zenodo.2")
     record = Record.get_record(record_uuid)
-    assert record['removed_by'] == users[0]['id']
-    assert record['removal_reason'] == 'Spam record, removed by Zenodo staff.'
+    assert record["removed_by"] == users[0]["id"]
+    assert record["removal_reason"] == "Spam record, removed by Zenodo staff."

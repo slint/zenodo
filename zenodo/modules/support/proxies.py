@@ -30,5 +30,6 @@ from flask import current_app
 from werkzeug.local import LocalProxy
 
 current_support_categories = LocalProxy(
-    lambda: current_app.extensions['zenodo-support'].categories)
+    lambda: current_app.extensions["zenodo-support"].categories
+)
 """Proxy to current support issue categories."""

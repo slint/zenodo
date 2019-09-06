@@ -43,7 +43,7 @@ def generate_bag_path(recid, iso_timestamp):
     :type iso_timestamp: str
     """
     recid_chunks = list(chunks(recid, 3))
-    return recid_chunks + ['r', iso_timestamp, ]
+    return recid_chunks + ["r", iso_timestamp]
 
 
 def archive_directory_builder(sip):
@@ -61,6 +61,5 @@ def archive_directory_builder(sip):
 def sipmetadata_name_formatter(sipmetadata):
     """Generator for the archived SIPMetadata filenames."""
     return "record-{name}.{format}".format(
-        name=sipmetadata.type.name,
-        format=sipmetadata.type.format
+        name=sipmetadata.type.name, format=sipmetadata.type.format
     )

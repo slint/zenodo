@@ -41,8 +41,7 @@ class CustomMetadataAPI(object):
     @cached_property
     def term_types(self):
         """Get available field types."""
-        return {k: obj_or_import_string(v)
-                for k, v in self._term_types.items()}
+        return {k: obj_or_import_string(v) for k, v in self._term_types.items()}
 
     @cached_property
     def vocabularies(self):
@@ -54,8 +53,8 @@ class CustomMetadataAPI(object):
         """Get available vocabularies."""
         vocabulary = []
         for scheme in self.vocabularies:
-            for value in self.vocabularies[scheme]['attributes']:
-                vocabulary.append(scheme+':'+value)
+            for value in self.vocabularies[scheme]["attributes"]:
+                vocabulary.append(scheme + ":" + value)
         return set(vocabulary)
 
     @cached_property
@@ -63,12 +62,12 @@ class CustomMetadataAPI(object):
         """Term-to-fieldtype lookup."""
         result = {}
         for vocab, cfg in self.vocabularies.items():
-            for attr in cfg['attributes']:
-                term = '{}:{}'.format(vocab, attr)
-                term_conf = cfg['attributes'][attr]
+            for attr in cfg["attributes"]:
+                term = "{}:{}".format(vocab, attr)
+                term_conf = cfg["attributes"][attr]
                 result[term] = {
-                    'term_type': term_conf['type'],
-                    'multiple': term_conf['multiple']
+                    "term_type": term_conf["type"],
+                    "multiple": term_conf["multiple"],
                 }
         return result
 
@@ -77,7 +76,11 @@ class CustomMetadataAPI(object):
         valid_term_types = set(self.term_types.keys())
         valid_terms = set(self.terms.keys())
         assert all(
-            (v['@context'] and v['attributes'] and
-             set([k['type'] for k in v['attributes'].values()]) <=
-             valid_term_types)
-            for k, v in self.vocabularies.items())
+            (
+                v["@context"]
+                and v["attributes"]
+                and set([k["type"] for k in v["attributes"].values()])
+                <= valid_term_types
+            )
+            for k, v in self.vocabularies.items()
+        )

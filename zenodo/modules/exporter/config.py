@@ -32,19 +32,19 @@ from zenodo.modules.records.serializers import json_v1
 from .streams import BZip2ResultStream
 from .writers import BucketWriter, filename_factory
 
-EXPORTER_BUCKET_UUID = '00000000-0000-0000-0000-000000000001'
+EXPORTER_BUCKET_UUID = "00000000-0000-0000-0000-000000000001"
 
 EXPORTER_JOBS = {
-    'records': {
-        'index': 'records',
-        'serializer': json_v1,
-        'writer': BucketWriter(
+    "records": {
+        "index": "records",
+        "serializer": json_v1,
+        "writer": BucketWriter(
             bucket_id=EXPORTER_BUCKET_UUID,
-            key=filename_factory(index='records', format='json.bz2'),
+            key=filename_factory(index="records", format="json.bz2"),
         ),
-        'resultstream_cls': BZip2ResultStream,
-        'pid_fetcher': zenodo_record_fetcher,
-        'query': "+_exists_:recid +_missing_:removal_reason"
+        "resultstream_cls": BZip2ResultStream,
+        "pid_fetcher": zenodo_record_fetcher,
+        "query": "+_exists_:recid +_missing_:removal_reason",
     }
 }
 """Export jobs definitions."""

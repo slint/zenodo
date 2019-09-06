@@ -37,19 +37,16 @@ from zenodo.modules.deposit.api import ZenodoDeposit as Deposit
 def bearer_auth(headers, token):
     """Create authentication headers (with a valid oauth2 token)."""
     headers = deepcopy(headers)
-    headers.append(
-        ('Authorization', 'Bearer {0}'.format(token['token'].access_token))
-    )
+    headers.append(("Authorization", "Bearer {0}".format(token["token"].access_token)))
     return headers
 
 
 def login_user_via_session(client, user=None, email=None):
     """Login a user via the session."""
     if not user:
-        user = current_app.extensions['security'].datastore.find_user(
-            email=email)
+        user = current_app.extensions["security"].datastore.find_user(email=email)
     with client.session_transaction() as sess:
-        sess['user_id'] = user.get_id()
+        sess["user_id"] = user.get_id()
 
 
 def publish_and_expunge(db, deposit):
@@ -69,10 +66,10 @@ def publish_and_expunge(db, deposit):
 @contextmanager
 def recaptcha_enabled(app):
     """Temporarily enable recaptcha."""
-    orig_public_key = app.config.get('RECAPTCHA_PUBLIC_KEY')
-    orig_private_key = app.config.get('RECAPTCHA_PRIVATE_KEY')
-    app.config['RECAPTCHA_PUBLIC_KEY'] = 'test-key'
-    app.config['RECAPTCHA_PRIVATE_KEY'] = 'test-key'
+    orig_public_key = app.config.get("RECAPTCHA_PUBLIC_KEY")
+    orig_private_key = app.config.get("RECAPTCHA_PRIVATE_KEY")
+    app.config["RECAPTCHA_PUBLIC_KEY"] = "test-key"
+    app.config["RECAPTCHA_PRIVATE_KEY"] = "test-key"
     yield
-    app.config['RECAPTCHA_PUBLIC_KEY'] = orig_public_key
-    app.config['RECAPTCHA_PRIVATE_KEY'] = orig_private_key
+    app.config["RECAPTCHA_PUBLIC_KEY"] = orig_public_key
+    app.config["RECAPTCHA_PRIVATE_KEY"] = orig_private_key

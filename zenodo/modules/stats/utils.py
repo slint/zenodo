@@ -40,11 +40,10 @@ except ImportError:
 
 def get_record_from_context(**kwargs):
     """Get the cached record object from kwargs or the request context."""
-    if 'record' in kwargs:
-        return kwargs['record']
+    if "record" in kwargs:
+        return kwargs["record"]
     else:
-        if request and \
-                hasattr(request._get_current_object(), 'current_file_record'):
+        if request and hasattr(request._get_current_object(), "current_file_record"):
             return request.current_file_record
 
 
@@ -52,14 +51,14 @@ def extract_event_record_metadata(record):
     """Extract from a record the payload needed for a statistics event."""
     return dict(
         record_id=str(record.id),
-        recid=str(record['recid']) if record.get('recid') else None,
-        conceptrecid=record.get('conceptrecid'),
-        doi=record.get('doi'),
-        conceptdoi=record.get('conceptdoi'),
-        access_right=record.get('access_right'),
-        resource_type=record.get('resource_type'),
-        communities=record.get('communities'),
-        owners=record.get('owners'),
+        recid=str(record["recid"]) if record.get("recid") else None,
+        conceptrecid=record.get("conceptrecid"),
+        doi=record.get("doi"),
+        conceptdoi=record.get("conceptdoi"),
+        access_right=record.get("access_right"),
+        resource_type=record.get("resource_type"),
+        communities=record.get("communities"),
+        owners=record.get("owners"),
     )
 
 
@@ -67,34 +66,31 @@ def build_record_stats(recid, conceptrecid):
     """Build the record's stats."""
     stats = {}
     stats_sources = {
-        'record-view': {
-            'params': {'recid': recid},
-            'fields': {
-                'views': 'count',
-                'unique_views': 'unique_count',
+        "record-view": {
+            "params": {"recid": recid},
+            "fields": {"views": "count", "unique_views": "unique_count"},
+        },
+        "record-download": {
+            "params": {"recid": recid},
+            "fields": {
+                "downloads": "count",
+                "unique_downloads": "unique_count",
+                "volume": "volume",
             },
         },
-        'record-download': {
-            'params': {'recid': recid},
-            'fields': {
-                'downloads': 'count',
-                'unique_downloads': 'unique_count',
-                'volume': 'volume',
+        "record-view-all-versions": {
+            "params": {"conceptrecid": conceptrecid},
+            "fields": {
+                "version_views": "count",
+                "version_unique_views": "unique_count",
             },
         },
-        'record-view-all-versions': {
-            'params': {'conceptrecid': conceptrecid},
-            'fields': {
-                'version_views': 'count',
-                'version_unique_views': 'unique_count',
-            }
-        },
-        'record-download-all-versions': {
-            'params': {'conceptrecid': conceptrecid},
-            'fields': {
-                'version_downloads': 'count',
-                'version_unique_downloads': 'unique_count',
-                'version_volume': 'volume',
+        "record-download-all-versions": {
+            "params": {"conceptrecid": conceptrecid},
+            "fields": {
+                "version_downloads": "count",
+                "version_unique_downloads": "unique_count",
+                "version_volume": "volume",
             },
         },
     }
@@ -102,8 +98,8 @@ def build_record_stats(recid, conceptrecid):
         try:
             query_cfg = current_stats.queries[query_name]
             query = query_cfg.query_class(**query_cfg.query_config)
-            result = query.run(**cfg['params'])
-            for dst, src in cfg['fields'].items():
+            result = query.run(**cfg["params"])
+            for dst, src in cfg["fields"].items():
                 stats[dst] = result.get(src)
         except Exception:
             pass
@@ -113,10 +109,12 @@ def build_record_stats(recid, conceptrecid):
 def get_record_stats(recordid, throws=True):
     """Fetch record statistics from Elasticsearch."""
     try:
-        res = (RecordsSearch()
-               .source(include='_stats')  # only include "_stats" field
-               .get_record(recordid)
-               .execute())
+        res = (
+            RecordsSearch()
+            .source(include="_stats")  # only include "_stats" field
+            .get_record(recordid)
+            .execute()
+        )
         return res[0]._stats.to_dict() if res else None
     except Exception:
         if throws:

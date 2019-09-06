@@ -40,11 +40,11 @@ def serialize_related_identifiers(pid):
 
         rec = ZenodoRecord.get_record(pid.get_assigned_object())
         # External DOI records don't have Concept DOI
-        if 'conceptdoi' in rec:
+        if "conceptdoi" in rec:
             ri = {
-                'scheme': 'doi',
-                'relation': 'isVersionOf',
-                'identifier': rec['conceptdoi']
+                "scheme": "doi",
+                "relation": "isVersionOf",
+                "identifier": rec["conceptdoi"],
             }
             related_identifiers.append(ri)
 
@@ -77,11 +77,7 @@ def serialize_related_identifiers(pid):
     if pv.exists:
         for p in pv.children:
             rec = ZenodoRecord.get_record(p.get_assigned_object())
-            ri = {
-                'scheme': 'doi',
-                'relation': 'hasVersion',
-                'identifier': rec['doi']
-            }
+            ri = {"scheme": "doi", "relation": "hasVersion", "identifier": rec["doi"]}
             related_identifiers.append(ri)
     return related_identifiers
 
@@ -92,14 +88,17 @@ def preprocess_related_identifiers(pid, record, result):
     Resolves the passed pid to the proper `recid` in order to add related
     identifiers from PID relations.
     """
-    recid_value = record.get('recid')
-    if pid.pid_type == 'doi' and pid.pid_value == record.get('conceptdoi'):
-        recid_value = record.get('conceptrecid')
-        result['metadata']['doi'] = record.get('conceptdoi')
-    recid = (pid if pid.pid_value == recid_value else
-             PersistentIdentifier.get(pid_type='recid', pid_value=recid_value))
+    recid_value = record.get("recid")
+    if pid.pid_type == "doi" and pid.pid_value == record.get("conceptdoi"):
+        recid_value = record.get("conceptrecid")
+        result["metadata"]["doi"] = record.get("conceptdoi")
+    recid = (
+        pid
+        if pid.pid_value == recid_value
+        else PersistentIdentifier.get(pid_type="recid", pid_value=recid_value)
+    )
 
-    if recid.pid_value == record.get('conceptrecid'):
+    if recid.pid_value == record.get("conceptrecid"):
         pv = PIDVersioning(parent=recid)
     else:
         pv = PIDVersioning(child=recid)
@@ -108,6 +107,5 @@ def preprocess_related_identifiers(pid, record, result):
     if pv.exists:
         rels = serialize_related_identifiers(recid)
         if rels:
-            result['metadata'].setdefault(
-                'related_identifiers', []).extend(rels)
+            result["metadata"].setdefault("related_identifiers", []).extend(rels)
     return result

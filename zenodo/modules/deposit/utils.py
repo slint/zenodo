@@ -45,8 +45,11 @@ from werkzeug.routing import PathConverter
 
 from zenodo.modules.deposit.resolvers import deposit_resolver
 from zenodo.modules.deposit.tasks import datacite_inactivate, datacite_register
-from zenodo.modules.openaire.helpers import openaire_datasource_id, \
-    openaire_original_id, openaire_type
+from zenodo.modules.openaire.helpers import (
+    openaire_datasource_id,
+    openaire_original_id,
+    openaire_type,
+)
 from zenodo.modules.openaire.tasks import openaire_delete
 from zenodo.modules.records.api import ZenodoRecord
 
@@ -55,7 +58,7 @@ def file_id_to_key(value):
     """Convert file UUID to value if in request context."""
     from invenio_files_rest.models import ObjectVersion
 
-    _, record = request.view_args['pid_value'].data
+    _, record = request.view_args["pid_value"].data
     if value in record.files:
         return value
 
@@ -84,8 +87,9 @@ def get_all_deposit_siblings(deposit):
     """Get all siblings of the deposit."""
     from invenio_pidstore.models import PersistentIdentifier
     from invenio_pidrelations.contrib.versioning import PIDVersioning
-    recid = deposit['recid']
-    rec_pid = PersistentIdentifier.get(pid_type='recid', pid_value=str(recid))
+
+    recid = deposit["recid"]
+    rec_pid = PersistentIdentifier.get(pid_type="recid", pid_value=str(recid))
     pv = PIDVersioning(child=rec_pid)
     return [pid.get_assigned_object() for pid in pv.children]
 
@@ -94,12 +98,12 @@ def fetch_depid(pid):
     """Fetch depid from any pid."""
     try:
         if isinstance(pid, PersistentIdentifier):
-            if pid.pid_type == 'depid':
+            if pid.pid_type == "depid":
                 return pid
-            elif pid.pid_type == 'recid':
+            elif pid.pid_type == "recid":
                 return ZenodoRecord.get_record(pid.object_uuid).depid
         elif isinstance(pid, (string_types, int)):
-            return PersistentIdentifier.get('depid', pid_value=pid)
+            return PersistentIdentifier.get("depid", pid_value=pid)
         else:
             raise Exception('"[{}] cannot be resolved to depid'.format(pid))
     except Exception:
@@ -118,18 +122,18 @@ def delete_record(record_uuid, reason, user):
         responsible for the removal.
     """
     from invenio_github.models import ReleaseStatus
+
     if isinstance(user, text_type):
         user_id = User.query.filter_by(email=user).one().id
     elif isinstance(user, int):
         user_id = User.query.get(user).id
     else:
-        raise TypeError("User cannot be determined from argument: {0}".format(
-            user))
+        raise TypeError("User cannot be determined from argument: {0}".format(user))
 
     record = ZenodoRecord.get_record(record_uuid)
 
     # Remove the record from versioning and delete the recid
-    recid = PersistentIdentifier.get('recid', record['recid'])
+    recid = PersistentIdentifier.get("recid", record["recid"])
     pv = PIDVersioning(child=recid)
     pv.remove_child(recid)
     pv.update_redirect()
@@ -147,14 +151,14 @@ def delete_record(record_uuid, reason, user):
     record_bucket.locked = False
     record_bucket.remove()
 
-    removal_reasons = dict(current_app.config['ZENODO_REMOVAL_REASONS'])
+    removal_reasons = dict(current_app.config["ZENODO_REMOVAL_REASONS"])
     if reason in removal_reasons:
         reason = removal_reasons[reason]
 
-    depid, deposit = deposit_resolver.resolve(record['_deposit']['id'])
+    depid, deposit = deposit_resolver.resolve(record["_deposit"]["id"])
 
     try:
-        doi = PersistentIdentifier.get('doi', record['doi'])
+        doi = PersistentIdentifier.get("doi", record["doi"])
     except PIDDoesNotExistError:
         doi = None
 
@@ -167,16 +171,14 @@ def delete_record(record_uuid, reason, user):
         datasource_id = None
 
     if pv.children.count() == 0:
-        conceptrecid = PersistentIdentifier.get('recid',
-                                                record['conceptrecid'])
+        conceptrecid = PersistentIdentifier.get("recid", record["conceptrecid"])
         conceptrecid.delete()
         new_last_child = None
     else:
-        new_last_child = (pv.last_child.pid_value,
-                          str(pv.last_child.object_uuid))
+        new_last_child = (pv.last_child.pid_value, str(pv.last_child.object_uuid))
 
-    if 'conceptdoi' in record:
-        conceptdoi_value = record['conceptdoi']
+    if "conceptdoi" in record:
+        conceptdoi_value = record["conceptdoi"]
     else:
         conceptdoi_value = None
 
@@ -186,10 +188,7 @@ def delete_record(record_uuid, reason, user):
 
     # Clear the record and put the deletion information
     record.clear()
-    record.update({
-        'removal_reason': reason,
-        'removed_by': user_id,
-    })
+    record.update({"removal_reason": reason, "removed_by": user_id})
     record.commit()
 
     # Mark the relevant GitHub Release as deleted
@@ -209,10 +208,12 @@ def delete_record(record_uuid, reason, user):
             datacite_inactivate.delay(conceptdoi_value)
 
     # Also delete from OpenAIRE index
-    if current_app.config['OPENAIRE_DIRECT_INDEXING_ENABLED'] and original_id \
-            and datasource_id:
-        openaire_delete.delay(original_id=original_id,
-                              datasource_id=datasource_id)
+    if (
+        current_app.config["OPENAIRE_DIRECT_INDEXING_ENABLED"]
+        and original_id
+        and datasource_id
+    ):
+        openaire_delete.delay(original_id=original_id, datasource_id=datasource_id)
 
 
 def suggest_language(q, limit=5):
@@ -235,9 +236,12 @@ def suggest_language(q, limit=5):
             pass
     # For queries longer than 2 characters, search by name
     if len(q) > 2:
-        langs = list(itertools.islice(
-            (l for l in pycountry.languages if q in l.name.lower()), limit))
+        langs = list(
+            itertools.islice(
+                (l for l in pycountry.languages if q in l.name.lower()), limit
+            )
+        )
     # Include the ISO-fetched language (if available) on first position
     if lut:
-        langs = ([lut, ] + [l for l in langs if l != lut])[:limit]
+        langs = ([lut] + [l for l in langs if l != lut])[:limit]
     return langs
