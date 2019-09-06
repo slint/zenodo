@@ -124,7 +124,8 @@ def test_full_record(app, db, full_record):
         u"general_note": {u"general_note": u"notes"},
         u"information_relating_to_copyright_status": {u"copyright_status": u"open"},
         u"terms_governing_use_and_reproduction_note": {
-            u"uniform_resource_identifier": u"https://creativecommons.org/licenses/by/4.0/",
+            u"uniform_resource_identifier": u"https://creativecommons.org"
+            "/licenses/by/4.0/",
             u"terms_governing_use_and_reproduction": u"Creative Commons Attribution 4.0",
         },
         u"communities": [u"zenodo"],
@@ -210,7 +211,8 @@ def test_full_record(app, db, full_record):
         u"added_entry_meeting_name": [
             {
                 u"date_of_meeting": u"23-25 June, 2014",
-                u"meeting_name_or_jurisdiction_name_as_entry_element": u"The 13th Biennial HITRAN Conference",
+                u"meeting_name_or_jurisdiction_name_as_entry_element": u"The "
+                "13th Biennial HITRAN Conference",
                 u"number_of_part_section_meeting": u"VI",
                 u"miscellaneous_information": u"HITRAN13",
                 u"name_of_part_section_of_a_work": u"1",

@@ -84,7 +84,7 @@ author = u"CERN"
 # Get the version string. Cannot be done with import!
 g = {}
 with open(os.path.join("..", "zenodo", "version.py"), "rt") as fp:
-    exec(fp.read(), g)
+    exec (fp.read(), g)
     version = g["__version__"]
 
 # The full version, including alpha/beta/rc tags.

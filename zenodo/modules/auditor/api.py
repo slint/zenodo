@@ -55,7 +55,7 @@ class Audit(object):
             self.logger.exception(json.dumps(check.dump()))
         finally:
             if not check.is_ok:
-                print(json.dumps(check.dump()))
+                print (json.dumps(check.dump()))
                 self.logger.error(json.dumps(check.dump()))
         return check
 

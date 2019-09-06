@@ -79,6 +79,9 @@ before_install:
   - "/tmp/elasticsearch/bin/elasticsearch > /tmp/local-es.log &"
   - "travis_retry pip install --upgrade pip setuptools py"
   - "travis_retry pip install wheel coveralls requirements-builder"
+  # "black" is only available in Python 3.6+
+  - "~/virtualenv/python3.6/bin/pip install black"
+  - "ln -sf ~/virtualenv/python3.6/bin/black ~/bin/black"
   - "./scripts/setup-npm.sh"
   - "cat requirements.txt > .travis-prod-requirements.txt"
   - "requirements-builder --level=pypi setup.py > .travis-latest-requirements.txt"

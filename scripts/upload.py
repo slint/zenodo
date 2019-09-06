@@ -43,8 +43,8 @@ def upload(token, metadata, files, publish=True):
     r = requests.post(base_url, data="{}", headers=auth_json)
     assert r.status_code == 201
     links = r.json()["links"]
-    print("Create deposit:")
-    print(r.json())
+    print ("Create deposit:")
+    print (r.json())
     # Wait for ES to index.
     sleep(1)
 
@@ -56,21 +56,21 @@ def upload(token, metadata, files, publish=True):
             headers=auth,
         )
         assert r.status_code == 201
-        print("Upload file:")
-        print(r.json())
+        print ("Upload file:")
+        print (r.json())
 
     r = requests.put(
         links["self"], data=json.dumps(dict(metadata=metadata)), headers=auth_json
     )
     assert r.status_code == 200
-    print("Update metadata:")
-    print(r.json())
+    print ("Update metadata:")
+    print (r.json())
 
     if publish:
         r = requests.post(links["publish"], headers=auth)
         assert r.status_code == 202
-        print("Publish:")
-        print(r.json())
+        print ("Publish:")
+        print (r.json())
 
     return r.json()["id"]
 

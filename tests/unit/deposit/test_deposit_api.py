@@ -100,7 +100,8 @@ def test_deposit_with_custom_field(
     assert response.json["errors"] == [
         {
             "field": "metadata.custom",
-            "message": 'Zenodo does not support "dwc:foobar" as a custom metadata term.',
+            "message": 'Zenodo does not support "dwc:foobar" as a custom metadata '
+            'term.',
         }
     ]
 
