@@ -90,7 +90,6 @@ def update_record_statistics(start_date=None, end_date=None):
                 'lte': end_date.replace(microsecond=0).isoformat() + '||/d'}
         ).extra(_source=False)
         query.aggs.bucket('ids', 'terms', field='conceptrecid')
-        import wdb; wdb.set_trace()
         conceptrecids |= {
             b.key for b in query.execute().aggregations.ids.buckets}
 
